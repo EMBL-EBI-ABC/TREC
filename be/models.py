@@ -143,6 +143,7 @@ trec = DataSource(
         FieldDefinition(name="geographic location (latitude)", type=float),
         FieldDefinition(name="geographic location (longitude)", type=float),
         FieldDefinition(name="organism", type=str, filterable=True),
+        FieldDefinition(name="biosampleId", type=str),
         FieldDefinition(name="customFields", type=list[CustomField]|None),
         FieldDefinition(name="relationships", type=list[BioSamplesRelationships]|None),
     ],
