@@ -136,18 +136,17 @@ trec = DataSource(
     name="TREC",
     fields=[
         FieldDefinition(name="altitude", type=str, filterable=True),
-        FieldDefinition(name="collection date", type=datetime.datetime|None),
+        FieldDefinition(name="collection_date", type=datetime.datetime|None),
         FieldDefinition(name="depth", type=str, filterable=True),
-        FieldDefinition(name="geographic location (country and/or sea)", type=str,
-                        filterable=True),
-        FieldDefinition(name="geographic location (latitude)", type=float|None),
-        FieldDefinition(name="geographic location (longitude)", type=float|None),
+        FieldDefinition(name="location", type=str, filterable=True),
+        FieldDefinition(name="lat", type=float|None),
+        FieldDefinition(name="lon", type=float|None),
         FieldDefinition(name="organism", type=str, filterable=True),
         FieldDefinition(name="biosampleId", type=str),
         FieldDefinition(name="customFields", type=list[CustomField]|None),
         FieldDefinition(name="relationships", type=list[BioSamplesRelationships]|None),
     ],
-    default_sort_field="collection date",
+    default_sort_field="collection_date",
     default_sort_order="desc",
 )
 TRECData, TRECAggregationResponse, TRECSearchParams = trec.generate_classes()
