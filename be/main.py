@@ -138,7 +138,7 @@ async def elastic_details(index_name, record_id, data_class):
 # MaveDB.
 
 
-@app.get("/data_portal/search")
+@app.get("/data_portal")
 async def trec_search(
     params: Annotated[TRECSearchParams, Query()],
 ) -> ElasticResponse[TRECData, TRECAggregationResponse]:
@@ -150,7 +150,7 @@ async def trec_search(
     )
 
 
-@app.get("/data_portal_search/search/{record_id}")
+@app.get("/data_portal/{record_id}")
 async def trec_details(
     record_id: Annotated[str, Path(description="Record ID")],
 ) -> ElasticDetailsResponse[TRECData]:
