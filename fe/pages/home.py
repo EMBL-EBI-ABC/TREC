@@ -1,8 +1,6 @@
 import dash
 import dash_bootstrap_components as dbc
-from dash import html, dcc
-import plotly.express as px
-import pandas as pd
+from dash import html
 
 dash.register_page(
     __name__,
@@ -31,7 +29,7 @@ banner = html.Div(
                     ),
                     color="light",
                 ),
-                style={"marginTop": "15px"},
+                style={"marginTop": "2em"},
             )
         )
     ),
