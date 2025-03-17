@@ -20,6 +20,7 @@ app.layout = html.Div([
         brand=html.Img(src=TREC_LOGO, height="60px"),
         brand_href=f"{dash.page_registry['pages.home']['path']}",
         color="white",
+        dark=False,
     ),
     dash.page_container
 ])
