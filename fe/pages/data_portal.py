@@ -151,9 +151,10 @@ def return_sample_id_button(biosample_id: str) -> html.A:
 def create_update_data_table(organism_filter, depth_filter, altitude_filter,
                              location_filter, input_value, pagination):
     if pagination is None or pagination == 1:
-        params = {"size": 30, "start": 0}
+        start = 0
     else:
-        params = {"size": 30, "start": (pagination-1) * 30}
+        start = (pagination - 1) * 30
+    params = {"size": 30, "start": start}
     for field_name, values in {"organism": organism_filter, "depth": depth_filter,
                                "altitude": altitude_filter,
                                "location": location_filter}.items():

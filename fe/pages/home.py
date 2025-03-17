@@ -57,7 +57,7 @@ def data_portal_card():
             dbc.CardFooter(dbc.Button(
                 "Data Portal",
                 color="primary",
-                href="#")),
+                href="/data-portal")),
         ]
     )
 
