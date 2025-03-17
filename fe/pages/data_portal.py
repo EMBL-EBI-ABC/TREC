@@ -1,3 +1,5 @@
+from typing import Any
+
 import dash
 import requests
 
@@ -63,7 +65,7 @@ layout = dbc.Container(
                                                               "ex. soil metagenome...",
                                       type="text", debounce=True),
                             html.Div(id="data_table"),
-                            dbc.Pagination(id="pagination", max_value=1,
+                            dbc.Pagination(id="pagination", max_value=1860,
                                            first_last=True,
                                            previous_next=True,
                                            fully_expanded=False),
@@ -100,14 +102,16 @@ def return_badge_status(budge_text: str, color: str = None) -> dbc.Badge:
     return dbc.Badge(budge_text, pill=True, color=color)
 
 
-def generate_filters(aggregations: list) -> list:
+def generate_filters(aggregations: list) -> tuple[list, int]:
     options = []
+    total_count = 0
     for bucket in aggregations:
+        total_count += bucket["doc_count"]
         options.append(
             {"label": f"{bucket['key']} - {bucket['doc_count']}",
              "value": bucket['key']}
         )
-    return options
+    return options, total_count
 
 
 @callback(
@@ -116,6 +120,7 @@ def generate_filters(aggregations: list) -> list:
     Output("depth_filter", "options"),
     Output("altitude_filter", "options"),
     Output("location_filter", "options"),
+    Output("pagination", "max_value"),
     Input("organism_filter", "value"),
     Input("depth_filter", "value"),
     Input("altitude_filter", "value"),
@@ -133,15 +138,15 @@ def generate_filters(aggregations: list) -> list:
 )
 def create_update_data_table(organism_filter, depth_filter, altitude_filter,
                              location_filter, input_value, pagination):
-    params = {"size": 30, "start": 0}
-    print(
-        f"{organism_filter=}\t{depth_filter=}\t{altitude_filter=}\t{location_filter=}")
+    if pagination is None or pagination == 1:
+        params = {"size": 30, "start": 0}
+    else:
+        params = {"size": 30, "start": (pagination-1) * 30}
     for field_name, values in {"organism": organism_filter, "depth": depth_filter,
                                "altitude": altitude_filter,
                                "location": location_filter}.items():
         if values is not None and len(values) > 0:
             params[field_name] = values[0]
-    print(params)
     if input_value is not None:
         params["q"] = input_value
     response = requests.get(
@@ -166,9 +171,13 @@ def create_update_data_table(organism_filter, depth_filter, altitude_filter,
     table = dbc.Table(table_header + table_body, striped=True, bordered=True,
                       hover=True, responsive=True, )
 
-    organism_options = generate_filters(response["aggregations"]["organism"]["buckets"])
-    depth_options = generate_filters(response["aggregations"]["depth"]["buckets"])
-    altitude_options = generate_filters(response["aggregations"]["altitude"]["buckets"])
-    location_options = generate_filters(response["aggregations"]["location"]["buckets"])
+    organism_options, total_count = generate_filters(
+        response["aggregations"]["organism"]["buckets"])
+    depth_options, _ = generate_filters(response["aggregations"]["depth"]["buckets"])
+    altitude_options, _ = generate_filters(
+        response["aggregations"]["altitude"]["buckets"])
+    location_options, _ = generate_filters(
+        response["aggregations"]["location"]["buckets"])
 
-    return table, organism_options, depth_options, altitude_options, location_options
+    return (table, organism_options, depth_options, altitude_options, location_options,
+            total_count // 30 + 1)
