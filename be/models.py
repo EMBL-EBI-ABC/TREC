@@ -30,7 +30,7 @@ class CustomField(BaseModel):
 
 class BioSamplesRelationships(BaseModel):
     source: str
-    typ: str
+    type: str
     target: str
 
 
