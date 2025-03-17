@@ -118,6 +118,14 @@ def generate_filters(aggregations: list) -> tuple[list, int]:
     return options, total_count
 
 
+def return_sample_id_button(biosample_id: str) -> html.A:
+    return html.A(
+        biosample_id,
+        style={"textDecoration": "none"},
+        href=f"/data-portal/{biosample_id}"
+    )
+
+
 @callback(
     Output("data_table", "children"),
     Output("organism_filter", "options"),
@@ -164,7 +172,8 @@ def create_update_data_table(organism_filter, depth_filter, altitude_filter,
     table_body = [
         html.Tbody(
             [html.Tr(
-                [html.Td(row["biosampleId"], className="text-center"),
+                [html.Td(return_sample_id_button(row["biosampleId"]),
+                         className="text-center"),
                  html.Td(row["organism"], className="text-center"),
                  html.Td(row["depth"], className="text-center"),
                  html.Td(row["altitude"], className="text-center"),
