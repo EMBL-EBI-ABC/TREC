@@ -13,9 +13,9 @@ app = dash.Dash(
 app.layout = html.Div([
     dbc.NavbarSimple(
         children=[
-            dbc.NavItem(dbc.NavLink("Data Portal", href="#")),
-            dbc.NavItem(dbc.NavLink("API", href="#")),
-            dbc.NavItem(dbc.NavLink("About", href="#")),
+            dbc.NavItem(dbc.NavLink("Data Portal", href="/data-portal")),
+            dbc.NavItem(dbc.NavLink("API", href="/api")),
+            dbc.NavItem(dbc.NavLink("About", href="/about")),
         ],
         brand=html.Img(src=TREC_LOGO, height="60px"),
         brand_href=f"{dash.page_registry['pages.home']['path']}",

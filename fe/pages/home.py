@@ -76,7 +76,7 @@ def api_card():
             dbc.CardFooter(dbc.Button(
                 "API Documentation",
                 color="primary",
-                href="#")),
+                href="/api")),
         ]
     )
 
@@ -95,7 +95,7 @@ def about_card():
             dbc.CardFooter(dbc.Button(
                 "About",
                 color="primary",
-                href="#")),
+                href="/about")),
         ]
     )
 
