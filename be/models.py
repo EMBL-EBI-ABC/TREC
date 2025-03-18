@@ -53,6 +53,12 @@ class ElasticDetailsResponse(BaseModel, Generic[T]):
     results: list[T]
 
 
+class ElasticSearchAfterResponse(BaseModel, Generic[T]):
+    total: int
+    search_after: list[int]|None
+    results: list[T]|list
+
+
 # Base Elastic query class.
 
 
@@ -74,7 +80,8 @@ class SearchParams(BaseModel):
 
 
 class FieldDefinition:
-    def __init__(self, name: str, type: type|types.UnionType, filterable: bool = False):
+    def __init__(self, name: str, type: type | types.UnionType,
+                 filterable: bool = False):
         self.name = name
         self.type = type
         self.filterable = filterable
@@ -136,15 +143,16 @@ trec = DataSource(
     name="TREC",
     fields=[
         FieldDefinition(name="altitude", type=str, filterable=True),
-        FieldDefinition(name="collection_date", type=datetime.datetime|None),
+        FieldDefinition(name="collection_date", type=datetime.datetime | None),
         FieldDefinition(name="depth", type=str, filterable=True),
         FieldDefinition(name="location", type=str, filterable=True),
-        FieldDefinition(name="lat", type=float|None),
-        FieldDefinition(name="lon", type=float|None),
+        FieldDefinition(name="lat", type=float | None),
+        FieldDefinition(name="lon", type=float | None),
         FieldDefinition(name="organism", type=str, filterable=True),
         FieldDefinition(name="biosampleId", type=str),
-        FieldDefinition(name="customFields", type=list[CustomField]|None),
-        FieldDefinition(name="relationships", type=list[BioSamplesRelationships]|None),
+        FieldDefinition(name="customFields", type=list[CustomField] | None),
+        FieldDefinition(name="relationships",
+                        type=list[BioSamplesRelationships] | None),
     ],
     default_sort_field="collection_date",
     default_sort_order="desc",

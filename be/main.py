@@ -15,6 +15,7 @@ from models import (
     TRECData,
     TRECSearchParams,
     TRECAggregationResponse,
+    ElasticSearchAfterResponse
 )
 
 
@@ -56,9 +57,37 @@ app.add_middleware(
 
 # Generic search methods.
 
+async def elastic_search_after(index_name, search_after: int | None):
+    search_body = {
+        "size": 10000,
+        "fields": ["lon", "lat", "biosampleId", "organism", "depth", "altitude",
+                   "location"],
+        "sort": [
+            {"collection_date": "asc"}
+        ]
+    }
+    if search_after is not None:
+        search_body["search_after"] = search_after
+    try:
+        response = await app.state.es_client.search(index=index_name, body=search_body)
+        total = len(response["hits"]["hits"])
+        if total == 0:
+            search_after = None
+        else:
+            search_after = response["hits"]["hits"][-1]["sort"]
+
+        return ElasticSearchAfterResponse[TRECData](
+            total=total,
+            search_after=search_after,
+            results=[r["_source"] for r in response["hits"]["hits"]],
+        )
+
+    except Exception as e:
+        # Handle Elasticsearch errors.
+        raise HTTPException(status_code=500, detail=f"Search error: {str(e)}")
+
 
 async def elastic_search(index_name, params, data_class, aggregation_class):
-
     # Build the query body based on whether there is full text search.
     if params.q:
         query_body = {"multi_match": {"query": params.q, "fields": ["*"]}}
@@ -140,7 +169,7 @@ async def elastic_details(index_name, record_id, data_class):
 
 @app.get("/data_portal")
 async def trec_search(
-    params: Annotated[TRECSearchParams, Query()],
+        params: Annotated[TRECSearchParams, Query()],
 ) -> ElasticResponse[TRECData, TRECAggregationResponse]:
     return await elastic_search(
         index_name="data_portal",
@@ -152,10 +181,16 @@ async def trec_search(
 
 @app.get("/data_portal/{record_id}")
 async def trec_details(
-    record_id: Annotated[str, Path(description="Record ID")],
+        record_id: Annotated[str, Path(description="Record ID")],
 ) -> ElasticDetailsResponse[TRECData]:
     return await elastic_details(
         index_name="data_portal",
         record_id=record_id,
         data_class=TRECData,
     )
+
+
+@app.get("/data_portal_analytics")
+async def trec_analytics(search_after: Annotated[list[int] | None, Query()] = None
+                         ) -> ElasticSearchAfterResponse[TRECData]:
+    return await elastic_search_after("data_portal", search_after)
