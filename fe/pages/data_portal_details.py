@@ -63,7 +63,7 @@ def build_data_portal_details_page(sample_id):
         fig = px.scatter_map(df, lat="lat", lon="lon", zoom=11)
         children.append(html.H4("Sampling Map"))
         children.append(dcc.Graph(figure=fig))
-    if "relationships" in response:
+    if "relationships" in response and len(response["relationships"]) > 0:
         children.append(html.H4("Relationships"))
         table_header = [
             html.Thead(html.Tr([html.Th(value, className="text-center") for value in
