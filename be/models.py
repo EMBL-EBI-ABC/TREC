@@ -53,14 +53,7 @@ class ElasticDetailsResponse(BaseModel, Generic[T]):
     results: list[T]
 
 
-class ElasticSearchAfterResponse(BaseModel, Generic[T]):
-    total: int
-    search_after: list[int]|None
-    results: list[T]|list
-
-
 # Base Elastic query class.
-
 
 class SearchParams(BaseModel):
     model_config = {
