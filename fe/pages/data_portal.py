@@ -24,7 +24,8 @@ layout = dbc.Container(
                                 dbc.Checklist(id="organism_filter")
                             ]
                         ),
-                        style={"margin-bottom": "5px"},
+                        style={"margin-bottom": "5px", "maxHeight": "15em",
+                               "overflowY": "auto"},
                     ),
                     dbc.Card(
                         dbc.CardBody(
@@ -34,7 +35,8 @@ layout = dbc.Container(
                                 dbc.Checklist(id="depth_filter")
                             ]
                         ),
-                        style={"margin-bottom": "5px"},
+                        style={"margin-bottom": "5px", "maxHeight": "15em",
+                               "overflowY": "auto"},
                     ),
                     dbc.Card(
                         dbc.CardBody(
@@ -44,7 +46,8 @@ layout = dbc.Container(
                                 dbc.Checklist(id="altitude_filter")
                             ]
                         ),
-                        style={"margin-bottom": "5px"},
+                        style={"margin-bottom": "5px", "maxHeight": "15em",
+                               "overflowY": "auto"},
                     ),
                     dbc.Card(
                         dbc.CardBody(
@@ -54,7 +57,8 @@ layout = dbc.Container(
                                 dbc.Checklist(id="location_filter")
                             ]
                         ),
-                        style={"margin-bottom": "5px"},
+                        style={"margin-bottom": "5px", "maxHeight": "15em",
+                               "overflowY": "auto"},
                     )
                 ],
                 id="filters-card",
@@ -153,8 +157,8 @@ def create_update_data_table(organism_filter, depth_filter, altitude_filter,
     if pagination is None or pagination == 1:
         start = 0
     else:
-        start = (pagination - 1) * 30
-    params = {"size": 30, "start": start}
+        start = (pagination - 1) * 20
+    params = {"size": 20, "start": start}
     for field_name, values in {"organism": organism_filter, "depth": depth_filter,
                                "altitude": altitude_filter,
                                "location": location_filter}.items():
@@ -194,4 +198,4 @@ def create_update_data_table(organism_filter, depth_filter, altitude_filter,
         response["aggregations"]["location"]["buckets"])
 
     return (table, organism_options, depth_options, altitude_options, location_options,
-            total_count // 30 + 1)
+            total_count // 20 + 1)
