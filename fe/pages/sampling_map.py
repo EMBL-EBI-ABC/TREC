@@ -1,7 +1,6 @@
 import dash
-import requests
-from dash import dcc, callback, Output, Input, html
-from itertools import chain
+import os
+from dash import dcc, callback, Output, Input, dash_table
 import dash_bootstrap_components as dbc
 import plotly.express as px
 import pandas as pd
@@ -11,11 +10,32 @@ dash.register_page(
     path_template="/sampling-map"
 )
 
+DATA = pd.read_parquet(os.path.abspath("./") + "/pages" + "/sampling_map.parquet")
+
 
 def layout(**kwargs):
     return dbc.Container([
         dbc.Row(
             dbc.Col(dbc.Spinner(dcc.Graph(id="sampling-map")), md=12, id="col-map")),
+        dbc.Row(
+            dbc.Col(dash_table.DataTable(
+                id="datatable-paging",
+                columns=[
+                    {"name": "BioSample ID", "id": "links", "presentation": "markdown"},
+                    {"name": "Organism", "id": "organism"},
+                    {"name": "Depth", "id": "depth"},
+                    {"name": "Altitude", "id": "altitude"},
+                    {"name": "Geographic Location", "id": "location"}
+                ],
+                style_cell={"textAlign": "center"},
+                css=[dict(selector="p", rule="margin: 0; text-align: center"),
+                     dict(selector="a", rule="text-decoration: none")],
+                page_current=0,
+                page_size=10,
+                page_action="custom",
+                style_table={'overflowX': 'scroll'}
+            ), md=12, id="col-table")
+        )
     ])
 
 
@@ -24,22 +44,28 @@ def layout(**kwargs):
     Input("sampling-map", "figure"),
 )
 def build_map(sampling_map):
-    generators = []
-    response = requests.get(
-        "https://trec-be-868757013548.europe-west2.run.app/data_portal_analytics"
-    ).json()
-    while response["total"] > 0:
-        generators.append(({"lon": item["lon"], "lat": item["lat"],
-                            "id": item["biosampleId"], "organism": item["organism"],
-                            "depth": item["depth"], "altitude": item["altitude"],
-                            "location": item["location"]} for item in
-                           response["results"] if "lon" in item and "lat" in item))
-        response = requests.get(
-            "https://trec-be-868757013548.europe-west2.run.app/data_portal_analytics",
-            params={"search_after": response["search_after"]}).json()
-    data = chain(*generators)
-    df = pd.DataFrame(data)
-    map_fig = px.scatter_map(df, lat="lat", lon="lon", zoom=3, hover_name="id",
+    map_fig = px.scatter_map(DATA, lat="lat", lon="lon", zoom=3, hover_name="id",
                              height=800)
-    map_fig.update_traces(cluster=dict(enabled=True))
     return map_fig
+
+
+@callback(
+    Output("datatable-paging", "data"),
+    Input("sampling-map", "selectedData"),
+    Input("sampling-map", "clickData"),
+    Input('datatable-paging', "page_current"),
+    Input('datatable-paging', "page_size")
+)
+def build_table(selected_data, click_data, page_current, page_size):
+    if selected_data is None and click_data is None:
+        return DATA.iloc[
+               page_current * page_size:(page_current + 1) * page_size
+               ].to_dict("records")
+    else:
+        if selected_data is not None:
+            selected_samples = [item["hovertext"] for item in selected_data["points"]]
+        if click_data is not None:
+            selected_samples = [item["hovertext"] for item in click_data["points"]]
+        return DATA[DATA["id"].isin(selected_samples)].iloc[
+               page_current * page_size:(page_current + 1) * page_size
+               ].to_dict("records")

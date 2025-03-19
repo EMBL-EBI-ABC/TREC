@@ -1,3 +1,4 @@
 dash>=2.18.0
 dash-bootstrap-components[pandas]>=1.7.1
 gunicorn>=23.0.0
+pyarrow>=18.1.0
