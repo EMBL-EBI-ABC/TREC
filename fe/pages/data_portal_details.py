@@ -8,7 +8,8 @@ from .data_portal import return_sample_id_button
 
 dash.register_page(
     __name__,
-    path_template="/data-portal/<sample_id>"
+    path_template="/data-portal/<sample_id>",
+    title="Sample Details"
 )
 
 

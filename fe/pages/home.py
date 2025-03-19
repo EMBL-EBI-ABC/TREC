@@ -100,6 +100,25 @@ def about_card():
     )
 
 
+def sampling_map_card():
+    return dbc.Card(
+        [
+            dbc.CardBody(
+                [
+                    html.H4("Sampling Map",
+                            className="card-title"),
+                    html.P("This is some card text",
+                           className="card-text"),
+                ]
+            ),
+            dbc.CardFooter(dbc.Button(
+                "Sampling Map",
+                color="primary",
+                href="/sampling-map")),
+        ]
+    )
+
+
 layout = html.Div(
     [
         banner,
@@ -110,19 +129,26 @@ layout = html.Div(
                         dbc.Col(
                             data_portal_card(),
                             md=4,
-                            style={"marginTop": "2em"}
+                            style={"marginTop": "1em"}
+                        ),
+                        dbc.Col(
+                            sampling_map_card(),
+                            md=4,
+                            style={"marginTop": "1em"}
                         ),
                         dbc.Col(
                             api_card(),
                             md=4,
-                            style={"marginTop": "2em"}
-                        ),
-                        dbc.Col(
-                            about_card(),
-                            md=4,
-                            style={"marginTop": "2em"},
+                            style={"marginTop": "1em"},
                         ),
                     ],
+                    style={"marginBottom": "1em", "marginTop": "2em"},
+                ),
+                dbc.Row(
+                    dbc.Col(
+                        about_card(),
+                        md=4,
+                    ),
                     style={"marginBottom": "2em"},
                 )
             ]

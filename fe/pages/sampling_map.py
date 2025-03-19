@@ -7,7 +7,8 @@ import pandas as pd
 
 dash.register_page(
     __name__,
-    path_template="/sampling-map"
+    path_template="/sampling-map",
+    title="Sampling Map",
 )
 
 DATA = pd.read_parquet(os.path.abspath("./") + "/pages" + "/sampling_map.parquet")
