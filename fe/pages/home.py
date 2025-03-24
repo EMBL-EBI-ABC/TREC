@@ -48,16 +48,16 @@ def data_portal_card():
         [
             dbc.CardBody(
                 [
-                    html.H4("Data Portal",
+                    html.H4("Data",
                             className="card-title"),
                     html.P("This is some card text",
                            className="card-text"),
                 ]
             ),
             dbc.CardFooter(dbc.Button(
-                "Data Portal",
+                "Data",
                 color="primary",
-                href="/data-portal")),
+                href="/data")),
         ]
     )
 

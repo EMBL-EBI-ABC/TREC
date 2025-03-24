@@ -52,6 +52,7 @@ def build_map(sampling_map):
 
 @callback(
     Output("datatable-paging", "data"),
+    Output("datatable-paging", "page_count"),
     Input("sampling-map", "selectedData"),
     Input("sampling-map", "clickData"),
     Input('datatable-paging', "page_current"),
@@ -61,12 +62,17 @@ def build_table(selected_data, click_data, page_current, page_size):
     if selected_data is None and click_data is None:
         return DATA.iloc[
                page_current * page_size:(page_current + 1) * page_size
-               ].to_dict("records")
+               ].to_dict("records"), len(DATA.index) // page_size + 1
     else:
+        selected_samples = []
         if selected_data is not None:
-            selected_samples = [item["hovertext"] for item in selected_data["points"]]
+            selected_samples.extend(
+                [item["hovertext"] for item in selected_data["points"]])
         if click_data is not None:
-            selected_samples = [item["hovertext"] for item in click_data["points"]]
-        return DATA[DATA["id"].isin(selected_samples)].iloc[
+            selected_samples.extend(
+                [item["hovertext"] for item in click_data["points"]])
+        page_current = 0
+        filtered_df = DATA[DATA["id"].isin(selected_samples)]
+        return filtered_df.iloc[
                page_current * page_size:(page_current + 1) * page_size
-               ].to_dict("records")
+               ].to_dict("records"), len(filtered_df.index) // page_size + 1

@@ -13,7 +13,7 @@ app = dash.Dash(
 app.layout = html.Div([
     dbc.NavbarSimple(
         children=[
-            dbc.NavItem(dbc.NavLink("Data Portal", href="/data-portal")),
+            dbc.NavItem(dbc.NavLink("Data", href="/data")),
             dbc.NavItem(dbc.NavLink("Sampling Map", href="/sampling-map")),
             dbc.NavItem(dbc.NavLink("API", href="/api")),
             dbc.NavItem(dbc.NavLink("About", href="/about")),

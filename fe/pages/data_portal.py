@@ -8,7 +8,8 @@ from dash import callback, Output, Input, html
 
 dash.register_page(
     __name__,
-    title="Data Portal",
+    path="/data",
+    title="Data",
 )
 
 layout = dbc.Container(
@@ -88,26 +89,6 @@ layout = dbc.Container(
         }
     )
 )
-
-
-def return_tax_id_button(scientific_name: str, tax_id: str) -> dbc.Button:
-    return dbc.Button(
-        scientific_name,
-        outline=True,
-        href=f"/data-portal/{tax_id}")
-
-
-def return_badge_status(budge_text: str, color: str = None) -> dbc.Badge:
-    if color is not None:
-        return dbc.Badge(budge_text, pill=True, color=color)
-
-    if budge_text == "Submitted to BioSamples":
-        color = "secondary"
-    elif budge_text == "Raw Data - Submitted":
-        color = "primary"
-    else:
-        color = "success"
-    return dbc.Badge(budge_text, pill=True, color=color)
 
 
 def generate_filters(aggregations: list) -> tuple[list, int]:
