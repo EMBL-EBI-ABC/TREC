@@ -1,6 +1,7 @@
 import os
 import urllib.parse
 from contextlib import asynccontextmanager
+import json
 
 from fastapi import FastAPI, HTTPException, Query, Path
 from elasticsearch import AsyncElasticsearch
@@ -59,7 +60,8 @@ app.add_middleware(
 async def elastic_search(index_name, params, data_class, aggregation_class):
     # Build the query body based on whether there is full text search.
     if params.q:
-        query_body = {"multi_match": {"query": params.q, "fields": ["*"]}}
+        query_body = {
+            "multi_match": {"query": params.q, "fields": ["*"], "operator": "and", "fuzziness": "AUTO"},}
     else:
         query_body = {"match_all": {}}
 
