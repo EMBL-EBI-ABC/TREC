@@ -8,6 +8,7 @@ TREC_LOGO = ("https://www.embl.org/about/info/trec/wp-content/uploads/2023/02/"
 app = dash.Dash(
     __name__,
     external_stylesheets=[dbc.themes.MINTY],
+    suppress_callback_exceptions=True,
     use_pages=True)
 
 app.layout = html.Div([

@@ -3,7 +3,7 @@ import dash
 import plotly.express as px
 import pandas as pd
 import dash_bootstrap_components as dbc
-from dash import callback, html, Output, Input, dcc
+from dash import callback, html, Output, Input, dcc, State
 from .data_portal import return_sample_id_button
 
 dash.register_page(
@@ -13,7 +13,6 @@ dash.register_page(
 )
 
 BIA_API_URL = "https://www.ebi.ac.uk/biostudies/api/v1/files/S-BIAD2258"
-S3_BASE = "https://s3.embl.de/live-confocal-trec-super-plankton"
 PROXY_BASE = "http://localhost:8080/zarr-proxy"
 VIEWER_BASE = "http://localhost:5173"
 
@@ -89,10 +88,17 @@ def layout(sample_id=None, **kwargs):
     Input("card", "key"),
 )
 def build_data_portal_details_page(sample_id):
-    response = requests.get(
-        f"https://trec-be-868757013548.europe-west2.run.app/data_portal/{sample_id}"
-    ).json()
-    response = response["results"][0]
+    try:
+        api_response = requests.get(
+            f"http://0.0.0.0:8080/data_portal/{sample_id}", timeout=10
+        ).json()
+        results = api_response.get("results", [])
+        if not results:
+            return [html.P(f"No data found for sample ID: {sample_id}", className="text-muted")]
+        response = results[0]
+    except Exception as e:
+        return [html.P(f"Error loading sample data: {str(e)}", className="text-danger")]
+
     children = [
         html.H3(response["biosampleId"], className="card-title", id="header"),
         html.Hr()
@@ -134,8 +140,7 @@ def build_data_portal_details_page(sample_id):
                      html.Td(row["type"], className="text-center"),
                      html.Td(return_sample_id_button(row["target"]),
                              className="text-center")])
-                    for
-                    row in response["relationships"]])
+                    for row in response["relationships"]])
         ]
         table = dbc.Table(table_header + table_body, striped=True, bordered=True,
                           hover=True, responsive=True)
@@ -146,37 +151,41 @@ def build_data_portal_details_page(sample_id):
     if biosample_id:
         bia_files = fetch_bia_images_for_sample(biosample_id)
         if bia_files:
+            displayed = bia_files[:5]
+
+            tile_urls = {
+                f"tile-{e['tile']}": build_zarr_proxy_url(e)
+                for e in displayed
+            }
+            first_tab_id = f"tile-{displayed[0]['tile']}"
+            first_viewer_url = f"{VIEWER_BASE}/?source={tile_urls[first_tab_id]}"
+
+            tabs = [
+                dbc.Tab(label=f"Tile {e['tile']}", tab_id=f"tile-{e['tile']}")
+                for e in displayed
+            ]
+
             children.append(html.H4("Microscopy Images", style={"marginTop": "20px"}))
             children.append(html.P(
                 f"{len(bia_files)} tile(s) found in BioImage Archive (S-BIAD2258).",
                 className="text-muted"
             ))
-
-            # tab per tile (cap at 5 to avoid overwhelming the page)
-            displayed = bia_files[:5]
-            tabs = []
-            for entry in displayed:
-                tile = entry.get("tile", "?")
-                proxy_url = build_zarr_proxy_url(entry)
-                viewer_url = f"{VIEWER_BASE}/?source={proxy_url}"
-                tab = dbc.Tab(
-                    html.Iframe(
-                        src=viewer_url,
-                        style={
-                            "width": "100%",
-                            "height": "600px",
-                            "border": "none",
-                            "borderRadius": "4px",
-                        }
-                    ),
-                    label=f"Tile {tile}",
-                    tab_id=f"tile-{tile}",
-                )
-                tabs.append(tab)
-
+            children.append(dcc.Store(id="tile-url-store", data=tile_urls))
             children.append(
-                dbc.Tabs(tabs, active_tab=f"tile-{displayed[0].get('tile', '0')}")
+                dbc.Tabs(tabs, id="tile-tabs", active_tab=first_tab_id)
             )
+            children.append(html.Div(
+                html.Iframe(
+                    src=first_viewer_url,
+                    style={
+                        "width": "100%",
+                        "height": "600px",
+                        "border": "none",
+                        "borderRadius": "4px",
+                    }
+                ),
+                id="viewer-container"
+            ))
 
             if len(bia_files) > 5:
                 children.append(html.P(
@@ -191,3 +200,27 @@ def build_data_portal_details_page(sample_id):
             ))
 
     return children
+
+
+@callback(
+    Output("viewer-container", "children"),
+    Input("tile-tabs", "active_tab"),
+    State("tile-url-store", "data"),
+    prevent_initial_call=True,
+)
+def switch_viewer_tab(active_tab, tile_urls):
+    if not active_tab or not tile_urls:
+        return html.Div("Select a tile to view.", className="text-muted")
+    proxy_url = tile_urls.get(active_tab)
+    if not proxy_url:
+        return html.Div("Image not available.", className="text-muted")
+    viewer_url = f"{VIEWER_BASE}/?source={proxy_url}"
+    return html.Iframe(
+        src=viewer_url,
+        style={
+            "width": "100%",
+            "height": "600px",
+            "border": "none",
+            "borderRadius": "4px",
+        }
+    )
