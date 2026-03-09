@@ -31,11 +31,6 @@ def build_zarr_proxy_url(file_entry: dict) -> str:
 
 
 def fetch_bia_images_for_sample(biosample_id: str) -> list:
-    """
-    Fetch all BIA file entries matching a given BioSample ID.
-    The BIA API is paginated so we fetch in batches until we've
-    seen all records or exhausted matches.
-    """
     full_biosample_url = f"https://www.ebi.ac.uk/biosamples/samples/{biosample_id}"
     matches = []
     start = 0
@@ -61,8 +56,6 @@ def fetch_bia_images_for_sample(biosample_id: str) -> list:
                 if entry.get("type") == "file" and entry.get("name"):
                     matches.append(entry)
 
-        # If we found matches and we've moved past them, stop early.
-        # BIA groups entries by sample so once we find then lose matches, done.
         if matches and not any(
             e.get("BioSamples_ID") == full_biosample_url for e in entries
         ):
@@ -148,7 +141,7 @@ def build_data_portal_details_page(sample_id):
                           hover=True, responsive=True)
         children.append(table)
 
-    # --- Microscopy Images section ---
+    # --- microscopy images section ---
     biosample_id = response.get("biosampleId")
     if biosample_id:
         bia_files = fetch_bia_images_for_sample(biosample_id)
@@ -159,7 +152,7 @@ def build_data_portal_details_page(sample_id):
                 className="text-muted"
             ))
 
-            # Build a tab per tile (cap at 5 to avoid overwhelming the page)
+            # tab per tile (cap at 5 to avoid overwhelming the page)
             displayed = bia_files[:5]
             tabs = []
             for entry in displayed:
