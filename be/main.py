@@ -159,3 +159,21 @@ async def trec_details(
         record_id=record_id,
         data_class=TRECData,
     )
+
+
+
+
+import httpx
+from fastapi.responses import Response
+
+@app.get("/zarr-proxy/{path:path}")
+async def zarr_proxy(path: str):
+    url = f"https://s3.embl.de/live-confocal-trec-super-plankton/{path}"
+    async with httpx.AsyncClient() as client:
+        r = await client.get(url)
+    return Response(
+        content=r.content,
+        status_code=r.status_code,
+        media_type=r.headers.get("content-type", "application/octet-stream"),
+        headers={"Access-Control-Allow-Origin": "*"}
+    )

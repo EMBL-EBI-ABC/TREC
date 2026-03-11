@@ -14,11 +14,12 @@ dash.register_page(
 
 BIA_API_URL = "https://www.ebi.ac.uk/biostudies/api/v1/files/S-BIAD2258"
 PROXY_BASE = "http://localhost:8080/zarr-proxy"
-VIEWER_BASE = "http://localhost:5173"
+# VIEWER_BASE = "http://localhost:5173"
+VIEWER_BASE = "https://biongff-viewer-868757013548.europe-west2.run.app"
+
 
 
 def build_zarr_proxy_url(file_entry: dict) -> str:
-    """Construct the proxied Zarr URL for a BIA file entry."""
     location = file_entry["acquisition_location"]
     date = file_entry["acquisition_date"]
     name = file_entry["name"]
@@ -151,19 +152,14 @@ def build_data_portal_details_page(sample_id):
     if biosample_id:
         bia_files = fetch_bia_images_for_sample(biosample_id)
         if bia_files:
-            displayed = bia_files[:5]
+            displayed = bia_files
 
             tile_urls = {
                 f"tile-{e['tile']}": build_zarr_proxy_url(e)
                 for e in displayed
             }
-            first_tab_id = f"tile-{displayed[0]['tile']}"
-            first_viewer_url = f"{VIEWER_BASE}/?source={tile_urls[first_tab_id]}"
-
-            tabs = [
-                dbc.Tab(label=f"Tile {e['tile']}", tab_id=f"tile-{e['tile']}")
-                for e in displayed
-            ]
+            first_tile_id = f"tile-{displayed[0]['tile']}"
+            first_viewer_url = f"{VIEWER_BASE}/?source={tile_urls[first_tile_id]}"
 
             children.append(html.H4("Microscopy Images", style={"marginTop": "20px"}))
             children.append(html.P(
@@ -172,7 +168,16 @@ def build_data_portal_details_page(sample_id):
             ))
             children.append(dcc.Store(id="tile-url-store", data=tile_urls))
             children.append(
-                dbc.Tabs(tabs, id="tile-tabs", active_tab=first_tab_id)
+                dcc.Dropdown(
+                    id="tile-tabs",
+                    options=[
+                        {"label": f"Tile {e['tile']}", "value": f"tile-{e['tile']}"}
+                        for e in displayed
+                    ],
+                    value=first_tile_id,
+                    clearable=False,
+                    style={"marginBottom": "10px"}
+                )
             )
             children.append(html.Div(
                 html.Iframe(
@@ -186,12 +191,6 @@ def build_data_portal_details_page(sample_id):
                 ),
                 id="viewer-container"
             ))
-
-            if len(bia_files) > 5:
-                children.append(html.P(
-                    f"Showing 5 of {len(bia_files)} tiles.",
-                    className="text-muted small"
-                ))
         else:
             children.append(html.Div(
                 "No microscopy images found for this sample in BioImage Archive.",
@@ -204,14 +203,14 @@ def build_data_portal_details_page(sample_id):
 
 @callback(
     Output("viewer-container", "children"),
-    Input("tile-tabs", "active_tab"),
+    Input("tile-tabs", "value"),
     State("tile-url-store", "data"),
     prevent_initial_call=True,
 )
-def switch_viewer_tab(active_tab, tile_urls):
-    if not active_tab or not tile_urls:
+def switch_viewer_tile(selected_tile, tile_urls):
+    if not selected_tile or not tile_urls:
         return html.Div("Select a tile to view.", className="text-muted")
-    proxy_url = tile_urls.get(active_tab)
+    proxy_url = tile_urls.get(selected_tile)
     if not proxy_url:
         return html.Div("Image not available.", className="text-muted")
     viewer_url = f"{VIEWER_BASE}/?source={proxy_url}"
