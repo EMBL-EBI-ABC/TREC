@@ -13,8 +13,9 @@ dash.register_page(
 )
 
 BIA_API_URL = "https://www.ebi.ac.uk/biostudies/api/v1/files/S-BIAD2258"
-PROXY_BASE = "http://localhost:8080/zarr-proxy"
-# VIEWER_BASE = "http://localhost:5173"
+# PROXY_BASE_LOCAL = "http://localhost:8080/zarr-proxy"
+PROXY_BASE = "https://trec-be-868757013548.europe-west2.run.app/zarr-proxy"
+# VIEWER_BASE_LOCAL = "http://localhost:5173"
 VIEWER_BASE = "https://biongff-viewer-868757013548.europe-west2.run.app"
 
 

@@ -2,6 +2,7 @@ import os
 import urllib.parse
 from contextlib import asynccontextmanager
 import json
+import httpx
 
 from fastapi import FastAPI, HTTPException, Query, Path
 from elasticsearch import AsyncElasticsearch
@@ -17,6 +18,9 @@ from models import (
     TRECSearchParams,
     TRECAggregationResponse
 )
+
+from fastapi.responses import Response
+
 
 
 @asynccontextmanager
@@ -160,11 +164,6 @@ async def trec_details(
         data_class=TRECData,
     )
 
-
-
-
-import httpx
-from fastapi.responses import Response
 
 @app.get("/zarr-proxy/{path:path}")
 async def zarr_proxy(path: str):
