@@ -146,6 +146,7 @@ trec = DataSource(
         FieldDefinition(name="customFields", type=list[CustomField] | None),
         FieldDefinition(name="relationships",
                         type=list[BioSamplesRelationships] | None),
+        FieldDefinition(name="images", type=list[dict] | None),
     ],
     default_sort_field="collection_date",
     default_sort_order="desc",

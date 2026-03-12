@@ -12,11 +12,10 @@ dash.register_page(
     title="Sample Details"
 )
 
-BIA_API_URL = "https://www.ebi.ac.uk/biostudies/api/v1/files/S-BIAD2258"
-# PROXY_BASE_LOCAL = "http://localhost:8080/zarr-proxy"
-PROXY_BASE = "https://trec-be-868757013548.europe-west2.run.app/zarr-proxy"
-# VIEWER_BASE_LOCAL = "http://localhost:5173"
-VIEWER_BASE = "https://biongff-viewer-868757013548.europe-west2.run.app"
+PROXY_BASE = "http://localhost:8080/zarr-proxy"
+# PROXY_BASE = "https://trec-be-868757013548.europe-west2.run.app/zarr-proxy"
+VIEWER_BASE = "http://localhost:5173"
+# VIEWER_BASE = "https://biongff-viewer-868757013548.europe-west2.run.app"
 
 
 
@@ -28,45 +27,10 @@ def build_zarr_proxy_url(file_entry: dict) -> str:
     folder = f"LSM900_{date}"
     ome_zarr = f"{name}_{tile}.ome.zarr"
     inner_zarr = f"{name}.zarr"
-    return f"{PROXY_BASE}/{location}/{folder}/{ome_zarr}/{inner_zarr}"
+    url = f"{PROXY_BASE}/{location}/{folder}/{ome_zarr}/{inner_zarr}"
+    print(f"Generated URL: {url}")  # add this
+    return url
 
-
-def fetch_bia_images_for_sample(biosample_id: str) -> list:
-    full_biosample_url = f"https://www.ebi.ac.uk/biosamples/samples/{biosample_id}"
-    matches = []
-    start = 0
-    length = 100
-
-    while True:
-        try:
-            resp = requests.get(
-                BIA_API_URL,
-                params={"start": start, "length": length},
-                timeout=10
-            )
-            data = resp.json()
-        except Exception:
-            break
-
-        entries = data.get("data", [])
-        if not entries:
-            break
-
-        for entry in entries:
-            if entry.get("BioSamples_ID") == full_biosample_url:
-                if entry.get("type") == "file" and entry.get("name"):
-                    matches.append(entry)
-
-        if matches and not any(
-            e.get("BioSamples_ID") == full_biosample_url for e in entries
-        ):
-            break
-
-        start += length
-        if start >= data.get("recordsTotal", 0):
-            break
-
-    return matches
 
 
 def layout(sample_id=None, **kwargs):
@@ -151,7 +115,7 @@ def build_data_portal_details_page(sample_id):
     # --- microscopy images section ---
     biosample_id = response.get("biosampleId")
     if biosample_id:
-        bia_files = fetch_bia_images_for_sample(biosample_id)
+        bia_files = response.get("images") or []
         if bia_files:
             displayed = bia_files
 

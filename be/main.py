@@ -147,7 +147,7 @@ async def trec_search(
         params: Annotated[TRECSearchParams, Query()],
 ) -> ElasticResponse[TRECData, TRECAggregationResponse]:
     return await elastic_search(
-        index_name="data_portal",
+        index_name="data_portal_development",
         params=params,
         data_class=TRECData,
         aggregation_class=TRECAggregationResponse,
@@ -159,7 +159,7 @@ async def trec_details(
         record_id: Annotated[str, Path(description="Record ID")],
 ) -> ElasticDetailsResponse[TRECData]:
     return await elastic_details(
-        index_name="data_portal",
+        index_name="data_portal_development",
         record_id=record_id,
         data_class=TRECData,
     )
