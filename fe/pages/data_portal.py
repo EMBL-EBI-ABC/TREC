@@ -148,7 +148,7 @@ def create_update_data_table(organism_filter, depth_filter, altitude_filter,
     if input_value is not None:
         params["q"] = input_value
     response = requests.get(
-        "https://trec-be-868757013548.europe-west2.run.app/data_portal",
+        "https://trec-be-test-868757013548.europe-west2.run.app//data_portal",
         params=params).json()
 
     table_header = [

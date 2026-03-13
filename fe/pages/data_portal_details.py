@@ -12,10 +12,8 @@ dash.register_page(
     title="Sample Details"
 )
 
-PROXY_BASE = "http://localhost:8080/zarr-proxy"
-# PROXY_BASE = "https://trec-be-868757013548.europe-west2.run.app/zarr-proxy"
-VIEWER_BASE = "http://localhost:5173"
-# VIEWER_BASE = "https://biongff-viewer-868757013548.europe-west2.run.app"
+PROXY_BASE = "https://trec-be-test-868757013548.europe-west2.run.app/zarr-proxy"
+VIEWER_BASE = "https://biongff-viewer-868757013548.europe-west2.run.app"
 
 
 
@@ -56,7 +54,7 @@ def layout(sample_id=None, **kwargs):
 def build_data_portal_details_page(sample_id):
     try:
         api_response = requests.get(
-            f"http://0.0.0.0:8080/data_portal/{sample_id}", timeout=10
+            f"https://trec-be-test-868757013548.europe-west2.run.app/data_portal/{sample_id}", timeout=10
         ).json()
         results = api_response.get("results", [])
         if not results:
