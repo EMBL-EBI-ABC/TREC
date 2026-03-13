@@ -93,11 +93,24 @@ class DataSource:
         self.default_sort_field = default_sort_field
         self.default_sort_order = default_sort_order
 
+
     def generate_classes(self):
         fields = {field.name: (field.type, field.filterable) for field in self.fields}
 
+        field_definitions = {}
+        for name, (type_, filterable) in fields.items():
+            is_optional = (hasattr(type_, '__args__') and
+                           type(None) in getattr(type_, '__args__', []))
+
+            if is_optional:
+                field_definitions[name] = Field(default=None)
+            else:
+                field_definitions[name] = Field(...)
+
         class Data(BaseModel):
             __annotations__ = {name: type for name, (type, _) in fields.items()}
+
+            locals().update(field_definitions)
 
         class AggregationResponse(BaseModel):
             __annotations__ = {
