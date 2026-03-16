@@ -115,7 +115,7 @@ def build_data_portal_details_page(sample_id):
     if biosample_id:
         bia_files = response.get("images") or []
         if bia_files:
-            displayed = bia_files
+            displayed = sorted(bia_files, key=lambda x: int(x["tile"]))
 
             tile_urls = {
                 f"tile-{e['tile']}": build_zarr_proxy_url(e)
