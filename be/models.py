@@ -74,11 +74,11 @@ class SearchParams(BaseModel):
 
 class FieldDefinition:
     def __init__(self, name: str, type: type | types.UnionType,
-                 filterable: bool = False):
+                 filterable: bool = False, nested_config: dict | None = None):
         self.name = name
         self.type = type
         self.filterable = filterable
-
+        self.nested_config = nested_config
 
 class DataSource:
     def __init__(
@@ -160,8 +160,26 @@ trec = DataSource(
         FieldDefinition(name="relationships",
                         type=list[BioSamplesRelationships] | None),
         FieldDefinition(name="images", type=list[dict] | None),
+        FieldDefinition(
+            name="protocol",
+            type=str | None,
+            filterable=True,
+            nested_config={
+                "path": "customFields",
+                "name_field": "customFields.name.keyword",
+                "name_value": "protocol label",
+                "value_field": "customFields.value.keyword",
+            }
+        ),
     ],
     default_sort_field="collection_date",
     default_sort_order="desc",
 )
+
+TREC_NESTED_CONFIGS = {
+    field.name: field.nested_config
+    for field in trec.fields
+    if field.nested_config is not None
+}
+
 TRECData, TRECAggregationResponse, TRECSearchParams = trec.generate_classes()

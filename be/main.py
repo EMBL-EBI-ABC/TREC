@@ -16,7 +16,8 @@ from models import (
     ElasticDetailsResponse,
     TRECData,
     TRECSearchParams,
-    TRECAggregationResponse
+    TRECAggregationResponse,
+    TREC_NESTED_CONFIGS
 )
 
 from fastapi.responses import Response
@@ -61,7 +62,8 @@ app.add_middleware(
 
 # Generic search methods.
 
-async def elastic_search(index_name, params, data_class, aggregation_class):
+async def elastic_search(index_name, params, data_class, aggregation_class, nested_configs=None):
+    nested_configs = nested_configs or {}
     # Build the query body based on whether there is full text search.
     if params.q:
         query_body = {
@@ -72,11 +74,28 @@ async def elastic_search(index_name, params, data_class, aggregation_class):
     # Adding filters.
     filters = []
     aggregation_fields = get_list_of_aggregations(aggregation_class)
+
     if aggregation_fields:
         for aggregation_field in aggregation_fields:
             filter_value = getattr(params, aggregation_field)
             if filter_value:
-                filters.append({"terms": {aggregation_field: [filter_value]}})
+                nested_cfg = nested_configs.get(aggregation_field)
+                if nested_cfg:
+                    filters.append({
+                        "nested": {
+                            "path": nested_cfg["path"],
+                            "query": {
+                                "bool": {
+                                    "must": [
+                                        {"term": {nested_cfg["name_field"]: nested_cfg["name_value"]}},
+                                        {"term": {nested_cfg["value_field"]: filter_value}}
+                                    ]
+                                }
+                            }
+                        }
+                    })
+                else:
+                    filters.append({"terms": {aggregation_field: [filter_value]}})
 
     # Combine query with filters.
     search_body = {
@@ -94,9 +113,24 @@ async def elastic_search(index_name, params, data_class, aggregation_class):
     # Adding aggregation fields.
     if aggregation_fields:
         for aggregation_field in aggregation_fields:
-            search_body["aggs"][aggregation_field] = {
-                "terms": {"field": aggregation_field, "size": 100}
-            }
+            nested_cfg = nested_configs.get(aggregation_field)
+            if nested_cfg:
+                search_body["aggs"][aggregation_field] = {
+                    "nested": {"path": nested_cfg["path"]},
+                    "aggs": {
+                        "filtered": {
+                            "filter": {"term": {nested_cfg["name_field"]: nested_cfg["name_value"]}},
+                            "aggs": {
+                                "values": {"terms": {"field": nested_cfg["value_field"], "size": 100}}
+                            }
+                        }
+                    }
+                }
+            else:
+                search_body["aggs"][aggregation_field] = {
+                    "terms": {"field": aggregation_field, "size": 100}
+                }
+
 
     # Adding sort field and sort order
     search_body["sort"] = [{params.sort_field: {"order": params.sort_order}}]
@@ -109,6 +143,12 @@ async def elastic_search(index_name, params, data_class, aggregation_class):
         total = response["hits"]["total"]["value"]
         hits = [r["_source"] for r in response["hits"]["hits"]]
         aggregations = response["aggregations"]
+
+        # normalise nested aggregations
+        for field_name, nested_cfg in nested_configs.items():
+            if field_name in aggregations:
+                aggregations[field_name] = aggregations[field_name]["filtered"]["values"]
+
         # Return the results.
         return ElasticResponse[data_class, aggregation_class](
             total=total,
@@ -147,10 +187,11 @@ async def trec_search(
         params: Annotated[TRECSearchParams, Query()],
 ) -> ElasticResponse[TRECData, TRECAggregationResponse]:
     return await elastic_search(
-        index_name="data_portal_development",
+        index_name="data_portal_development_2",
         params=params,
         data_class=TRECData,
         aggregation_class=TRECAggregationResponse,
+        nested_configs=TREC_NESTED_CONFIGS,
     )
 
 
@@ -159,7 +200,7 @@ async def trec_details(
         record_id: Annotated[str, Path(description="Record ID")],
 ) -> ElasticDetailsResponse[TRECData]:
     return await elastic_details(
-        index_name="data_portal_development",
+        index_name="data_portal_development_2",
         record_id=record_id,
         data_class=TRECData,
     )
