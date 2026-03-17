@@ -86,8 +86,10 @@ def build_data_portal_details_page(sample_id):
     children.append(desc_list)
 
     if "lat" in response and "lon" in response:
-        df = pd.DataFrame([{"lat": response["lat"], "lon": response["lon"]}])
-        fig = px.scatter_map(df, lat="lat", lon="lon", zoom=11)
+        df = pd.DataFrame([{"lat": response["lat"], "lon": response["lon"],
+                            "altitude": response.get("altitude")}])
+        fig = px.scatter_map(df, lat="lat", lon="lon", zoom=11,
+                             hover_data=["altitude"])
         children.append(html.H4("Sampling Map"))
         children.append(dcc.Graph(figure=fig))
 

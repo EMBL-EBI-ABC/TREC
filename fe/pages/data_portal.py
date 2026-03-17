@@ -4,7 +4,7 @@ import dash
 import requests
 
 import dash_bootstrap_components as dbc
-from dash import callback, Output, Input, html
+from dash import callback, Output, Input, html, dcc
 
 dash.register_page(
     __name__,
@@ -60,7 +60,26 @@ layout = dbc.Container(
                         ),
                         style={"margin-bottom": "5px", "maxHeight": "15em",
                                "overflowY": "auto"},
-                    )
+                    ),
+                    dcc.Store(id="protocol-all-options"),
+                    dbc.Card(
+                        dbc.CardBody(
+                            [
+                                html.H4("Protocol", className="card-title"),
+                                html.Hr(),
+                                dbc.Input(
+                                    id="protocol-search",
+                                    placeholder="Search protocols...",
+                                    type="text",
+                                    size="sm",
+                                    style={"marginBottom": "8px"}
+                                ),
+                                dbc.Checklist(id="protocol_filter")
+                            ]
+                        ),
+                        style={"margin-bottom": "5px", "maxHeight": "20em",
+                               "overflowY": "auto"},
+                    ),
                 ],
                 id="filters-card",
                 md=3,
@@ -117,12 +136,14 @@ def return_sample_id_button(biosample_id: str) -> html.A:
     Output("depth_filter", "options"),
     Output("altitude_filter", "options"),
     Output("location_filter", "options"),
+    Output("protocol-all-options", "data"),
     Output("pagination", "max_value"),
     Input("organism_filter", "value"),
     Input("depth_filter", "value"),
     Input("altitude_filter", "value"),
     Input("location_filter", "value"),
     Input("input", "value"),
+    Input("protocol_filter", "value"),
     Input("pagination", "active_page"),
     running=[
         (Output("input", "class_name"), "invisible",
@@ -134,7 +155,7 @@ def return_sample_id_button(biosample_id: str) -> html.A:
     ]
 )
 def create_update_data_table(organism_filter, depth_filter, altitude_filter,
-                             location_filter, input_value, pagination):
+                             location_filter, input_value, protocol_filter, pagination):
     if pagination is None or pagination == 1:
         start = 0
     else:
@@ -142,7 +163,8 @@ def create_update_data_table(organism_filter, depth_filter, altitude_filter,
     params = {"size": 20, "start": start}
     for field_name, values in {"organism": organism_filter, "depth": depth_filter,
                                "altitude": altitude_filter,
-                               "location": location_filter}.items():
+                               "location": location_filter,
+                               "protocol": protocol_filter}.items():
         if values is not None and len(values) > 0:
             params[field_name] = values[0]
     if input_value is not None:
@@ -177,6 +199,22 @@ def create_update_data_table(organism_filter, depth_filter, altitude_filter,
         response["aggregations"]["altitude"]["buckets"])
     location_options, _ = generate_filters(
         response["aggregations"]["location"]["buckets"])
+    protocol_options, _ = generate_filters(
+        response["aggregations"]["protocol"]["buckets"])
 
     return (table, organism_options, depth_options, altitude_options, location_options,
-            total_count // 20 + 1)
+            protocol_options, total_count // 20 + 1)
+
+
+@callback(
+    Output("protocol_filter", "options"),
+    Input("protocol-search", "value"),
+    Input("protocol-all-options", "data"),
+)
+def filter_protocol_options(search_value, all_options):
+    if not all_options:
+        return []
+    if not search_value:
+        return all_options
+    search_lower = search_value.lower()
+    return [opt for opt in all_options if search_lower in opt["label"].lower()]
