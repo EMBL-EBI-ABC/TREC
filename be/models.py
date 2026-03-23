@@ -161,6 +161,7 @@ trec = DataSource(
                         type=list[BioSamplesRelationships] | None),
         FieldDefinition(name="images", type=list[dict] | None),
         FieldDefinition(name="has_images", type=str | None, filterable=True),
+        FieldDefinition(name="collection_year", type=str | None, filterable=True),
         FieldDefinition(
             name="protocol",
             type=str | None,

@@ -40,13 +40,39 @@ def layout(**kwargs):
     ])
 
 
+
+def altitude_to_range(alt_str):
+    try:
+        value = float(str(alt_str).replace("m", "").strip())
+        if value < 0:
+            return "Below 0 m"
+        elif value <= 10:
+            return "0-10 m"
+        elif value <= 20:
+            return "11-20 m"
+        elif value <= 30:
+            return "21-30 m"
+        else:
+            return "Above 30 m"
+    except (ValueError, AttributeError):
+        return "Not provided"
+
 @callback(
     Output("sampling-map", "figure"),
     Input("sampling-map", "figure"),
 )
+
 def build_map(sampling_map):
+    DATA["Altitude Range"] = DATA["altitude"].apply(altitude_to_range)
     map_fig = px.scatter_map(DATA, lat="lat", lon="lon", zoom=3, hover_name="id",
-                             height=800)
+                             color="Altitude Range",
+                             hover_data=["altitude"],
+                             height=800,
+                             category_orders={"Altitude Range": [
+                                 "Below 0 m", "0-10 m", "11-20 m", "21-30 m", "Above 30 m", "Not provided"
+                             ]})
+    map_fig.update_layout(legend_title_text="<b>Altitude Range</b>")
+
     return map_fig
 
 

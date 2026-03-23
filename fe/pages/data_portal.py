@@ -72,6 +72,17 @@ layout = dbc.Container(
                         style={"margin-bottom": "5px", "maxHeight": "15em",
                                "overflowY": "auto"},
                     ),
+                    dbc.Card(
+                        dbc.CardBody(
+                            [
+                                html.H4("Collection Year", className="card-title"),
+                                html.Hr(),
+                                dbc.Checklist(id="collection_year_filter")
+                            ]
+                        ),
+                        style={"margin-bottom": "5px", "maxHeight": "15em",
+                               "overflowY": "auto"},
+                    ),
                     dcc.Store(id="protocol-all-options"),
                     dbc.Card(
                         dbc.CardBody(
@@ -149,6 +160,7 @@ def return_sample_id_button(biosample_id: str) -> html.A:
     Output("location_filter", "options"),
     Output("protocol-all-options", "data"),
     Output("has_images_filter", "options"),
+    Output("collection_year_filter", "options"),
     Output("pagination", "max_value"),
     Input("organism_filter", "value"),
     Input("depth_filter", "value"),
@@ -157,6 +169,7 @@ def return_sample_id_button(biosample_id: str) -> html.A:
     Input("input", "value"),
     Input("protocol_filter", "value"),
     Input("has_images_filter", "value"),
+    Input("collection_year_filter", "value"),
     Input("pagination", "active_page"),
     running=[
         (Output("input", "class_name"), "invisible",
@@ -168,7 +181,8 @@ def return_sample_id_button(biosample_id: str) -> html.A:
     ]
 )
 def create_update_data_table(organism_filter, depth_filter, altitude_filter,
-                             location_filter, input_value, protocol_filter, has_images_filter, pagination):
+                             location_filter, input_value, protocol_filter, has_images_filter, collection_year_filter,
+                             pagination):
     if pagination is None or pagination == 1:
         start = 0
     else:
@@ -178,7 +192,8 @@ def create_update_data_table(organism_filter, depth_filter, altitude_filter,
                                "altitude": altitude_filter,
                                "location": location_filter,
                                "protocol": protocol_filter,
-                               "has_images": has_images_filter}.items():
+                               "has_images": has_images_filter,
+                               "collection_year": collection_year_filter}.items():
         if values is not None and len(values) > 0:
             params[field_name] = values[0]
     if input_value is not None:
@@ -190,7 +205,7 @@ def create_update_data_table(organism_filter, depth_filter, altitude_filter,
     table_header = [
         html.Thead(html.Tr([html.Th(value, className="text-center") for value in
                             ["BioSample ID", "Organism", "Depth", "Altitude",
-                             "Geographic Location"]]))]
+                             "Geographic Location", "Protocol"]]))]
     table_body = [
         html.Tbody(
             [html.Tr(
@@ -199,7 +214,13 @@ def create_update_data_table(organism_filter, depth_filter, altitude_filter,
                  html.Td(row["organism"], className="text-center"),
                  html.Td(row["depth"], className="text-center"),
                  html.Td(row["altitude"], className="text-center"),
-                 html.Td(row["location"], className="text-center")])
+                 html.Td(row["location"], className="text-center"),
+                 html.Td(
+                     next((f["value"] for f in (row.get("customFields") or []) if f["name"] == "protocol label"),
+                          "N/A"),
+                     className="text-center"
+                 )
+                 ])
                 for
                 row in response["results"]])
     ]
@@ -217,9 +238,11 @@ def create_update_data_table(organism_filter, depth_filter, altitude_filter,
         response["aggregations"]["protocol"]["buckets"])
     has_images_options, _ = generate_filters(
         response["aggregations"]["has_images"]["buckets"])
+    collection_year_options, _ = generate_filters(
+        response["aggregations"]["collection_year"]["buckets"])
 
     return (table, organism_options, depth_options, altitude_options, location_options,
-            protocol_options, has_images_options, total_count // 20 + 1)
+            protocol_options, has_images_options, collection_year_options, total_count // 20 + 1)
 
 
 @callback(
