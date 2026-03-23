@@ -16,6 +16,7 @@ app.layout = html.Div([
         children=[
             dbc.NavItem(dbc.NavLink("Data", href="/data")),
             dbc.NavItem(dbc.NavLink("Sampling Map", href="/sampling-map")),
+            dbc.NavItem(dbc.NavLink("Expedition Timeline", href="/expedition-timeline")),
             dbc.NavItem(dbc.NavLink("API", href="/api")),
             dbc.NavItem(dbc.NavLink("About", href="/about")),
         ],

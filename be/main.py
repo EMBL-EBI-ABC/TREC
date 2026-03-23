@@ -101,6 +101,7 @@ async def elastic_search(index_name, params, data_class, aggregation_class, nest
     search_body = {
         "from": params.start,
         "size": params.size,
+        "track_total_hits": True,
         "query": {
             "bool": {
                 "must": query_body,
@@ -204,6 +205,55 @@ async def trec_details(
         record_id=record_id,
         data_class=TRECData,
     )
+
+
+@app.get("/expedition_timeline")
+async def expedition_timeline():
+    try:
+        response = await app.state.es_client.search(
+            index="data_portal_development_2",
+            body={
+                "size": 0,
+                "aggs": {
+                    "by_month": {
+                        "terms": {
+                            "field": "collection_month",
+                            "size": 50,
+                            "order": {"_key": "asc"}
+                        },
+                        "aggs": {
+                            "locations": {
+                                "top_hits": {
+                                    "size": 100,
+                                    "_source": ["lat", "lon", "location", "collection_month"]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        )
+
+        results = []
+        for month_bucket in response["aggregations"]["by_month"]["buckets"]:
+            month = month_bucket["key"]
+            seen = set()
+            for hit in month_bucket["locations"]["hits"]["hits"]:
+                src = hit["_source"]
+                key = (src.get("lat"), src.get("lon"))
+                if key not in seen and src.get("lat") and src.get("lon"):
+                    seen.add(key)
+                    results.append({
+                        "month": month,
+                        "lat": src["lat"],
+                        "lon": src["lon"],
+                        "location": src.get("location", ""),
+                    })
+
+        return {"results": results}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
 
 
 @app.get("/zarr-proxy/{path:path}")
