@@ -1,6 +1,6 @@
 import dash
 import os
-from dash import dcc, callback, Output, Input, dash_table
+from dash import dcc, callback, Output, Input, dash_table, html
 import dash_bootstrap_components as dbc
 import plotly.express as px
 import pandas as pd
@@ -18,17 +18,23 @@ def layout(**kwargs):
     return dbc.Container([
         dbc.Row(
             dbc.Col(
-                dbc.Select(
-                    id="colour-by",
-                    options=[
-                        {"label": "All samples", "value": "none"},
-                        {"label": "Altitude Range", "value": "altitude"},
-                        {"label": "Depth Range", "value": "depth"},
-                    ],
-                    value="altitude",
-                    style={"width": "200px", "marginTop": "15px"}
-                ),
-            md=12)
+                html.Div([
+                    dbc.RadioItems(
+                        id="colour-by",
+                        options=[
+                            {"label": "All Samples", "value": "none"},
+                            {"label": "Altitude Range", "value": "altitude"},
+                            {"label": "Depth Range", "value": "depth"},
+                        ],
+                        value="altitude",
+                        inline=True,
+                        input_class_name="btn-check",
+                        label_class_name="btn btn-outline-secondary",
+                        label_checked_class_name="active",
+                        class_name="btn-group",
+                    )
+                ], style={"marginTop": "15px"}),
+                md=12)
         ),
         dbc.Row(
             dbc.Col(dbc.Spinner(dcc.Graph(id="sampling-map")), md=12, id="col-map")),
