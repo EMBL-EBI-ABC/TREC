@@ -161,7 +161,7 @@ layout = html.Div(
 def load_stats(_):
     try:
         response = requests.get(
-            "http://localhost:8080/data_portal",
+            "https://trec-be-test-868757013548.europe-west2.run.app/data_portal",
             params={"size": 1}
         ).json()
 
