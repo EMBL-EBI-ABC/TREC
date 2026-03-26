@@ -140,14 +140,11 @@ layout = html.Div(
                         dbc.Col(sampling_map_card(), md=4),
                         dbc.Col(expedition_timeline_card(), md=4),
                         dbc.Col(api_card(), md=4),
+                        dbc.Col(about_card(), md=4),
                     ],
                     className="g-3",
                     style={"marginBottom": "1em", "marginTop": "1em"},
                 ),
-                dbc.Row(
-                    dbc.Col(about_card(), md=4),
-                    style={"marginBottom": "2em"},
-                )
             ]
         )
     ]
