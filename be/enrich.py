@@ -211,43 +211,85 @@ def enrich_sample(source):
 
 def resolve_derived_sample_ids(es, index_name):
     """Second pass: for each source sample, find all samples that reference
-    it as parent and store their IDs in derived_sample_ids."""
+    it as parent and store their IDs in derived_sample_ids.
+
+    Uses scroll to fetch all derived samples in bulk, groups them by parent
+    in memory, then bulk-updates all source samples at once."""
     print("Resolving derived_sample_ids for source samples...")
-    query = {"query": {"term": {"is_source_sample": True}}, "size": 0,
-             "aggs": {"sources": {"terms": {"field": "biosampleId.keyword",
-                                            "size": 50000}}}}
-    resp = es.search(index=index_name, body=query)
-    source_ids = [b["key"] for b in
-                  resp["aggregations"]["sources"]["buckets"]]
 
+    # Step 1: Scroll through all derived samples (those with a parent)
+    # and build a map: parent_id -> [child_id, child_id, ...]
+    parent_to_children = {}
+    resp = es.search(
+        index=index_name,
+        body={
+            "query": {"exists": {"field": "parent_sample_id"}},
+            "_source": ["biosampleId", "parent_sample_id"],
+            "size": 500,
+        },
+        scroll="5m",
+    )
+    scroll_id = resp["_scroll_id"]
+    count = 0
+
+    while True:
+        hits = resp["hits"]["hits"]
+        if not hits:
+            break
+        for hit in hits:
+            src = hit["_source"]
+            parent = src.get("parent_sample_id")
+            child = src.get("biosampleId")
+            if parent and child:
+                parent_to_children.setdefault(parent, []).append(child)
+        count += len(hits)
+        resp = es.scroll(scroll_id=scroll_id, scroll="5m")
+
+    print(f"  Found {count} derived samples across "
+          f"{len(parent_to_children)} parents")
+
+    if not parent_to_children:
+        print("  No parent-child relationships found")
+        return
+
+    # Step 2: Scroll through source samples to get their ES doc _ids
+    # and build bulk update body
     bulk_body = []
-    for source_id in source_ids:
-        children_query = {
-            "query": {"term": {"parent_sample_id.keyword": source_id}},
+    resp = es.search(
+        index=index_name,
+        body={
+            "query": {"term": {"is_source_sample": True}},
             "_source": ["biosampleId"],
-            "size": 100,
-        }
-        children_resp = es.search(index=index_name, body=children_query)
-        child_ids = [h["_source"]["biosampleId"]
-                     for h in children_resp["hits"]["hits"]]
-        if child_ids:
-            source_resp = es.search(
-                index=index_name,
-                query={"term": {"biosampleId.keyword": source_id}},
-                size=1,
-            )
-            if source_resp["hits"]["hits"]:
-                doc_id = source_resp["hits"]["hits"][0]["_id"]
-                bulk_body.append({"update": {"_index": index_name,
-                                             "_id": doc_id}})
-                bulk_body.append({"doc": {"derived_sample_ids": child_ids}})
+            "size": 500,
+        },
+        scroll="5m",
+    )
+    scroll_id = resp["_scroll_id"]
 
+    while True:
+        hits = resp["hits"]["hits"]
+        if not hits:
+            break
+        for hit in hits:
+            biosample_id = hit["_source"]["biosampleId"]
+            children = parent_to_children.get(biosample_id)
+            if children:
+                bulk_body.append({"update": {"_index": index_name,
+                                             "_id": hit["_id"]}})
+                bulk_body.append({"doc": {"derived_sample_ids": children}})
+        resp = es.scroll(scroll_id=scroll_id, scroll="5m")
+
+    # Step 3: Bulk update
     if bulk_body:
-        es.bulk(body=bulk_body, refresh=True)
+        # Send in chunks of 1000 updates
+        chunk_size = 2000  # 1000 update pairs
+        for i in range(0, len(bulk_body), chunk_size):
+            es.bulk(body=bulk_body[i:i + chunk_size], refresh=False)
+        es.indices.refresh(index=index_name)
         print(f"  Updated {len(bulk_body) // 2} source samples with "
               f"derived_sample_ids")
     else:
-        print("  No source samples found to update")
+        print("  No source samples had children to link")
 
 
 def main():
