@@ -218,7 +218,7 @@ def load_map_and_filters(_):
     prevent_initial_call=True,
 )
 def show_station_panel(click_data):
-    """When a station marker is clicked, show summary + samples table."""
+    """When a station marker is clicked, show summary + paginated table."""
     if not click_data or "points" not in click_data:
         return None
 
@@ -260,53 +260,76 @@ def show_station_panel(click_data):
         style={"background": "#f0f7f4"},
     )
 
-    # --- Samples table ---
-    # Collect all samples: source + their derived
+    # --- Samples table with server-side pagination ---
+    # Store station name so the pagination callback can fetch pages
+    table_section = html.Div([
+        dcc.Store(id="selected-station", data=station_name),
+        html.Div(id="samples-table-container"),
+        dbc.Pagination(
+            id="samples-pagination",
+            max_value=max(1, (detail["sample_count"] + 9) // 10),
+            first_last=True,
+            previous_next=True,
+            fully_expanded=False,
+            active_page=1,
+            className="justify-content-center mt-2",
+        ),
+    ])
+
+    return html.Div([summary, table_section])
+
+
+@callback(
+    Output("samples-table-container", "children"),
+    Input("samples-pagination", "active_page"),
+    Input("selected-station", "data"),
+    prevent_initial_call=True,
+)
+def load_samples_page(page, station_name):
+    """Fetch a page of samples for the selected station."""
+    if not station_name:
+        return None
+
+    page = page or 1
+    start = (page - 1) * 10
+    try:
+        resp = requests.get(f"{API_BASE_URL}/data_portal", params={
+            "station_name": station_name,
+            "size": 10,
+            "start": start,
+        }).json()
+    except Exception as e:
+        return html.P(f"Error: {e}", className="text-danger")
+
+    results = resp.get("results", [])
+    if not results:
+        return html.P("No samples found", className="text-muted")
+
     rows = []
-    for src in detail.get("source_samples", []):
+    for s in results:
         rows.append({
-            "biosampleId": src["biosampleId"],
-            "type": "Source",
-            "organism": src.get("organism") or "",
-            "device": src.get("collection_device") or "",
-            "depth": src.get("depth") or "",
+            "biosampleId": f"[{s['biosampleId']}](/data-portal/"
+                           f"{s['biosampleId']})",
+            "organism": s.get("organism") or "",
+            "analysis_type": s.get("analysis_type") or "",
+            "depth": s.get("depth") or "",
+            "is_source": "Source" if s.get("is_source_sample") else "Derived",
         })
-        for d in src.get("derived_samples", []):
-            rows.append({
-                "biosampleId": d["biosampleId"],
-                "type": d.get("analysis_type") or "Derived",
-                "organism": "",
-                "device": "",
-                "depth": "",
-            })
 
-    if rows:
-        # Add markdown links for biosample IDs
-        for r in rows:
-            r["biosampleId"] = (
-                f"[{r['biosampleId']}](/data-portal/{r['biosampleId']})")
-
-        table = dash_table.DataTable(
-            columns=[
-                {"name": "BioSample ID", "id": "biosampleId",
-                 "presentation": "markdown"},
-                {"name": "Type", "id": "type"},
-                {"name": "Organism", "id": "organism"},
-                {"name": "Collection Device", "id": "device"},
-                {"name": "Depth", "id": "depth"},
-            ],
-            data=rows,
-            page_size=10,
-            page_action="native",
-            style_cell={"textAlign": "left", "fontSize": "13px",
-                         "padding": "6px 10px"},
-            style_header={"fontWeight": "bold", "fontSize": "13px"},
-            css=[{"selector": "p", "rule": "margin: 0"},
-                 {"selector": "a",
-                  "rule": "text-decoration: none; color: #2c7a5c"}],
-        )
-    else:
-        table = html.P("No samples found at this station",
-                        className="text-muted")
-
-    return html.Div([summary, table])
+    return dash_table.DataTable(
+        columns=[
+            {"name": "BioSample ID", "id": "biosampleId",
+             "presentation": "markdown"},
+            {"name": "Type", "id": "is_source"},
+            {"name": "Analysis Type", "id": "analysis_type"},
+            {"name": "Organism", "id": "organism"},
+            {"name": "Depth", "id": "depth"},
+        ],
+        data=rows,
+        style_cell={"textAlign": "left", "fontSize": "13px",
+                     "padding": "6px 10px"},
+        style_header={"fontWeight": "bold", "fontSize": "13px"},
+        css=[{"selector": "p", "rule": "margin: 0"},
+             {"selector": "a",
+              "rule": "text-decoration: none; color: #2c7a5c"}],
+    )
