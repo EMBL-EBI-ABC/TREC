@@ -347,7 +347,13 @@ def show_station_panel(click_data):
         ]))
 
         source_items.append(dbc.AccordionItem(
-            derived_list,
+            html.Div([
+                html.A("View sample details →",
+                       href=f"/data-portal/{src['biosampleId']}",
+                       className="text-decoration-none text-success small "
+                                 "d-block mb-2"),
+                derived_list,
+            ]),
             title=html.Div([
                 html.Span(src["biosampleId"], className="fw-bold small"),
                 html.Br(),
