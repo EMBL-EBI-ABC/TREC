@@ -345,6 +345,7 @@ async def global_stats() -> GlobalStats:
     """Return global expedition statistics for the stats banner."""
     search_body = {
         "size": 0,
+        "track_total_hits": True,
         "aggs": {
             "stations": {
                 "cardinality": {"field": "station_name"}
