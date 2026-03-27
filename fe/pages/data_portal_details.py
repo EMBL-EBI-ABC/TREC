@@ -92,6 +92,10 @@ def build_detail_page(sample_id):
     parent_id = sample.get("parent_sample_id")
     station_name = sample.get("station_name")
     is_source = sample.get("is_source_sample", False)
+    # Don't treat self-referencing parent as a real parent
+    if parent_id == sample.get("biosampleId"):
+        parent_id = None
+        is_source = True
 
     # --- Breadcrumb ---
     breadcrumb = make_breadcrumb(sample, station_name, parent_id)
@@ -210,19 +214,9 @@ def build_detail_page(sample_id):
                 ], striped=True, hover=True, bordered=True, size="sm"),
             ], className="mb-3")
 
-    # --- Source sample link (for derived samples) ---
-    source_link = html.Div()
-    if parent_id and not is_source:
-        source_link = html.Div([
-            html.Small("SOURCE SAMPLE",
-                       className="text-muted d-block mb-2 fw-bold"),
-            html.A(parent_id, href=f"/data-portal/{parent_id}",
-                   className="text-decoration-none text-success"),
-        ], className="mb-3")
-
     # --- Left column ---
     left_col = dbc.Col([identity, env_table, collection_table,
-                        derived_section, source_link], md=7)
+                        derived_section], md=7)
 
     # --- Right column: map + linked data ---
 
