@@ -281,7 +281,7 @@ def show_station_panel(click_data):
         style={"background": "#f0f7f4"},
     )
 
-    max_pages = max(1, (detail["sample_count"] + 9) // 10)
+    max_pages = max(1, (detail["source_sample_count"] + 9) // 10)
 
     return (summary, station_name, max_pages, 1,
             {"display": "flex", "justifyContent": "center", "marginTop": "8px"})
@@ -294,7 +294,7 @@ def show_station_panel(click_data):
     prevent_initial_call=True,
 )
 def load_samples_page(page, station_name):
-    """Fetch a page of samples for the selected station."""
+    """Fetch a page of source samples for the selected station."""
     if not station_name:
         return None
 
@@ -305,6 +305,7 @@ def load_samples_page(page, station_name):
             "station_name": station_name,
             "size": 10,
             "start": start,
+            "is_source_sample": True,
         }).json()
     except Exception as e:
         return html.P(f"Error: {e}", className="text-danger")
@@ -315,23 +316,24 @@ def load_samples_page(page, station_name):
 
     rows = []
     for s in results:
+        n_derived = len(s.get("derived_sample_ids") or [])
         rows.append({
             "biosampleId": f"[{s['biosampleId']}](/data-portal/"
                            f"{s['biosampleId']})",
             "organism": s.get("organism") or "",
-            "analysis_type": s.get("analysis_type") or "",
             "depth": s.get("depth") or "",
-            "is_source": "Source" if s.get("is_source_sample") else "Derived",
+            "collection_device": s.get("collection_device") or "",
+            "derived": str(n_derived) if n_derived else "",
         })
 
     return dash_table.DataTable(
         columns=[
             {"name": "BioSample ID", "id": "biosampleId",
              "presentation": "markdown"},
-            {"name": "Type", "id": "is_source"},
-            {"name": "Analysis Type", "id": "analysis_type"},
             {"name": "Organism", "id": "organism"},
             {"name": "Depth", "id": "depth"},
+            {"name": "Collection Device", "id": "collection_device"},
+            {"name": "Derived Samples", "id": "derived"},
         ],
         data=rows,
         style_cell={"textAlign": "left", "fontSize": "13px",

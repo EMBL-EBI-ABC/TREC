@@ -166,55 +166,63 @@ def build_detail_page(sample_id):
          or get_field(cf, "sampling platform")),
     ])
 
-    # --- Sibling samples ---
-    siblings_section = html.Div()
-    if parent_id:
-        try:
-            parent_resp = requests.get(
-                f"{API_BASE_URL}/data_portal/{parent_id}").json()
-            if parent_resp.get("results"):
-                parent = parent_resp["results"][0]
-                derived_ids = parent.get("derived_sample_ids") or []
-                sibling_ids = [sid for sid in derived_ids
-                               if sid != sample["biosampleId"]]
-                if sibling_ids:
-                    sibling_badges = []
-                    for sid in sibling_ids[:10]:
-                        try:
-                            sib_resp = requests.get(
-                                f"{API_BASE_URL}/data_portal/{sid}").json()
-                            if sib_resp.get("results"):
-                                sib = sib_resp["results"][0]
-                                at = sib.get("analysis_type") or "?"
-                                sibling_badges.append(
-                                    html.A(
-                                        [html.Span(sid),
-                                         html.Small(f" {at}",
-                                                    className="text-muted")],
-                                        href=f"/data-portal/{sid}",
-                                        className="text-decoration-none "
-                                                  "text-success border "
-                                                  "rounded px-2 py-1 me-1 "
-                                                  "mb-1 d-inline-block small",
-                                    ))
-                        except Exception:
-                            sibling_badges.append(
-                                html.A(sid, href=f"/data-portal/{sid}",
-                                       className="text-decoration-none "
-                                                 "text-success small me-2"))
+    # --- Derived samples table (for source samples) ---
+    derived_section = html.Div()
+    derived_ids = sample.get("derived_sample_ids") or []
+    if is_source and derived_ids:
+        derived_rows = []
+        for did in derived_ids:
+            try:
+                d_resp = requests.get(
+                    f"{API_BASE_URL}/data_portal/{did}").json()
+                if d_resp.get("results"):
+                    d = d_resp["results"][0]
+                    derived_rows.append(html.Tr([
+                        html.Td(html.A(
+                            did, href=f"/data-portal/{did}",
+                            className="text-decoration-none text-success",
+                        ), style={"fontSize": "13px"}),
+                        html.Td(d.get("analysis_type") or "",
+                                style={"fontSize": "13px"}),
+                        html.Td(d.get("organism") or "",
+                                style={"fontSize": "13px"}),
+                    ]))
+            except Exception:
+                derived_rows.append(html.Tr([
+                    html.Td(html.A(
+                        did, href=f"/data-portal/{did}",
+                        className="text-decoration-none text-success",
+                    ), style={"fontSize": "13px"}),
+                    html.Td(""), html.Td(""),
+                ]))
 
-                    siblings_section = html.Div([
-                        html.Small("SIBLING SAMPLES (same source)",
-                                   className="text-muted d-block mb-2 "
-                                             "fw-bold"),
-                        html.Div(sibling_badges),
-                    ], className="mb-3")
-        except Exception:
-            pass
+        if derived_rows:
+            derived_section = html.Div([
+                html.Small("DERIVED SAMPLES",
+                           className="text-muted d-block mb-2 fw-bold"),
+                dbc.Table([
+                    html.Thead(html.Tr([
+                        html.Th("BioSample ID", style={"fontSize": "13px"}),
+                        html.Th("Analysis Type", style={"fontSize": "13px"}),
+                        html.Th("Organism", style={"fontSize": "13px"}),
+                    ])),
+                    html.Tbody(derived_rows),
+                ], striped=True, hover=True, bordered=True, size="sm"),
+            ], className="mb-3")
+
+    # --- Source sample link (for derived samples) ---
+    source_link = html.Div()
+    if parent_id and not is_source:
+        source_link = html.Div([
+            html.Small("SOURCE SAMPLE",
+                       className="text-muted d-block mb-2 fw-bold"),
+            html.A(parent_id, href=f"/data-portal/{parent_id}",
+                   className="text-decoration-none text-success"),
+        ], className="mb-3")
 
     # --- Left column ---
     left_col = dbc.Col([identity, env_table, collection_table,
-                        siblings_section], md=7)
+                        derived_section, source_link], md=7)
 
     # --- Right column: map + linked data ---
 
