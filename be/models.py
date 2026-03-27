@@ -135,10 +135,11 @@ class DataSource:
 trec = DataSource(
     name="TREC",
     fields=[
-        FieldDefinition(name="altitude", type=str, filterable=True),
+        # Original fields
+        FieldDefinition(name="altitude", type=str, filterable=False),
         FieldDefinition(name="collection_date", type=datetime.datetime | None),
-        FieldDefinition(name="depth", type=str, filterable=True),
-        FieldDefinition(name="location", type=str, filterable=True),
+        FieldDefinition(name="depth", type=str, filterable=False),
+        FieldDefinition(name="location", type=str, filterable=False),
         FieldDefinition(name="lat", type=float | None),
         FieldDefinition(name="lon", type=float | None),
         FieldDefinition(name="organism", type=str, filterable=True),
@@ -146,8 +147,76 @@ trec = DataSource(
         FieldDefinition(name="customFields", type=list[CustomField] | None),
         FieldDefinition(name="relationships",
                         type=list[BioSamplesRelationships] | None),
+        # Enriched fields - parsed from customFields
+        FieldDefinition(name="environment_type", type=str | None,
+                        filterable=True),
+        FieldDefinition(name="analysis_type", type=str | None,
+                        filterable=True),
+        FieldDefinition(name="country", type=str | None, filterable=True),
+        FieldDefinition(name="biome", type=str | None),
+        FieldDefinition(name="local_environment", type=str | None),
+        FieldDefinition(name="environmental_medium", type=str | None),
+        FieldDefinition(name="collection_device", type=str | None),
+        FieldDefinition(name="sampling_platform", type=str | None),
+        FieldDefinition(name="size_fraction_lower", type=float | None),
+        FieldDefinition(name="size_fraction_upper", type=float | None),
+        # Hierarchy fields
+        FieldDefinition(name="station_name", type=str | None,
+                        filterable=True),
+        FieldDefinition(name="is_source_sample", type=bool | None),
+        FieldDefinition(name="parent_sample_id", type=str | None),
+        FieldDefinition(name="derived_sample_ids", type=list[str] | None),
+        FieldDefinition(name="control_sample_id", type=str | None),
+        FieldDefinition(name="controlled_sample_ids", type=list[str] | None),
+        # Linked data flags
+        FieldDefinition(name="has_images", type=bool | None),
+        FieldDefinition(name="image_zarr_url", type=str | None),
+        FieldDefinition(name="has_ena_data", type=bool | None),
+        FieldDefinition(name="ena_accession", type=str | None),
     ],
     default_sort_field="collection_date",
     default_sort_order="desc",
 )
 TRECData, TRECAggregationResponse, TRECSearchParams = trec.generate_classes()
+
+
+# Station response models.
+
+class StationSummary(BaseModel):
+    station_name: str
+    lat: float
+    lon: float
+    country: str | None
+    sample_count: int
+    source_sample_count: int
+    analysis_types: list[str]
+    organism_types: list[str]
+    has_images: bool
+    has_ena_data: bool
+    min_collection_date: str | None
+    max_collection_date: str | None
+
+
+class StationListResponse(BaseModel):
+    stations: list[StationSummary]
+
+
+class SourceSampleSummary(BaseModel):
+    biosampleId: str
+    organism: str | None
+    collection_device: str | None
+    depth: str | None
+    altitude: str | None
+    derived_samples: list[dict]  # [{biosampleId, analysis_type, has_images}]
+
+
+class StationDetailResponse(BaseModel):
+    station_name: str
+    lat: float
+    lon: float
+    country: str | None
+    sample_count: int
+    source_sample_count: int
+    analysis_types: list[str]
+    organism_counts: dict[str, int]
+    source_samples: list[SourceSampleSummary]
