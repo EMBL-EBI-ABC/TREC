@@ -15,7 +15,11 @@ from models import (
     ElasticDetailsResponse,
     TRECData,
     TRECSearchParams,
-    TRECAggregationResponse
+    TRECAggregationResponse,
+    StationSummary,
+    StationListResponse,
+    SourceSampleSummary,
+    StationDetailResponse,
 )
 
 
@@ -159,3 +163,171 @@ async def trec_details(
         record_id=record_id,
         data_class=TRECData,
     )
+
+
+@app.get("/stations")
+async def list_stations() -> StationListResponse:
+    """List all sampling stations with summary aggregations."""
+    search_body = {
+        "size": 0,
+        "aggs": {
+            "stations": {
+                "terms": {"field": "station_name.keyword", "size": 500},
+                "aggs": {
+                    "lat": {"avg": {"field": "lat"}},
+                    "lon": {"avg": {"field": "lon"}},
+                    "country": {"terms": {"field": "country.keyword",
+                                          "size": 1}},
+                    "source_count": {
+                        "filter": {"term": {"is_source_sample": True}},
+                    },
+                    "analysis_types": {
+                        "terms": {"field": "analysis_type.keyword",
+                                  "size": 20},
+                    },
+                    "organism_types": {
+                        "terms": {"field": "organism.keyword", "size": 20},
+                    },
+                    "has_any_images": {
+                        "filter": {"term": {"has_images": True}},
+                    },
+                    "has_any_ena": {
+                        "filter": {"term": {"has_ena_data": True}},
+                    },
+                    "min_date": {"min": {"field": "collection_date"}},
+                    "max_date": {"max": {"field": "collection_date"}},
+                },
+            }
+        },
+    }
+    try:
+        response = await app.state.es_client.search(
+            index="data_portal", body=search_body)
+        stations = []
+        for bucket in response["aggregations"]["stations"]["buckets"]:
+            country_buckets = bucket["country"]["buckets"]
+            country = country_buckets[0]["key"] if country_buckets else None
+            stations.append(StationSummary(
+                station_name=bucket["key"],
+                lat=bucket["lat"]["value"] or 0.0,
+                lon=bucket["lon"]["value"] or 0.0,
+                country=country,
+                sample_count=bucket["doc_count"],
+                source_sample_count=bucket["source_count"]["doc_count"],
+                analysis_types=[b["key"] for b in
+                                bucket["analysis_types"]["buckets"]],
+                organism_types=[b["key"] for b in
+                                bucket["organism_types"]["buckets"]],
+                has_images=bucket["has_any_images"]["doc_count"] > 0,
+                has_ena_data=bucket["has_any_ena"]["doc_count"] > 0,
+                min_collection_date=(
+                    bucket["min_date"]["value_as_string"]
+                    if bucket["min_date"]["value"] else None),
+                max_collection_date=(
+                    bucket["max_date"]["value_as_string"]
+                    if bucket["max_date"]["value"] else None),
+            ))
+        return StationListResponse(stations=stations)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Station list error: {str(e)}")
+
+
+@app.get("/stations/{station_name}")
+async def station_detail(
+        station_name: Annotated[str, Path(description="Station name")],
+) -> StationDetailResponse:
+    """Get detailed info for a single station including source samples."""
+    try:
+        # Get station summary aggregations
+        summary_body = {
+            "size": 0,
+            "query": {"term": {"station_name.keyword": station_name}},
+            "aggs": {
+                "lat": {"avg": {"field": "lat"}},
+                "lon": {"avg": {"field": "lon"}},
+                "country": {"terms": {"field": "country.keyword", "size": 1}},
+                "analysis_types": {
+                    "terms": {"field": "analysis_type.keyword", "size": 20},
+                },
+                "organisms": {
+                    "terms": {"field": "organism.keyword", "size": 50},
+                },
+            },
+        }
+        summary_resp = await app.state.es_client.search(
+            index="data_portal", body=summary_body)
+        total = summary_resp["hits"]["total"]["value"]
+        aggs = summary_resp["aggregations"]
+        country_buckets = aggs["country"]["buckets"]
+        country = country_buckets[0]["key"] if country_buckets else None
+        organism_counts = {b["key"]: b["doc_count"]
+                          for b in aggs["organisms"]["buckets"]}
+
+        # Get source samples at this station
+        source_body = {
+            "size": 200,
+            "query": {
+                "bool": {
+                    "filter": [
+                        {"term": {"station_name.keyword": station_name}},
+                        {"term": {"is_source_sample": True}},
+                    ]
+                }
+            },
+            "sort": [{"collection_date": {"order": "desc"}}],
+            "_source": ["biosampleId", "organism", "collection_device",
+                        "depth", "altitude", "derived_sample_ids"],
+        }
+        source_resp = await app.state.es_client.search(
+            index="data_portal", body=source_body)
+        source_count = source_resp["hits"]["total"]["value"]
+
+        source_samples = []
+        for hit in source_resp["hits"]["hits"]:
+            src = hit["_source"]
+            derived_ids = src.get("derived_sample_ids") or []
+            # Fetch derived sample summaries
+            derived_samples = []
+            if derived_ids:
+                derived_body = {
+                    "size": len(derived_ids),
+                    "query": {
+                        "terms": {"biosampleId.keyword": derived_ids}
+                    },
+                    "_source": ["biosampleId", "analysis_type", "has_images"],
+                }
+                derived_resp = await app.state.es_client.search(
+                    index="data_portal", body=derived_body)
+                derived_samples = [
+                    {
+                        "biosampleId": d["_source"]["biosampleId"],
+                        "analysis_type": d["_source"].get("analysis_type"),
+                        "has_images": d["_source"].get("has_images", False),
+                    }
+                    for d in derived_resp["hits"]["hits"]
+                ]
+
+            source_samples.append(SourceSampleSummary(
+                biosampleId=src["biosampleId"],
+                organism=src.get("organism"),
+                collection_device=src.get("collection_device"),
+                depth=src.get("depth"),
+                altitude=src.get("altitude"),
+                derived_samples=derived_samples,
+            ))
+
+        return StationDetailResponse(
+            station_name=station_name,
+            lat=aggs["lat"]["value"] or 0.0,
+            lon=aggs["lon"]["value"] or 0.0,
+            country=country,
+            sample_count=total,
+            source_sample_count=source_count,
+            analysis_types=[b["key"] for b in
+                            aggs["analysis_types"]["buckets"]],
+            organism_counts=organism_counts,
+            source_samples=source_samples,
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Station detail error: {str(e)}")
