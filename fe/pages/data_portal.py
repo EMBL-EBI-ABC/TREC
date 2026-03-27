@@ -103,6 +103,19 @@ layout = dbc.Container([
                     className="text-muted text-center py-3",
                 ),
             ),
+            # Samples table (always in DOM, hidden until station selected)
+            dcc.Store(id="selected-station"),
+            html.Div(id="samples-table-container"),
+            dbc.Pagination(
+                id="samples-pagination",
+                max_value=1,
+                first_last=True,
+                previous_next=True,
+                fully_expanded=False,
+                active_page=1,
+                className="justify-content-center mt-2",
+                style={"display": "none"},
+            ),
         ], md=10),
     ], className="mt-2"),
 ])
@@ -214,27 +227,35 @@ def load_map_and_filters(_):
 
 @callback(
     Output("station-panel", "children"),
+    Output("selected-station", "data"),
+    Output("samples-pagination", "max_value"),
+    Output("samples-pagination", "active_page"),
+    Output("samples-pagination", "style"),
     Input("station-map", "clickData"),
     prevent_initial_call=True,
 )
 def show_station_panel(click_data):
-    """When a station marker is clicked, show summary + paginated table."""
+    """When a station marker is clicked, show summary + trigger table load."""
+    hide_pagination = {"display": "none"}
+
     if not click_data or "points" not in click_data:
-        return None
+        return None, None, 1, 1, hide_pagination
 
     station_name = click_data["points"][0].get("customdata")
     if not station_name:
         station_name = click_data["points"][0].get("text", "")
     if not station_name:
-        return html.P("Could not identify station",
-                       className="text-muted text-center mt-3")
+        return (html.P("Could not identify station",
+                        className="text-muted text-center mt-3"),
+                None, 1, 1, hide_pagination)
 
     try:
         detail = requests.get(
             f"{API_BASE_URL}/stations/{station_name}").json()
     except Exception as e:
-        return html.P(f"Error loading station: {e}",
-                       className="text-danger text-center mt-3")
+        return (html.P(f"Error loading station: {e}",
+                        className="text-danger text-center mt-3"),
+                None, 1, 1, hide_pagination)
 
     # --- Summary ---
     summary = dbc.Card(
@@ -260,23 +281,10 @@ def show_station_panel(click_data):
         style={"background": "#f0f7f4"},
     )
 
-    # --- Samples table with server-side pagination ---
-    # Store station name so the pagination callback can fetch pages
-    table_section = html.Div([
-        dcc.Store(id="selected-station", data=station_name),
-        html.Div(id="samples-table-container"),
-        dbc.Pagination(
-            id="samples-pagination",
-            max_value=max(1, (detail["sample_count"] + 9) // 10),
-            first_last=True,
-            previous_next=True,
-            fully_expanded=False,
-            active_page=1,
-            className="justify-content-center mt-2",
-        ),
-    ])
+    max_pages = max(1, (detail["sample_count"] + 9) // 10)
 
-    return html.Div([summary, table_section])
+    return (summary, station_name, max_pages, 1,
+            {"display": "flex", "justifyContent": "center", "marginTop": "8px"})
 
 
 @callback(
