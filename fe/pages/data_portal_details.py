@@ -26,23 +26,18 @@ def make_breadcrumb(sample, station_name, parent_id):
     """Build breadcrumb: Station > Source Sample > This Sample."""
     items = []
     if station_name:
-        items.append(
-            dbc.BreadcrumbItem(
-                html.A(f"📍 {station_name}", href="/data",
-                       className="text-decoration-none")))
+        items.append(html.Li(
+            html.A(f"📍 {station_name}", href="/data",
+                   className="text-decoration-none"),
+            className="breadcrumb-item"))
     if parent_id:
-        items.append(
-            dbc.BreadcrumbItem(
-                html.A(parent_id,
-                       href=f"/data-portal/{parent_id}",
-                       className="text-decoration-none")))
-    items.append(
-        dbc.BreadcrumbItem(sample["biosampleId"], active=True))
-    return dbc.Breadcrumb(items=[], id="bc-placeholder",
-                          children=html.Ol(
-                              [html.Li(item, className="breadcrumb-item")
-                               for item in items],
-                              className="breadcrumb"))
+        items.append(html.Li(
+            html.A(parent_id, href=f"/data-portal/{parent_id}",
+                   className="text-decoration-none"),
+            className="breadcrumb-item"))
+    items.append(html.Li(
+        sample["biosampleId"], className="breadcrumb-item active"))
+    return html.Nav(html.Ol(items, className="breadcrumb"))
 
 
 def make_metadata_table(label, rows):
