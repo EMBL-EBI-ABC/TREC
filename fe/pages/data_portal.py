@@ -96,7 +96,13 @@ layout = dbc.Container([
                 dcc.Graph(id="station-map", style={"height": "450px"}),
             ),
             # Station detail below map
-            html.Div(id="station-panel"),
+            html.Div(
+                id="station-panel",
+                children=html.P(
+                    "Click a station on the map to view its samples",
+                    className="text-muted text-center py-3",
+                ),
+            ),
         ], md=10),
     ], className="mt-2"),
 ])
