@@ -148,9 +148,9 @@ class DataSource:
 trec = DataSource(
     name="TREC",
     fields=[
-        FieldDefinition(name="altitude", type=str, filterable=True),
+        FieldDefinition(name="altitude", type=str | None, filterable=True),
+        FieldDefinition(name="depth", type=str | None, filterable=True),
         FieldDefinition(name="collection_date", type=datetime.datetime | None),
-        FieldDefinition(name="depth", type=str, filterable=True),
         FieldDefinition(name="location", type=str, filterable=True),
         FieldDefinition(name="lat", type=float | None),
         FieldDefinition(name="lon", type=float | None),

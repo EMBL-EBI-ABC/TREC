@@ -1,5 +1,6 @@
 import dash
 import requests
+import urllib.parse
 
 import dash_bootstrap_components as dbc
 from dash import callback, Output, Input, html, dcc, ALL, ctx, State, MATCH
@@ -200,7 +201,7 @@ def render_filter_items(options: list, selected_value, filter_id: str):
                         },
                     ),
                 ],
-                id={"type": "filter-item", "filter": filter_id, "value": value},
+                id={"type": "filter-item", "filter": filter_id, "value": urllib.parse.quote(value, safe='')},
                 n_clicks=0,
                 style={
                     "display": "flex",
@@ -282,7 +283,7 @@ def update_panel_styles(*stores):
 def handle_filter_click(n_clicks_list, current_value):
     if not ctx.triggered_id or not any(n for n in n_clicks_list if n):
         raise dash.exceptions.PreventUpdate
-    clicked_value = ctx.triggered_id["value"]
+    clicked_value = urllib.parse.unquote(ctx.triggered_id["value"])
     if current_value is not None and str(current_value) == str(clicked_value):
         return None
     return clicked_value
