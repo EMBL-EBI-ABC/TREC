@@ -39,20 +39,24 @@ layout = dbc.Container([
         className="mb-3",
     ),
     dbc.Spinner(html.Div(id="availability-table")),
-    dbc.Pagination(
-        id="availability-pagination",
-        max_value=1,
-        first_last=True,
-        previous_next=True,
-        fully_expanded=False,
-        active_page=1,
-        className="justify-content-center mt-2",
-    ),
-    html.Div([
-        dbc.Badge("✓", color="success", style={"fontSize": "10px"}),
-        html.Span(" Available", className="small me-3"),
-        html.Span("—", className="text-muted me-1"),
-        html.Span("Not available", className="small"),
+    dbc.Row([
+        dbc.Col([
+            dbc.Badge("✓", color="success", style={"fontSize": "10px"}),
+            html.Span(" Available", className="small me-3"),
+            html.Span("—", className="text-muted me-1"),
+            html.Span("Not available", className="small"),
+        ], className="d-flex align-items-center"),
+        dbc.Col(
+            dbc.Pagination(
+                id="availability-pagination",
+                max_value=1,
+                first_last=True,
+                previous_next=True,
+                fully_expanded=False,
+                active_page=1,
+                className="justify-content-end mb-0",
+            ),
+        ),
     ], className="mt-2 mb-3"),
 ])
 
