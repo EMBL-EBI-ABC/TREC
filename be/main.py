@@ -3,8 +3,9 @@ import urllib.parse
 from contextlib import asynccontextmanager
 import json
 
+from pathlib import Path as FilePath
 from dotenv import load_dotenv
-load_dotenv()
+load_dotenv(FilePath(__file__).resolve().parent.parent / ".env")
 
 ES_INDEX = os.getenv("ES_INDEX", "data_portal_development_4")
 

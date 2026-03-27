@@ -15,10 +15,11 @@ Idempotent: safe to re-run.
 
 import os
 import re
+from pathlib import Path
 from dotenv import load_dotenv
 from elasticsearch import Elasticsearch
 
-load_dotenv()
+load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
 
 def get_custom_field(custom_fields, name):
