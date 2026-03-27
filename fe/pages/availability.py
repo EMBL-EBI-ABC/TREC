@@ -1,7 +1,7 @@
 import dash
 import requests
 import dash_bootstrap_components as dbc
-from dash import callback, Output, Input, html, dcc, dash_table
+from dash import callback, Output, Input, html
 from api_config import API_BASE_URL
 
 dash.register_page(
@@ -11,6 +11,21 @@ dash.register_page(
 )
 
 ANALYSIS_TYPES = ["Metagenomics", "Metabolomics", "Imaging", "Ions"]
+PAGE_SIZE = 10
+
+
+def available_cell():
+    return html.Td(
+        dbc.Badge("✓", color="success", style={"fontSize": "11px"}),
+        className="text-center",
+    )
+
+
+def unavailable_cell():
+    return html.Td(
+        html.Span("—", className="text-muted", style={"fontSize": "11px"}),
+        className="text-center",
+    )
 
 
 layout = dbc.Container([
@@ -23,24 +38,42 @@ layout = dbc.Container([
         type="text", debounce=True,
         className="mb-3",
     ),
-    dbc.Spinner(html.Div(id="availability-matrix")),
+    dbc.Spinner(html.Div(id="availability-table")),
+    dbc.Pagination(
+        id="availability-pagination",
+        max_value=1,
+        first_last=True,
+        previous_next=True,
+        fully_expanded=False,
+        active_page=1,
+        className="justify-content-center mt-2",
+    ),
+    html.Div([
+        dbc.Badge("✓", color="success", style={"fontSize": "10px"}),
+        html.Span(" Available", className="small me-3"),
+        html.Span("—", className="text-muted me-1"),
+        html.Span("Not available", className="small"),
+    ], className="mt-2 mb-3"),
 ])
 
 
 @callback(
-    Output("availability-matrix", "children"),
+    Output("availability-table", "children"),
+    Output("availability-pagination", "max_value"),
+    Output("availability-pagination", "active_page"),
     Input("availability-search", "value"),
+    Input("availability-pagination", "active_page"),
 )
-def build_matrix(search_value):
+def build_matrix(search_value, page):
     try:
         resp = requests.get(f"{API_BASE_URL}/stations").json()
     except Exception as e:
         return html.P(f"Error loading stations: {e}",
-                       className="text-danger")
+                       className="text-danger"), 1, 1
 
     stations = resp.get("stations", [])
     if not stations:
-        return html.P("No stations found", className="text-muted")
+        return html.P("No stations found", className="text-muted"), 1, 1
 
     # Filter by search
     if search_value:
@@ -49,58 +82,63 @@ def build_matrix(search_value):
                     if q in s["station_name"].lower()
                     or q in (s.get("country") or "").lower()]
 
+    if not stations:
+        return html.P("No stations match your search",
+                       className="text-muted"), 1, 1
+
     # Sort by country then name
     stations.sort(key=lambda s: (s.get("country") or "", s["station_name"]))
 
-    # Build rows for DataTable
+    # Pagination
+    total_pages = max(1, (len(stations) + PAGE_SIZE - 1) // PAGE_SIZE)
+    # Reset to page 1 when search changes
+    if dash.callback_context.triggered_id == "availability-search":
+        page = 1
+    page = min(page or 1, total_pages)
+    start = (page - 1) * PAGE_SIZE
+    page_stations = stations[start:start + PAGE_SIZE]
+
+    # Build table
+    header = html.Thead(html.Tr([
+        html.Th("Station", style={"textAlign": "left"}),
+        html.Th("Country", style={"textAlign": "left"}),
+        html.Th("Samples", className="text-center"),
+        *[html.Th(at, className="text-center", style={"fontSize": "13px"})
+          for at in ANALYSIS_TYPES],
+        html.Th("ENA", className="text-center", style={"fontSize": "13px"}),
+        html.Th("Images", className="text-center",
+                style={"fontSize": "13px"}),
+    ]))
+
     rows = []
-    for s in stations:
-        available = set(s.get("analysis_types", []))
-        row = {
-            "station": s["station_name"],
-            "country": s.get("country") or "",
-            "samples": s.get("sample_count", 0),
-        }
+    for station in page_stations:
+        available_types = set(station.get("analysis_types", []))
+        cells = [
+            html.Td(
+                html.A(station["station_name"], href="/data",
+                       className="text-decoration-none text-success"),
+                style={"fontSize": "13px"},
+            ),
+            html.Td(station.get("country") or "",
+                    style={"fontSize": "13px"}),
+            html.Td(str(station.get("sample_count", 0)),
+                    className="text-center", style={"fontSize": "13px"}),
+        ]
         for at in ANALYSIS_TYPES:
-            row[at] = "✓" if at in available else "—"
-        row["ENA"] = "✓" if s.get("has_ena_data") else "—"
-        row["Images"] = "✓" if s.get("has_images") else "—"
-        rows.append(row)
+            cells.append(
+                available_cell() if at in available_types
+                else unavailable_cell())
+        cells.append(
+            available_cell() if station.get("has_ena_data")
+            else unavailable_cell())
+        cells.append(
+            available_cell() if station.get("has_images")
+            else unavailable_cell())
+        rows.append(html.Tr(cells))
 
-    if not rows:
-        return html.P("No stations match your search", className="text-muted")
+    table = dbc.Table(
+        [header, html.Tbody(rows)],
+        striped=True, hover=True, responsive=True, bordered=True, size="sm",
+    )
 
-    return html.Div([
-        dash_table.DataTable(
-            columns=[
-                {"name": "Station", "id": "station"},
-                {"name": "Country", "id": "country"},
-                {"name": "Samples", "id": "samples"},
-                *[{"name": at, "id": at} for at in ANALYSIS_TYPES],
-                {"name": "ENA", "id": "ENA"},
-                {"name": "Images", "id": "Images"},
-            ],
-            data=rows,
-            page_size=10,
-            page_action="native",
-            style_cell={"textAlign": "center", "fontSize": "13px",
-                         "padding": "6px 10px"},
-            style_cell_conditional=[
-                {"if": {"column_id": "station"}, "textAlign": "left"},
-                {"if": {"column_id": "country"}, "textAlign": "left"},
-            ],
-            style_header={"fontWeight": "bold", "fontSize": "13px"},
-            style_data_conditional=[
-                {"if": {"filter_query": '{{{col}}} = "✓"'.format(col=col),
-                        "column_id": col},
-                 "color": "#2c7a5c", "fontWeight": "bold"}
-                for col in ANALYSIS_TYPES + ["ENA", "Images"]
-            ],
-        ),
-        html.Div([
-            html.Span("✓", className="text-success fw-bold me-1"),
-            html.Span("Available", className="small me-3"),
-            html.Span("—", className="text-muted me-1"),
-            html.Span("Not available", className="small"),
-        ], className="mt-2 mb-3"),
-    ])
+    return table, total_pages, page
