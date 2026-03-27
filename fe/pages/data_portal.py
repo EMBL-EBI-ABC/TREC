@@ -1,7 +1,7 @@
 import dash
 import requests
 import dash_bootstrap_components as dbc
-from dash import callback, Output, Input, State, html, dcc
+from dash import callback, Output, Input, State, html, dcc, dash_table
 from api_config import API_BASE_URL
 
 dash.register_page(
@@ -298,34 +298,29 @@ def show_station_panel(click_data):
             })
 
     if rows:
-        table_header = html.Thead(html.Tr([
-            html.Th("BioSample ID"),
-            html.Th("Type"),
-            html.Th("Organism"),
-            html.Th("Collection Device"),
-            html.Th("Depth"),
-        ]))
-        table_body = html.Tbody([
-            html.Tr([
-                html.Td(html.A(
-                    r["biosampleId"],
-                    href=f"/data-portal/{r['biosampleId']}",
-                    className="text-decoration-none text-success",
-                )),
-                html.Td(dbc.Badge(r["type"],
-                                  color="secondary" if r["type"] == "Source"
-                                  else "info",
-                                  style={"fontSize": "11px"})),
-                html.Td(r["organism"], className="small"),
-                html.Td(r["device"], className="small"),
-                html.Td(r["depth"], className="small"),
-            ])
-            for r in rows
-        ])
-        table = dbc.Table(
-            [table_header, table_body],
-            striped=True, hover=True, bordered=True, responsive=True,
-            size="sm",
+        # Add markdown links for biosample IDs
+        for r in rows:
+            r["biosampleId"] = (
+                f"[{r['biosampleId']}](/data-portal/{r['biosampleId']})")
+
+        table = dash_table.DataTable(
+            columns=[
+                {"name": "BioSample ID", "id": "biosampleId",
+                 "presentation": "markdown"},
+                {"name": "Type", "id": "type"},
+                {"name": "Organism", "id": "organism"},
+                {"name": "Collection Device", "id": "device"},
+                {"name": "Depth", "id": "depth"},
+            ],
+            data=rows,
+            page_size=10,
+            page_action="native",
+            style_cell={"textAlign": "left", "fontSize": "13px",
+                         "padding": "6px 10px"},
+            style_header={"fontWeight": "bold", "fontSize": "13px"},
+            css=[{"selector": "p", "rule": "margin: 0"},
+                 {"selector": "a",
+                  "rule": "text-decoration: none; color: #2c7a5c"}],
         )
     else:
         table = html.P("No samples found at this station",
