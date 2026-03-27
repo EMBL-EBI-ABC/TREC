@@ -2,19 +2,18 @@ import dash
 from dash import html
 import dash_bootstrap_components as dbc
 
-TREC_LOGO = ("https://www.embl.org/about/info/trec/wp-content/uploads/2023/02/"
-             "20230126_TREC_Tag_RGB-s.jpg")
-
 app = dash.Dash(
     __name__,
     external_stylesheets=[dbc.themes.MINTY],
-    use_pages=True)
+    use_pages=True,
+    suppress_callback_exceptions=True,
+)
 
 app.layout = html.Div([
     dbc.NavbarSimple(
         children=[
-            dbc.NavItem(dbc.NavLink("Data", href="/data")),
-            dbc.NavItem(dbc.NavLink("Sampling Map", href="/sampling-map")),
+            dbc.NavItem(dbc.NavLink("Data Portal", href="/data")),
+            dbc.NavItem(dbc.NavLink("Availability", href="/availability")),
             dbc.NavItem(dbc.NavLink("API", href="/api")),
             dbc.NavItem(dbc.NavLink("About", href="/about")),
         ],
