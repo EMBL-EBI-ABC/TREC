@@ -26,121 +26,83 @@ def make_stats_banner():
     )
 
 
-def make_filters_panel():
-    """Collapsible filters panel."""
-    return dbc.Collapse(
-        dbc.Card(
-            dbc.CardBody(
-                dbc.Row([
-                    dbc.Col([
-                        html.Label("Environment", className="fw-bold small"),
-                        dbc.Checklist(id="env-type-filter", className="small"),
-                    ], md=2),
-                    dbc.Col([
-                        html.Label("Organism", className="fw-bold small"),
-                        dbc.Checklist(
-                            id="organism-filter", className="small",
-                            style={"maxHeight": "10em", "overflowY": "auto"}),
-                    ], md=2),
-                    dbc.Col([
-                        html.Label("Analysis Type", className="fw-bold small"),
-                        dbc.Checklist(
-                            id="analysis-type-filter", className="small"),
-                    ], md=2),
-                    dbc.Col([
-                        html.Label("Country", className="fw-bold small"),
-                        dbc.Checklist(
-                            id="country-filter", className="small",
-                            style={"maxHeight": "10em", "overflowY": "auto"}),
-                    ], md=2),
-                    dbc.Col([
-                        html.Label("Linked Data", className="fw-bold small"),
-                        dbc.Checklist(
-                            id="linked-data-filter",
-                            options=[
-                                {"label": "Has images", "value": "images"},
-                                {"label": "Has sequences", "value": "ena"},
-                            ],
-                            className="small",
-                        ),
-                    ], md=2),
-                    dbc.Col([
-                        html.Label("Sample Type", className="fw-bold small"),
-                        dbc.RadioItems(
-                            id="source-filter",
-                            options=[
-                                {"label": "All", "value": "all"},
-                                {"label": "Source only", "value": "source"},
-                            ],
-                            value="all",
-                            className="small",
-                        ),
-                    ], md=2),
-                ]),
-            ),
-            className="mb-2",
+def make_filters_sidebar():
+    """Always-visible filters sidebar on the left."""
+    return html.Div([
+        html.H6("Filters", className="fw-bold mb-3"),
+
+        html.Label("Environment", className="fw-bold small"),
+        dbc.Checklist(id="env-type-filter", className="small mb-3"),
+
+        html.Label("Organism", className="fw-bold small"),
+        dbc.Checklist(
+            id="organism-filter", className="small mb-3",
+            style={"maxHeight": "12em", "overflowY": "auto"}),
+
+        html.Label("Analysis Type", className="fw-bold small"),
+        dbc.Checklist(id="analysis-type-filter", className="small mb-3"),
+
+        html.Label("Country", className="fw-bold small"),
+        dbc.Checklist(
+            id="country-filter", className="small mb-3",
+            style={"maxHeight": "12em", "overflowY": "auto"}),
+
+        html.Label("Linked Data", className="fw-bold small"),
+        dbc.Checklist(
+            id="linked-data-filter",
+            options=[
+                {"label": "Has images", "value": "images"},
+                {"label": "Has sequences", "value": "ena"},
+            ],
+            className="small mb-3",
         ),
-        id="filters-collapse",
-        is_open=False,
-    )
+
+        html.Label("Sample Type", className="fw-bold small"),
+        dbc.RadioItems(
+            id="source-filter",
+            options=[
+                {"label": "All", "value": "all"},
+                {"label": "Source only", "value": "source"},
+            ],
+            value="all",
+            className="small",
+        ),
+    ], style={"padding": "15px", "borderRight": "1px solid #e0e0e0",
+              "height": "100%"})
 
 
 layout = dbc.Container([
     # Stats banner
     make_stats_banner(),
-    # Search + filters
-    dbc.Row(
+    # Main layout: filters sidebar | map + station content
+    dbc.Row([
+        # Left: filters sidebar
+        dbc.Col(
+            make_filters_sidebar(),
+            md=2,
+            style={"paddingRight": "0"},
+        ),
+        # Right: search + map + station detail
         dbc.Col([
-            dbc.InputGroup([
-                dbc.Input(
-                    id="search-input",
-                    placeholder="Search samples, organisms, locations...",
-                    type="text", debounce=True,
-                ),
-                dbc.Button("Filters ▾", id="filters-toggle",
-                           outline=True, color="secondary", size="sm"),
-            ], className="mb-2"),
-            make_filters_panel(),
-        ]),
-        className="mt-3",
-    ),
-    # Map + Station panel
-    dbc.Spinner(
-        dbc.Row([
-            # Map column
-            dbc.Col([
-                dcc.Graph(id="station-map", style={"height": "500px"}),
-            ], md=7),
-            # Station panel column
-            dbc.Col(
-                html.Div(
-                    id="station-panel",
-                    children=[
-                        html.Div(
-                            html.P("Click a station on the map to see details",
-                                   className="text-muted text-center mt-5"),
-                        )
-                    ],
-                    style={"maxHeight": "500px", "overflowY": "auto"},
-                ),
-                md=5,
+            # Search bar
+            dbc.Input(
+                id="search-input",
+                placeholder="Search samples, organisms, locations...",
+                type="text", debounce=True,
+                className="mb-2 mt-2",
             ),
-        ]),
-    ),
+            # Map
+            dbc.Spinner(
+                dcc.Graph(id="station-map", style={"height": "450px"}),
+            ),
+            # Station detail below map
+            html.Div(id="station-panel"),
+        ], md=10),
+    ], className="mt-2"),
 ])
 
 
 # --- Callbacks ---
-
-@callback(
-    Output("filters-collapse", "is_open"),
-    Input("filters-toggle", "n_clicks"),
-    State("filters-collapse", "is_open"),
-    prevent_initial_call=True,
-)
-def toggle_filters(n_clicks, is_open):
-    return not is_open
-
 
 @callback(
     Output("stats-banner-row", "children"),
@@ -250,17 +212,16 @@ def load_map_and_filters(_):
     prevent_initial_call=True,
 )
 def show_station_panel(click_data):
-    """When a station marker is clicked, fetch and display station detail."""
+    """When a station marker is clicked, show summary + samples table."""
     if not click_data or "points" not in click_data:
-        return html.P("Click a station on the map to see details",
-                       className="text-muted text-center mt-5")
+        return None
 
     station_name = click_data["points"][0].get("customdata")
     if not station_name:
         station_name = click_data["points"][0].get("text", "")
     if not station_name:
         return html.P("Could not identify station",
-                       className="text-muted text-center mt-5")
+                       className="text-muted text-center mt-3")
 
     try:
         detail = requests.get(
@@ -269,102 +230,99 @@ def show_station_panel(click_data):
         return html.P(f"Error loading station: {e}",
                        className="text-danger text-center mt-3")
 
-    # Station header
-    header = html.Div([
-        html.H5(f"📍 {detail['station_name']}", className="mb-1"),
-        html.Small(
-            f"{detail['lat']:.4f}°N, {detail['lon']:.4f}°E"
-            + (f" · {detail['country']}" if detail.get("country") else ""),
-            className="text-muted",
+    # --- Summary row ---
+    summary = dbc.Card(
+        dbc.CardBody(
+            dbc.Row([
+                dbc.Col([
+                    html.H5(f"📍 {detail['station_name']}", className="mb-0"),
+                    html.Small(
+                        f"{detail['lat']:.4f}°N, {detail['lon']:.4f}°E"
+                        + (f" · {detail['country']}"
+                           if detail.get("country") else ""),
+                        className="text-muted",
+                    ),
+                ], md=4),
+                dbc.Col([
+                    html.Span(str(detail["source_sample_count"]),
+                              className="fw-bold text-success fs-5"),
+                    html.Small(" source", className="text-muted"),
+                    html.Span(" / ", className="text-muted mx-1"),
+                    html.Span(str(detail["sample_count"]),
+                              className="fw-bold text-success fs-5"),
+                    html.Small(" total samples", className="text-muted"),
+                ], md=3, className="d-flex align-items-center"),
+                dbc.Col([
+                    html.Div([
+                        dbc.Badge(t, color="success", className="me-1 mb-1")
+                        for t in detail.get("analysis_types", [])
+                    ]),
+                ], md=3),
+                dbc.Col([
+                    html.Small("ORGANISMS", className="text-muted d-block"),
+                    html.Small(
+                        ", ".join(detail.get("organism_counts", {}).keys()),
+                        style={"fontSize": "11px"},
+                    ),
+                ], md=2),
+            ], className="align-items-center"),
         ),
-    ], className="p-3", style={"background": "#f0f7f4",
-                                "borderBottom": "1px solid #e0e0e0"})
+        className="mt-3 mb-2",
+        style={"background": "#f0f7f4"},
+    )
 
-    # Summary counts
-    counts = dbc.Row([
-        dbc.Col(html.Div([
-            html.Div(str(detail["source_sample_count"]),
-                     className="fw-bold fs-4 text-success"),
-            html.Small("Source samples", className="text-muted"),
-        ], className="text-center p-2 bg-light rounded"), md=6),
-        dbc.Col(html.Div([
-            html.Div(str(detail["sample_count"]),
-                     className="fw-bold fs-4 text-success"),
-            html.Small("Total samples", className="text-muted"),
-        ], className="text-center p-2 bg-light rounded"), md=6),
-    ], className="g-2 p-3")
-
-    # Available analysis types badges
-    type_badges = html.Div([
-        html.Small("AVAILABLE DATA", className="text-muted d-block mb-2"),
-        html.Div([
-            dbc.Badge(t, color="success", className="me-1 mb-1")
-            for t in detail.get("analysis_types", [])
-        ]),
-    ], className="px-3 pb-3")
-
-    # Organism breakdown
-    org_list = html.Div([
-        html.Small("ORGANISMS", className="text-muted d-block mb-2"),
-        *[
-            html.Div([
-                html.Span(org, className="small"),
-                html.Span(f"{count}", className="small text-muted float-end"),
-            ], className="mb-1")
-            for org, count in detail.get("organism_counts", {}).items()
-        ],
-    ], className="px-3 pb-3")
-
-    # Source samples accordion
-    source_items = []
+    # --- Samples table ---
+    # Collect all samples: source + their derived
+    rows = []
     for src in detail.get("source_samples", []):
-        derived = src.get("derived_samples", [])
-        derived_list = html.Div([
-            html.Div([
-                html.A(
-                    d["biosampleId"],
-                    href=f"/data-portal/{d['biosampleId']}",
-                    className="text-decoration-none text-success small",
-                ),
-                html.Span([
-                    dbc.Badge(d.get("analysis_type") or "?",
-                              color="info", className="ms-2",
-                              style={"fontSize": "10px"}),
-                    dbc.Badge("🖼️", color="warning", className="ms-1",
-                              style={"fontSize": "10px"})
-                    if d.get("has_images") == "Yes" else None,
-                ]),
-            ], className="d-flex justify-content-between align-items-center "
-                         "py-1 border-bottom")
-            for d in derived
-        ]) if derived else html.Small("No derived samples",
-                                       className="text-muted")
+        rows.append({
+            "biosampleId": src["biosampleId"],
+            "type": "Source",
+            "organism": src.get("organism") or "",
+            "device": src.get("collection_device") or "",
+            "depth": src.get("depth") or "",
+        })
+        for d in src.get("derived_samples", []):
+            rows.append({
+                "biosampleId": d["biosampleId"],
+                "type": d.get("analysis_type") or "Derived",
+                "organism": "",
+                "device": "",
+                "depth": "",
+            })
 
-        subtitle = " · ".join(filter(None, [
-            src.get("collection_device"),
-            f"{src['depth']} depth" if src.get("depth") else None,
-            src.get("organism"),
+    if rows:
+        table_header = html.Thead(html.Tr([
+            html.Th("BioSample ID"),
+            html.Th("Type"),
+            html.Th("Organism"),
+            html.Th("Collection Device"),
+            html.Th("Depth"),
         ]))
+        table_body = html.Tbody([
+            html.Tr([
+                html.Td(html.A(
+                    r["biosampleId"],
+                    href=f"/data-portal/{r['biosampleId']}",
+                    className="text-decoration-none text-success",
+                )),
+                html.Td(dbc.Badge(r["type"],
+                                  color="secondary" if r["type"] == "Source"
+                                  else "info",
+                                  style={"fontSize": "11px"})),
+                html.Td(r["organism"], className="small"),
+                html.Td(r["device"], className="small"),
+                html.Td(r["depth"], className="small"),
+            ])
+            for r in rows
+        ])
+        table = dbc.Table(
+            [table_header, table_body],
+            striped=True, hover=True, bordered=True, responsive=True,
+            size="sm",
+        )
+    else:
+        table = html.P("No samples found at this station",
+                        className="text-muted")
 
-        source_items.append(dbc.AccordionItem(
-            html.Div([
-                html.A("View sample details →",
-                       href=f"/data-portal/{src['biosampleId']}",
-                       className="text-decoration-none text-success small "
-                                 "d-block mb-2"),
-                derived_list,
-            ]),
-            title=html.Div([
-                html.Span(src["biosampleId"], className="fw-bold small"),
-                html.Br(),
-                html.Small(subtitle, className="text-muted"),
-            ]),
-            item_id=src["biosampleId"],
-        ))
-
-    sources_section = html.Div([
-        html.Small("SOURCE SAMPLES", className="text-muted d-block mb-2"),
-        dbc.Accordion(source_items, flush=True, start_collapsed=True),
-    ], className="px-3 pb-3") if source_items else html.Div()
-
-    return html.Div([header, counts, type_badges, org_list, sources_section])
+    return html.Div([summary, table])
