@@ -6,6 +6,8 @@ import json
 from dotenv import load_dotenv
 load_dotenv()
 
+ES_INDEX = os.getenv("ES_INDEX", "data_portal_development_4")
+
 from fastapi import FastAPI, HTTPException, Query, Path
 from elasticsearch import AsyncElasticsearch
 from fastapi.middleware.cors import CORSMiddleware
@@ -151,7 +153,7 @@ async def trec_search(
         params: Annotated[TRECSearchParams, Query()],
 ) -> ElasticResponse[TRECData, TRECAggregationResponse]:
     return await elastic_search(
-        index_name="data_portal",
+        index_name=ES_INDEX,
         params=params,
         data_class=TRECData,
         aggregation_class=TRECAggregationResponse,
@@ -163,7 +165,7 @@ async def trec_details(
         record_id: Annotated[str, Path(description="Record ID")],
 ) -> ElasticDetailsResponse[TRECData]:
     return await elastic_details(
-        index_name="data_portal",
+        index_name=ES_INDEX,
         record_id=record_id,
         data_class=TRECData,
     )
@@ -206,7 +208,7 @@ async def list_stations() -> StationListResponse:
     }
     try:
         response = await app.state.es_client.search(
-            index="data_portal", body=search_body)
+            index=ES_INDEX, body=search_body)
         stations = []
         for bucket in response["aggregations"]["stations"]["buckets"]:
             country_buckets = bucket["country"]["buckets"]
@@ -259,7 +261,7 @@ async def station_detail(
             },
         }
         summary_resp = await app.state.es_client.search(
-            index="data_portal", body=summary_body)
+            index=ES_INDEX, body=summary_body)
         total = summary_resp["hits"]["total"]["value"]
         aggs = summary_resp["aggregations"]
         country_buckets = aggs["country"]["buckets"]
@@ -283,7 +285,7 @@ async def station_detail(
                         "depth", "altitude", "derived_sample_ids"],
         }
         source_resp = await app.state.es_client.search(
-            index="data_portal", body=source_body)
+            index=ES_INDEX, body=source_body)
         source_count = source_resp["hits"]["total"]["value"]
 
         source_samples = []
@@ -301,7 +303,7 @@ async def station_detail(
                     "_source": ["biosampleId", "analysis_type", "has_images"],
                 }
                 derived_resp = await app.state.es_client.search(
-                    index="data_portal", body=derived_body)
+                    index=ES_INDEX, body=derived_body)
                 derived_samples = [
                     {
                         "biosampleId": d["_source"]["biosampleId"],
@@ -362,7 +364,7 @@ async def global_stats() -> GlobalStats:
     }
     try:
         response = await app.state.es_client.search(
-            index="data_portal", body=search_body)
+            index=ES_INDEX, body=search_body)
         total = response["hits"]["total"]["value"]
         aggs = response["aggregations"]
         return GlobalStats(
