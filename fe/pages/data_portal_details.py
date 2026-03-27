@@ -171,38 +171,38 @@ def build_detail_page(sample_id):
     ])
 
     # --- Derived samples table (for source samples) ---
+    # Query for samples that have this sample as their parent
     derived_section = html.Div()
-    derived_ids = sample.get("derived_sample_ids") or []
-    if is_source and derived_ids:
-        derived_rows = []
-        for did in derived_ids:
-            try:
-                d_resp = requests.get(
-                    f"{API_BASE_URL}/data_portal/{did}").json()
-                if d_resp.get("results"):
-                    d = d_resp["results"][0]
-                    derived_rows.append(html.Tr([
-                        html.Td(html.A(
-                            did, href=f"/data-portal/{did}",
-                            className="text-decoration-none text-success",
-                        ), style={"fontSize": "13px"}),
-                        html.Td(d.get("analysis_type") or "",
-                                style={"fontSize": "13px"}),
-                        html.Td(d.get("organism") or "",
-                                style={"fontSize": "13px"}),
-                    ]))
-            except Exception:
-                derived_rows.append(html.Tr([
+    if is_source:
+        try:
+            d_resp = requests.get(f"{API_BASE_URL}/data_portal", params={
+                "parent_sample_id": sample["biosampleId"],
+                "size": 50,
+            }).json()
+            derived_results = d_resp.get("results", [])
+            # Filter out self-references
+            derived_results = [d for d in derived_results
+                               if d.get("biosampleId") != sample["biosampleId"]]
+        except Exception:
+            derived_results = []
+
+        if derived_results:
+            derived_rows = [
+                html.Tr([
                     html.Td(html.A(
-                        did, href=f"/data-portal/{did}",
+                        d["biosampleId"],
+                        href=f"/data-portal/{d['biosampleId']}",
                         className="text-decoration-none text-success",
                     ), style={"fontSize": "13px"}),
-                    html.Td(""), html.Td(""),
-                ]))
-
-        if derived_rows:
+                    html.Td(d.get("analysis_type") or "",
+                            style={"fontSize": "13px"}),
+                    html.Td(d.get("organism") or "",
+                            style={"fontSize": "13px"}),
+                ])
+                for d in derived_results
+            ]
             derived_section = html.Div([
-                html.Small("DERIVED SAMPLES",
+                html.Small(f"DERIVED SAMPLES ({len(derived_results)})",
                            className="text-muted d-block mb-2 fw-bold"),
                 dbc.Table([
                     html.Thead(html.Tr([

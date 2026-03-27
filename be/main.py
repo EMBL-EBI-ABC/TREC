@@ -158,6 +158,9 @@ async def trec_search(
     if params.is_source_sample is not None:
         extra_filters.append(
             {"term": {"is_source_sample": params.is_source_sample}})
+    if params.parent_sample_id is not None:
+        extra_filters.append(
+            {"term": {"parent_sample_id": params.parent_sample_id}})
     return await elastic_search(
         index_name=ES_INDEX,
         params=params,
