@@ -236,43 +236,26 @@ def show_station_panel(click_data):
         return html.P(f"Error loading station: {e}",
                        className="text-danger text-center mt-3")
 
-    # --- Summary row ---
+    # --- Summary ---
     summary = dbc.Card(
-        dbc.CardBody(
-            dbc.Row([
-                dbc.Col([
-                    html.H5(f"📍 {detail['station_name']}", className="mb-0"),
-                    html.Small(
-                        f"{detail['lat']:.4f}°N, {detail['lon']:.4f}°E"
-                        + (f" · {detail['country']}"
-                           if detail.get("country") else ""),
-                        className="text-muted",
-                    ),
-                ], md=4),
-                dbc.Col([
-                    html.Span(str(detail["source_sample_count"]),
-                              className="fw-bold text-success fs-5"),
-                    html.Small(" source", className="text-muted"),
-                    html.Span(" / ", className="text-muted mx-1"),
-                    html.Span(str(detail["sample_count"]),
-                              className="fw-bold text-success fs-5"),
-                    html.Small(" total samples", className="text-muted"),
-                ], md=3, className="d-flex align-items-center"),
-                dbc.Col([
-                    html.Div([
-                        dbc.Badge(t, color="success", className="me-1 mb-1")
-                        for t in detail.get("analysis_types", [])
-                    ]),
-                ], md=3),
-                dbc.Col([
-                    html.Small("ORGANISMS", className="text-muted d-block"),
-                    html.Small(
-                        ", ".join(detail.get("organism_counts", {}).keys()),
-                        style={"fontSize": "11px"},
-                    ),
-                ], md=2),
-            ], className="align-items-center"),
-        ),
+        dbc.CardBody([
+            html.H5(f"📍 {detail['station_name']}", className="mb-0"),
+            html.Small(
+                detail.get("country") or "",
+                className="text-muted",
+            ),
+            html.Div([
+                html.Span(str(detail["source_sample_count"]),
+                          className="fw-bold text-success"),
+                html.Small(" source", className="text-muted"),
+                html.Span(" / ", className="text-muted mx-1"),
+                html.Span(str(detail["sample_count"]),
+                          className="fw-bold text-success"),
+                html.Small(" total samples", className="text-muted me-3"),
+                *[dbc.Badge(t, color="success", className="me-1")
+                  for t in detail.get("analysis_types", [])],
+            ], className="mt-2"),
+        ]),
         className="mt-3 mb-2",
         style={"background": "#f0f7f4"},
     )
