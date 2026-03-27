@@ -6,14 +6,19 @@ relationships into top-level queryable fields, resolves parent-child sample
 hierarchies, and writes enriched data back.
 
 Usage:
-    ES_URL=... ES_USERNAME=... ES_PASSWORD=... python enrich.py
+    python enrich.py
+
+Reads ES_URL, ES_USERNAME, ES_PASSWORD from .env file or environment.
 
 Idempotent: safe to re-run.
 """
 
 import os
 import re
+from dotenv import load_dotenv
 from elasticsearch import Elasticsearch
+
+load_dotenv()
 
 
 def get_custom_field(custom_fields, name):

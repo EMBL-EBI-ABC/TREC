@@ -3,6 +3,9 @@ import urllib.parse
 from contextlib import asynccontextmanager
 import json
 
+from dotenv import load_dotenv
+load_dotenv()
+
 from fastapi import FastAPI, HTTPException, Query, Path
 from elasticsearch import AsyncElasticsearch
 from fastapi.middleware.cors import CORSMiddleware
