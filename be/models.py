@@ -220,3 +220,12 @@ class StationDetailResponse(BaseModel):
     analysis_types: list[str]
     organism_counts: dict[str, int]
     source_samples: list[SourceSampleSummary]
+
+
+class GlobalStats(BaseModel):
+    total_stations: int
+    total_countries: int
+    total_source_samples: int
+    total_samples: int
+    total_with_images: int
+    total_with_ena: int

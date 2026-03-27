@@ -20,6 +20,7 @@ from models import (
     StationListResponse,
     SourceSampleSummary,
     StationDetailResponse,
+    GlobalStats,
 )
 
 
@@ -331,3 +332,44 @@ async def station_detail(
     except Exception as e:
         raise HTTPException(
             status_code=500, detail=f"Station detail error: {str(e)}")
+
+
+@app.get("/stats")
+async def global_stats() -> GlobalStats:
+    """Return global expedition statistics for the stats banner."""
+    search_body = {
+        "size": 0,
+        "aggs": {
+            "stations": {
+                "cardinality": {"field": "station_name.keyword"}
+            },
+            "countries": {
+                "cardinality": {"field": "country.keyword"}
+            },
+            "source_samples": {
+                "filter": {"term": {"is_source_sample": True}}
+            },
+            "with_images": {
+                "filter": {"term": {"has_images": True}}
+            },
+            "with_ena": {
+                "filter": {"term": {"has_ena_data": True}}
+            },
+        },
+    }
+    try:
+        response = await app.state.es_client.search(
+            index="data_portal", body=search_body)
+        total = response["hits"]["total"]["value"]
+        aggs = response["aggregations"]
+        return GlobalStats(
+            total_stations=aggs["stations"]["value"],
+            total_countries=aggs["countries"]["value"],
+            total_source_samples=aggs["source_samples"]["doc_count"],
+            total_samples=total,
+            total_with_images=aggs["with_images"]["doc_count"],
+            total_with_ena=aggs["with_ena"]["doc_count"],
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Stats error: {str(e)}")
