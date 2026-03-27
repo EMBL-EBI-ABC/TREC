@@ -135,7 +135,7 @@ class DataSource:
 trec = DataSource(
     name="TREC",
     fields=[
-        # Original fields
+        # Original fields (already in ES index)
         FieldDefinition(name="altitude", type=str, filterable=False),
         FieldDefinition(name="collection_date", type=datetime.datetime | None),
         FieldDefinition(name="depth", type=str, filterable=False),
@@ -147,6 +147,10 @@ trec = DataSource(
         FieldDefinition(name="customFields", type=list[CustomField] | None),
         FieldDefinition(name="relationships",
                         type=list[BioSamplesRelationships] | None),
+        FieldDefinition(name="images", type=str | None),
+        FieldDefinition(name="has_images", type=str | None),
+        FieldDefinition(name="collection_year", type=str | None),
+        FieldDefinition(name="protocol", type=str | None),
         # Enriched fields - parsed from customFields
         FieldDefinition(name="environment_type", type=str | None,
                         filterable=True),
@@ -169,7 +173,6 @@ trec = DataSource(
         FieldDefinition(name="control_sample_id", type=str | None),
         FieldDefinition(name="controlled_sample_ids", type=list[str] | None),
         # Linked data flags
-        FieldDefinition(name="has_images", type=bool | None),
         FieldDefinition(name="image_zarr_url", type=str | None),
         FieldDefinition(name="has_ena_data", type=bool | None),
         FieldDefinition(name="ena_accession", type=str | None),

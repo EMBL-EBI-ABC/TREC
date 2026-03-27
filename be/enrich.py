@@ -57,16 +57,28 @@ def parse_analysis_type(target_analysis, protocol_label):
             return "Metabolomics"
         if "imag" in lower or "microscop" in lower:
             return "Imaging"
+        if "genom" in lower:
+            return "Genomics"
     if protocol_label:
         label = protocol_label.strip()
         mapping = {
             "MetaBGT": "Metagenomics",
+            "Metagenomics analysis": "Metagenomics",
+            "Metabarcoding analysis": "Metagenomics",
             "MB": "Metabolomics",
+            "MB320": "Metabolomics",
+            "MB033": "Metabolomics",
+            "MB20": "Metabolomics",
             "HPF": "Imaging",
-            "Ions": "Ions",
-            "ASM": "Metagenomics",
             "PK1": "Imaging",
             "Microscopy": "Imaging",
+            "Ions": "Ions",
+            "ASM": "Metagenomics",
+            "eDNA": "Metagenomics",
+            "SML-023": "Genomics",
+            "SML-CP": "Genomics",
+            "SML-320": "Genomics",
+            "Biodiversity analysis": "Metagenomics",
         }
         if label in mapping:
             return mapping[label]
@@ -84,10 +96,11 @@ def parse_analysis_type(target_analysis, protocol_label):
 
 def parse_country(location_str):
     """Extract country from geographic location string.
-    Formats seen: 'Spain', 'Greece:Athens', 'Italy:Calabria'."""
+    The location field in the existing index is already just the country
+    name (e.g. 'Spain', 'Italy', 'Greece')."""
     if not location_str:
         return None
-    return location_str.split(":")[0].strip()
+    return location_str.strip()
 
 
 def parse_ontology_label(ontology_str):
@@ -107,15 +120,20 @@ def parse_size_fraction(value_str):
     return float(match.group(1)) if match else None
 
 
-def build_station_name(location_str, lat, lon):
-    """Build a human-readable station name from location and coordinates.
-    Uses the location field directly — it already contains names like
-    'Spain', 'Greece:Athens', etc."""
-    if location_str:
-        parts = location_str.split(":")
-        if len(parts) >= 2:
-            return f"{parts[1].strip()}, {parts[0].strip()}"
-        return location_str.strip()
+def build_station_name(country, locality, lat, lon):
+    """Build a human-readable station name.
+    The location field is just the country (e.g. 'Spain'). The locality
+    comes from the 'geographic location (region and locality)' custom field
+    (e.g. 'Lesina', 'Ancona'). Many samples have empty locality, so we
+    fall back to country + rounded coordinates to distinguish stations
+    within the same country."""
+    if locality and country:
+        return f"{locality}, {country}"
+    if country and lat is not None and lon is not None:
+        # Round to ~1km precision to cluster nearby samples into one station
+        return f"{country} ({lat:.2f}°N, {lon:.2f}°E)"
+    if country:
+        return country
     if lat is not None and lon is not None:
         return f"{lat:.2f}°N, {lon:.2f}°E"
     return "Unknown"
@@ -131,13 +149,16 @@ def enrich_sample(source):
     medium_raw = get_custom_field(cf, "environmental medium")
     target_analysis = get_custom_field(cf, "target analysis type")
     protocol_label = get_custom_field(cf, "protocol label")
-    collection_device = get_custom_field(cf, "collection device")
+    collection_device_raw = get_custom_field(cf, "sample collection device")
     sampling_platform = get_custom_field(cf, "sampling platform")
     size_lower = get_custom_field(cf, "size-fraction lower threshold")
     size_upper = get_custom_field(cf, "size-fraction upper threshold")
+    locality = get_custom_field(
+        cf, "geographic location (region and locality)")
 
     biome = parse_ontology_label(biome_raw)
     local_environment = parse_ontology_label(local_env_raw)
+    collection_device = parse_ontology_label(collection_device_raw)
     environmental_medium = parse_ontology_label(medium_raw)
 
     organism = source.get("organism", "")
@@ -148,7 +169,7 @@ def enrich_sample(source):
     analysis_type = parse_analysis_type(target_analysis, protocol_label)
     country = parse_country(source.get("location"))
     station_name = build_station_name(
-        source.get("location"), source.get("lat"), source.get("lon"))
+        country, locality, source.get("lat"), source.get("lon"))
 
     parent_sample_id = None
     control_sample_id = None
@@ -180,7 +201,8 @@ def enrich_sample(source):
         "parent_sample_id": parent_sample_id,
         "control_sample_id": control_sample_id,
         "controlled_sample_ids": controlled_sample_ids or None,
-        "has_images": False,
+        # Don't touch has_images — it already exists as "Yes"/"No" string
+        # in the index. Only update when BioImage Archive links are known.
         "has_ena_data": False,
         "image_zarr_url": None,
         "ena_accession": None,

@@ -251,7 +251,7 @@ def build_detail_page(sample_id):
     ])), className="mb-2"))
 
     # BioImage Archive
-    if sample.get("has_images") and sample.get("image_zarr_url"):
+    if sample.get("has_images") == "Yes" and sample.get("image_zarr_url"):
         viewer_url = (f"{BIONGFF_VIEWER_URL}?source="
                       f"{sample['image_zarr_url']}")
         linked_cards.append(dbc.Card(dbc.CardBody([
@@ -275,7 +275,7 @@ def build_detail_page(sample_id):
                        "background": "#1a1a2e"},
             ),
         ]), className="mb-2", style={"background": "#fffdf0"}))
-    elif sample.get("has_images"):
+    elif sample.get("has_images") == "Yes":
         linked_cards.append(dbc.Card(dbc.CardBody(dbc.Row([
             dbc.Col([
                 html.Div("🖼️ BioImage Archive", className="fw-bold small"),

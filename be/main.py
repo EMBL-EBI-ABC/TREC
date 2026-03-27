@@ -193,7 +193,7 @@ async def list_stations() -> StationListResponse:
                         "terms": {"field": "organism.keyword", "size": 20},
                     },
                     "has_any_images": {
-                        "filter": {"term": {"has_images": True}},
+                        "filter": {"term": {"has_images.keyword": "Yes"}},
                     },
                     "has_any_ena": {
                         "filter": {"term": {"has_ena_data": True}},
@@ -306,7 +306,7 @@ async def station_detail(
                     {
                         "biosampleId": d["_source"]["biosampleId"],
                         "analysis_type": d["_source"].get("analysis_type"),
-                        "has_images": d["_source"].get("has_images", False),
+                        "has_images": d["_source"].get("has_images", "No"),
                     }
                     for d in derived_resp["hits"]["hits"]
                 ]
@@ -353,7 +353,7 @@ async def global_stats() -> GlobalStats:
                 "filter": {"term": {"is_source_sample": True}}
             },
             "with_images": {
-                "filter": {"term": {"has_images": True}}
+                "filter": {"term": {"has_images.keyword": "Yes"}}
             },
             "with_ena": {
                 "filter": {"term": {"has_ena_data": True}}

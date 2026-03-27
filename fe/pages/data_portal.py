@@ -332,7 +332,7 @@ def show_station_panel(click_data):
                               style={"fontSize": "10px"}),
                     dbc.Badge("🖼️", color="warning", className="ms-1",
                               style={"fontSize": "10px"})
-                    if d.get("has_images") else None,
+                    if d.get("has_images") == "Yes" else None,
                 ]),
             ], className="d-flex justify-content-between align-items-center "
                          "py-1 border-bottom")
