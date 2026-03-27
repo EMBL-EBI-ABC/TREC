@@ -179,24 +179,24 @@ async def list_stations() -> StationListResponse:
         "size": 0,
         "aggs": {
             "stations": {
-                "terms": {"field": "station_name.keyword", "size": 500},
+                "terms": {"field": "station_name", "size": 500},
                 "aggs": {
                     "lat": {"avg": {"field": "lat"}},
                     "lon": {"avg": {"field": "lon"}},
-                    "country": {"terms": {"field": "country.keyword",
+                    "country": {"terms": {"field": "country",
                                           "size": 1}},
                     "source_count": {
                         "filter": {"term": {"is_source_sample": True}},
                     },
                     "analysis_types": {
-                        "terms": {"field": "analysis_type.keyword",
+                        "terms": {"field": "analysis_type",
                                   "size": 20},
                     },
                     "organism_types": {
                         "terms": {"field": "organism.keyword", "size": 20},
                     },
                     "has_any_images": {
-                        "filter": {"term": {"has_images.keyword": "Yes"}},
+                        "filter": {"term": {"has_images": "Yes"}},
                     },
                     "has_any_ena": {
                         "filter": {"term": {"has_ena_data": True}},
@@ -248,13 +248,13 @@ async def station_detail(
         # Get station summary aggregations
         summary_body = {
             "size": 0,
-            "query": {"term": {"station_name.keyword": station_name}},
+            "query": {"term": {"station_name": station_name}},
             "aggs": {
                 "lat": {"avg": {"field": "lat"}},
                 "lon": {"avg": {"field": "lon"}},
-                "country": {"terms": {"field": "country.keyword", "size": 1}},
+                "country": {"terms": {"field": "country", "size": 1}},
                 "analysis_types": {
-                    "terms": {"field": "analysis_type.keyword", "size": 20},
+                    "terms": {"field": "analysis_type", "size": 20},
                 },
                 "organisms": {
                     "terms": {"field": "organism.keyword", "size": 50},
@@ -276,7 +276,7 @@ async def station_detail(
             "query": {
                 "bool": {
                     "filter": [
-                        {"term": {"station_name.keyword": station_name}},
+                        {"term": {"station_name": station_name}},
                         {"term": {"is_source_sample": True}},
                     ]
                 }
@@ -347,16 +347,16 @@ async def global_stats() -> GlobalStats:
         "size": 0,
         "aggs": {
             "stations": {
-                "cardinality": {"field": "station_name.keyword"}
+                "cardinality": {"field": "station_name"}
             },
             "countries": {
-                "cardinality": {"field": "country.keyword"}
+                "cardinality": {"field": "country"}
             },
             "source_samples": {
                 "filter": {"term": {"is_source_sample": True}}
             },
             "with_images": {
-                "filter": {"term": {"has_images.keyword": "Yes"}}
+                "filter": {"term": {"has_images": "Yes"}}
             },
             "with_ena": {
                 "filter": {"term": {"has_ena_data": True}}
