@@ -1,182 +1,364 @@
-from typing import Any
-
 import dash
 import requests
-
 import dash_bootstrap_components as dbc
-from dash import callback, Output, Input, html
+from dash import callback, Output, Input, State, html, dcc
+from api_config import API_BASE_URL
 
 dash.register_page(
     __name__,
     path="/data",
-    title="Data",
+    title="Data Portal",
 )
 
-layout = dbc.Container(
-    dbc.Row(
-        [
-            dbc.Col(
-                [
-                    dbc.Card(
-                        dbc.CardBody(
-                            [
-                                html.H4("Organism", className="card-title"),
-                                html.Hr(),
-                                dbc.Checklist(id="organism_filter")
-                            ]
-                        ),
-                        style={"margin-bottom": "5px", "maxHeight": "15em",
-                               "overflowY": "auto"},
-                    ),
-                    dbc.Card(
-                        dbc.CardBody(
-                            [
-                                html.H4("Depth", className="card-title"),
-                                html.Hr(),
-                                dbc.Checklist(id="depth_filter")
-                            ]
-                        ),
-                        style={"margin-bottom": "5px", "maxHeight": "15em",
-                               "overflowY": "auto"},
-                    ),
-                    dbc.Card(
-                        dbc.CardBody(
-                            [
-                                html.H4("Altitude", className="card-title"),
-                                html.Hr(),
-                                dbc.Checklist(id="altitude_filter")
-                            ]
-                        ),
-                        style={"margin-bottom": "5px", "maxHeight": "15em",
-                               "overflowY": "auto"},
-                    ),
-                    dbc.Card(
-                        dbc.CardBody(
-                            [
-                                html.H4("Geographic Location", className="card-title"),
-                                html.Hr(),
-                                dbc.Checklist(id="location_filter")
-                            ]
-                        ),
-                        style={"margin-bottom": "5px", "maxHeight": "15em",
-                               "overflowY": "auto"},
-                    )
-                ],
-                id="filters-card",
-                md=3,
-                style={"marginBottom": "5px"},
-            ),
-            dbc.Col(
-                dbc.Spinner(
-                    dbc.Stack(
-                        [
-                            dbc.Input(id="input", placeholder="Free text search, "
-                                                              "ex. soil metagenome...",
-                                      type="text", debounce=True),
-                            html.Div(id="data_table"),
-                            dbc.Pagination(id="pagination", max_value=1860,
-                                           first_last=True,
-                                           previous_next=True,
-                                           fully_expanded=False),
-                        ],
-                        gap=3
-                    )
-                ),
-                md=9),
-        ],
+
+def make_stats_banner():
+    """Global stats banner — populated by callback on page load."""
+    return html.Div(
+        dbc.Row(
+            id="stats-banner-row",
+            className="g-0 justify-content-center",
+            style={"padding": "12px 24px"},
+        ),
         style={
-            "marginTop": "15px",
-        }
+            "background": "linear-gradient(135deg, #2c7a5c, #3da87a)",
+            "color": "white",
+        },
     )
+
+
+def make_filters_panel():
+    """Collapsible filters panel."""
+    return dbc.Collapse(
+        dbc.Card(
+            dbc.CardBody(
+                dbc.Row([
+                    dbc.Col([
+                        html.Label("Environment", className="fw-bold small"),
+                        dbc.Checklist(id="env-type-filter", className="small"),
+                    ], md=2),
+                    dbc.Col([
+                        html.Label("Organism", className="fw-bold small"),
+                        dbc.Checklist(
+                            id="organism-filter", className="small",
+                            style={"maxHeight": "10em", "overflowY": "auto"}),
+                    ], md=2),
+                    dbc.Col([
+                        html.Label("Analysis Type", className="fw-bold small"),
+                        dbc.Checklist(
+                            id="analysis-type-filter", className="small"),
+                    ], md=2),
+                    dbc.Col([
+                        html.Label("Country", className="fw-bold small"),
+                        dbc.Checklist(
+                            id="country-filter", className="small",
+                            style={"maxHeight": "10em", "overflowY": "auto"}),
+                    ], md=2),
+                    dbc.Col([
+                        html.Label("Linked Data", className="fw-bold small"),
+                        dbc.Checklist(
+                            id="linked-data-filter",
+                            options=[
+                                {"label": "Has images", "value": "images"},
+                                {"label": "Has sequences", "value": "ena"},
+                            ],
+                            className="small",
+                        ),
+                    ], md=2),
+                    dbc.Col([
+                        html.Label("Sample Type", className="fw-bold small"),
+                        dbc.RadioItems(
+                            id="source-filter",
+                            options=[
+                                {"label": "All", "value": "all"},
+                                {"label": "Source only", "value": "source"},
+                            ],
+                            value="all",
+                            className="small",
+                        ),
+                    ], md=2),
+                ]),
+            ),
+            className="mb-2",
+        ),
+        id="filters-collapse",
+        is_open=False,
+    )
+
+
+layout = dbc.Container([
+    # Stats banner
+    make_stats_banner(),
+    # Search + filters
+    dbc.Row(
+        dbc.Col([
+            dbc.InputGroup([
+                dbc.Input(
+                    id="search-input",
+                    placeholder="Search samples, organisms, locations...",
+                    type="text", debounce=True,
+                ),
+                dbc.Button("Filters ▾", id="filters-toggle",
+                           outline=True, color="secondary", size="sm"),
+            ], className="mb-2"),
+            make_filters_panel(),
+        ]),
+        className="mt-3",
+    ),
+    # Map + Station panel
+    dbc.Spinner(
+        dbc.Row([
+            # Map column
+            dbc.Col([
+                dcc.Graph(id="station-map", style={"height": "500px"}),
+            ], md=7),
+            # Station panel column
+            dbc.Col(
+                html.Div(
+                    id="station-panel",
+                    children=[
+                        html.Div(
+                            html.P("Click a station on the map to see details",
+                                   className="text-muted text-center mt-5"),
+                        )
+                    ],
+                    style={"maxHeight": "500px", "overflowY": "auto"},
+                ),
+                md=5,
+            ),
+        ]),
+    ),
+], fluid=True)
+
+
+# --- Callbacks ---
+
+@callback(
+    Output("filters-collapse", "is_open"),
+    Input("filters-toggle", "n_clicks"),
+    State("filters-collapse", "is_open"),
+    prevent_initial_call=True,
 )
+def toggle_filters(n_clicks, is_open):
+    return not is_open
 
 
-def generate_filters(aggregations: list) -> tuple[list, int]:
-    options = []
-    total_count = 0
-    for bucket in aggregations:
-        total_count += bucket["doc_count"]
-        options.append(
-            {"label": f"{bucket['key']} - {bucket['doc_count']}",
-             "value": bucket['key']}
+@callback(
+    Output("stats-banner-row", "children"),
+    Input("search-input", "id"),  # Trigger on page load
+)
+def load_stats(_):
+    """Fetch global stats and render banner."""
+    try:
+        resp = requests.get(f"{API_BASE_URL}/stats").json()
+    except Exception:
+        return []
+    stats = [
+        ("Stations", resp.get("total_stations", 0)),
+        ("Countries", resp.get("total_countries", 0)),
+        ("Source Samples", f"~{resp.get('total_source_samples', 0):,}"),
+        ("Total Samples", f"~{resp.get('total_samples', 0):,}"),
+    ]
+    return [
+        dbc.Col(
+            html.Div([
+                html.Div(str(val), style={"fontSize": "28px",
+                                          "fontWeight": "bold"}),
+                html.Div(label, style={"fontSize": "12px", "opacity": "0.85"}),
+            ], className="text-center"),
+            width="auto",
+            className="px-4",
         )
-    return options, total_count
+        for label, val in stats
+    ]
 
 
-def return_sample_id_button(biosample_id: str) -> html.A:
-    return html.A(
-        biosample_id,
-        style={"textDecoration": "none"},
-        href=f"/data-portal/{biosample_id}"
+@callback(
+    Output("station-map", "figure"),
+    Output("env-type-filter", "options"),
+    Output("organism-filter", "options"),
+    Output("analysis-type-filter", "options"),
+    Output("country-filter", "options"),
+    Input("search-input", "id"),  # Trigger on page load
+)
+def load_map_and_filters(_):
+    """Fetch stations and build map + filter options."""
+    import plotly.graph_objects as go
+
+    try:
+        stations_resp = requests.get(f"{API_BASE_URL}/stations").json()
+    except Exception:
+        stations_resp = {"stations": []}
+    stations = stations_resp.get("stations", [])
+
+    # Build map
+    lats = [s["lat"] for s in stations]
+    lons = [s["lon"] for s in stations]
+    names = [s["station_name"] for s in stations]
+    hover_texts = [
+        f"{s['station_name']}<br>"
+        f"{s['sample_count']} samples, {s['source_sample_count']} source<br>"
+        f"Types: {', '.join(s['analysis_types'][:3])}"
+        for s in stations
+    ]
+    sizes = [max(8, min(20, s["sample_count"] // 10)) for s in stations]
+
+    fig = go.Figure(go.Scattermap(
+        lat=lats, lon=lons,
+        mode="markers",
+        marker=dict(size=sizes, color="#2c7a5c", opacity=0.8),
+        text=names,
+        hovertext=hover_texts,
+        hoverinfo="text",
+        customdata=names,
+    ))
+    fig.update_layout(
+        map=dict(style="open-street-map",
+                 center=dict(lat=43, lon=10), zoom=3.5),
+        margin=dict(l=0, r=0, t=0, b=0),
+        showlegend=False,
+    )
+
+    # Build filter options from aggregations
+    try:
+        agg_resp = requests.get(f"{API_BASE_URL}/data_portal",
+                                params={"size": 0}).json()
+        aggs = agg_resp.get("aggregations", {})
+    except Exception:
+        aggs = {}
+
+    def make_options(agg_key):
+        if agg_key in aggs:
+            return [
+                {"label": f"{b['key']} ({b['doc_count']})",
+                 "value": b["key"]}
+                for b in aggs[agg_key].get("buckets", [])
+            ]
+        return []
+
+    return (
+        fig,
+        make_options("environment_type"),
+        make_options("organism"),
+        make_options("analysis_type"),
+        make_options("country"),
     )
 
 
 @callback(
-    Output("data_table", "children"),
-    Output("organism_filter", "options"),
-    Output("depth_filter", "options"),
-    Output("altitude_filter", "options"),
-    Output("location_filter", "options"),
-    Output("pagination", "max_value"),
-    Input("organism_filter", "value"),
-    Input("depth_filter", "value"),
-    Input("altitude_filter", "value"),
-    Input("location_filter", "value"),
-    Input("input", "value"),
-    Input("pagination", "active_page"),
-    running=[
-        (Output("input", "class_name"), "invisible",
-         "visible"),
-        (Output("pagination", "class_name"), "invisible",
-         "justify-content-end"),
-        (Output("filters-card", "class_name"), "invisible",
-         "card-title")
-    ]
+    Output("station-panel", "children"),
+    Input("station-map", "clickData"),
+    prevent_initial_call=True,
 )
-def create_update_data_table(organism_filter, depth_filter, altitude_filter,
-                             location_filter, input_value, pagination):
-    if pagination is None or pagination == 1:
-        start = 0
-    else:
-        start = (pagination - 1) * 20
-    params = {"size": 20, "start": start}
-    for field_name, values in {"organism": organism_filter, "depth": depth_filter,
-                               "altitude": altitude_filter,
-                               "location": location_filter}.items():
-        if values is not None and len(values) > 0:
-            params[field_name] = values[0]
-    if input_value is not None:
-        params["q"] = input_value
-    response = requests.get(
-        "https://trec-be-868757013548.europe-west2.run.app/data_portal",
-        params=params).json()
+def show_station_panel(click_data):
+    """When a station marker is clicked, fetch and display station detail."""
+    if not click_data or "points" not in click_data:
+        return html.P("Click a station on the map to see details",
+                       className="text-muted text-center mt-5")
 
-    table_header = [
-        html.Thead(html.Tr([html.Th(value, className="text-center") for value in
-                            ["BioSample ID", "Organism", "Depth", "Altitude",
-                             "Geographic Location"]]))]
-    table_body = [
-        html.Tbody(
-            [html.Tr(
-                [html.Td(return_sample_id_button(row["biosampleId"]),
-                         className="text-center"),
-                 html.Td(row["organism"], className="text-center"),
-                 html.Td(row["depth"], className="text-center"),
-                 html.Td(row["altitude"], className="text-center"),
-                 html.Td(row["location"], className="text-center")])
-                for
-                row in response["results"]])
-    ]
-    table = dbc.Table(table_header + table_body, striped=True, bordered=True,
-                      hover=True, responsive=True, )
+    station_name = click_data["points"][0].get("customdata")
+    if not station_name:
+        station_name = click_data["points"][0].get("text", "")
+    if not station_name:
+        return html.P("Could not identify station",
+                       className="text-muted text-center mt-5")
 
-    organism_options, total_count = generate_filters(
-        response["aggregations"]["organism"]["buckets"])
-    depth_options, _ = generate_filters(response["aggregations"]["depth"]["buckets"])
-    altitude_options, _ = generate_filters(
-        response["aggregations"]["altitude"]["buckets"])
-    location_options, _ = generate_filters(
-        response["aggregations"]["location"]["buckets"])
+    try:
+        detail = requests.get(
+            f"{API_BASE_URL}/stations/{station_name}").json()
+    except Exception as e:
+        return html.P(f"Error loading station: {e}",
+                       className="text-danger text-center mt-3")
 
-    return (table, organism_options, depth_options, altitude_options, location_options,
-            total_count // 20 + 1)
+    # Station header
+    header = html.Div([
+        html.H5(f"📍 {detail['station_name']}", className="mb-1"),
+        html.Small(
+            f"{detail['lat']:.4f}°N, {detail['lon']:.4f}°E"
+            + (f" · {detail['country']}" if detail.get("country") else ""),
+            className="text-muted",
+        ),
+    ], className="p-3", style={"background": "#f0f7f4",
+                                "borderBottom": "1px solid #e0e0e0"})
+
+    # Summary counts
+    counts = dbc.Row([
+        dbc.Col(html.Div([
+            html.Div(str(detail["source_sample_count"]),
+                     className="fw-bold fs-4 text-success"),
+            html.Small("Source samples", className="text-muted"),
+        ], className="text-center p-2 bg-light rounded"), md=6),
+        dbc.Col(html.Div([
+            html.Div(str(detail["sample_count"]),
+                     className="fw-bold fs-4 text-success"),
+            html.Small("Total samples", className="text-muted"),
+        ], className="text-center p-2 bg-light rounded"), md=6),
+    ], className="g-2 p-3")
+
+    # Available analysis types badges
+    type_badges = html.Div([
+        html.Small("AVAILABLE DATA", className="text-muted d-block mb-2"),
+        html.Div([
+            dbc.Badge(t, color="success", className="me-1 mb-1")
+            for t in detail.get("analysis_types", [])
+        ]),
+    ], className="px-3 pb-3")
+
+    # Organism breakdown
+    org_list = html.Div([
+        html.Small("ORGANISMS", className="text-muted d-block mb-2"),
+        *[
+            html.Div([
+                html.Span(org, className="small"),
+                html.Span(f"{count}", className="small text-muted float-end"),
+            ], className="mb-1")
+            for org, count in detail.get("organism_counts", {}).items()
+        ],
+    ], className="px-3 pb-3")
+
+    # Source samples accordion
+    source_items = []
+    for src in detail.get("source_samples", []):
+        derived = src.get("derived_samples", [])
+        derived_list = html.Div([
+            html.Div([
+                html.A(
+                    d["biosampleId"],
+                    href=f"/data-portal/{d['biosampleId']}",
+                    className="text-decoration-none text-success small",
+                ),
+                html.Span([
+                    dbc.Badge(d.get("analysis_type") or "?",
+                              color="info", className="ms-2",
+                              style={"fontSize": "10px"}),
+                    dbc.Badge("🖼️", color="warning", className="ms-1",
+                              style={"fontSize": "10px"})
+                    if d.get("has_images") else None,
+                ]),
+            ], className="d-flex justify-content-between align-items-center "
+                         "py-1 border-bottom")
+            for d in derived
+        ]) if derived else html.Small("No derived samples",
+                                       className="text-muted")
+
+        subtitle = " · ".join(filter(None, [
+            src.get("collection_device"),
+            f"{src['depth']} depth" if src.get("depth") else None,
+            src.get("organism"),
+        ]))
+
+        source_items.append(dbc.AccordionItem(
+            derived_list,
+            title=html.Div([
+                html.Span(src["biosampleId"], className="fw-bold small"),
+                html.Br(),
+                html.Small(subtitle, className="text-muted"),
+            ]),
+            item_id=src["biosampleId"],
+        ))
+
+    sources_section = html.Div([
+        html.Small("SOURCE SAMPLES", className="text-muted d-block mb-2"),
+        dbc.Accordion(source_items, flush=True, start_collapsed=True),
+    ], className="px-3 pb-3") if source_items else html.Div()
+
+    return html.Div([header, counts, type_badges, org_list, sources_section])
