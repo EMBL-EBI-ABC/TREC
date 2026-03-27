@@ -127,7 +127,7 @@ layout = dbc.Container([
             ),
         ]),
     ),
-], fluid=True)
+])
 
 
 # --- Callbacks ---

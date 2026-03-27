@@ -18,7 +18,7 @@ layout = dbc.Container([
     html.P("Which data types are available at each sampling station",
            className="text-muted mb-3"),
     dbc.Spinner(html.Div(id="availability-matrix")),
-], fluid=True)
+])
 
 
 @callback(
