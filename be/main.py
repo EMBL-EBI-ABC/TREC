@@ -68,7 +68,8 @@ app.add_middleware(
 
 # Generic search methods.
 
-async def elastic_search(index_name, params, data_class, aggregation_class):
+async def elastic_search(index_name, params, data_class, aggregation_class,
+                         extra_filters=None):
     # Build the query body based on whether there is full text search.
     if params.q:
         query_body = {
@@ -77,7 +78,7 @@ async def elastic_search(index_name, params, data_class, aggregation_class):
         query_body = {"match_all": {}}
 
     # Adding filters.
-    filters = []
+    filters = list(extra_filters or [])
     aggregation_fields = get_list_of_aggregations(aggregation_class)
     if aggregation_fields:
         for aggregation_field in aggregation_fields:
@@ -153,11 +154,16 @@ async def elastic_details(index_name, record_id, data_class):
 async def trec_search(
         params: Annotated[TRECSearchParams, Query()],
 ) -> ElasticResponse[TRECData, TRECAggregationResponse]:
+    extra_filters = []
+    if params.is_source_sample is not None:
+        extra_filters.append(
+            {"term": {"is_source_sample": params.is_source_sample}})
     return await elastic_search(
         index_name=ES_INDEX,
         params=params,
         data_class=TRECData,
         aggregation_class=TRECAggregationResponse,
+        extra_filters=extra_filters or None,
     )
 
 

@@ -67,6 +67,8 @@ class SearchParams(BaseModel):
     # No sorting by default, child classes can override this.
     sort_field: str | None = None
     sort_order: Literal["desc", "asc"] = "asc"
+    # Boolean filter (not a terms aggregation).
+    is_source_sample: bool | None = Field(None, description="Filter source/derived samples")
 
 
 # Datasource definition.
