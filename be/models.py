@@ -97,7 +97,12 @@ class DataSource:
         fields = {field.name: (field.type, field.filterable) for field in self.fields}
 
         class Data(BaseModel):
+            model_config = {"extra": "allow"}
             __annotations__ = {name: type for name, (type, _) in fields.items()}
+            # Set default=None for all fields so missing fields in ES
+            # documents don't cause validation errors.
+            for _name in fields:
+                locals()[_name] = None
 
         class AggregationResponse(BaseModel):
             __annotations__ = {
