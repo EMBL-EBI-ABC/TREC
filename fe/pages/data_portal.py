@@ -113,7 +113,7 @@ layout = dbc.Container([
                 previous_next=True,
                 fully_expanded=False,
                 active_page=1,
-                className="justify-content-center mt-2",
+                className="justify-content-end mt-2",
                 style={"display": "none"},
             ),
         ], md=10),
@@ -284,7 +284,7 @@ def show_station_panel(click_data):
     max_pages = max(1, (detail["source_sample_count"] + 9) // 10)
 
     return (summary, station_name, max_pages, 1,
-            {"display": "flex", "justifyContent": "center", "marginTop": "8px"})
+            {"display": "flex", "justifyContent": "end", "marginTop": "8px"})
 
 
 @callback(
