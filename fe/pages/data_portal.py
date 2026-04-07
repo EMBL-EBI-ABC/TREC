@@ -52,6 +52,19 @@ def make_filters_sidebar():
             id="country-filter", className="small mb-3",
             style={"maxHeight": "12em", "overflowY": "auto"}),
 
+        dcc.Store(id="protocol-all-options"),
+        html.Label("Protocol", className="fw-bold small"),
+        dbc.Input(
+            id="protocol-search",
+            placeholder="Search protocols...",
+            type="text",
+            size="sm",
+            style={"marginBottom": "8px"},
+        ),
+        dbc.Checklist(
+            id="protocol-filter", className="small mb-3",
+            style={"maxHeight": "12em", "overflowY": "auto"}),
+
         html.Label("Linked Data", className="fw-bold small"),
         dbc.Checklist(
             id="linked-data-filter",
@@ -179,6 +192,7 @@ def load_stats(_):
     Output("organism-filter", "options"),
     Output("analysis-type-filter", "options"),
     Output("country-filter", "options"),
+    Output("protocol-all-options", "data"),
     Input("search-input", "id"),
     Input("colour-by", "value"),
 )
@@ -309,6 +323,7 @@ def load_map_and_filters(_, colour_by):
         make_options("organism"),
         make_options("analysis_type"),
         make_options("country"),
+        make_options("protocol"),
     )
 
 
@@ -378,9 +393,10 @@ def show_station_panel(click_data):
     Output("samples-table-container", "children"),
     Input("samples-pagination", "active_page"),
     Input("selected-station", "data"),
+    Input("protocol-filter", "value"),
     prevent_initial_call=True,
 )
-def load_samples_page(page, station_name):
+def load_samples_page(page, station_name, protocol):
     """Fetch a page of source samples for the selected station."""
     if not station_name:
         return None
@@ -393,6 +409,7 @@ def load_samples_page(page, station_name):
             "size": 10,
             "start": start,
             "is_source_sample": True,
+            **({"protocol": protocol} if protocol else {}),
         }).json()
     except Exception as e:
         return html.P(f"Error: {e}", className="text-danger")
@@ -430,3 +447,20 @@ def load_samples_page(page, station_name):
              {"selector": "a",
               "rule": "text-decoration: none; color: #2c7a5c"}],
     )
+
+
+@callback(
+    Output("protocol-filter", "options"),
+    Input("protocol-search", "value"),
+    Input("protocol-all-options", "data"),
+)
+def filter_protocol_options(search_value, all_options):
+    if not all_options:
+        return []
+    if not search_value:
+        return all_options
+    search_lower = search_value.lower()
+    return [
+        opt for opt in all_options
+        if search_lower in str(opt["label"]).lower()
+    ]

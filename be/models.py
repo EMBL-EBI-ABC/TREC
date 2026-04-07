@@ -77,10 +77,11 @@ class SearchParams(BaseModel):
 
 class FieldDefinition:
     def __init__(self, name: str, type: type | types.UnionType,
-                 filterable: bool = False):
+                 filterable: bool = False, nested_config: dict | None = None):
         self.name = name
         self.type = type
         self.filterable = filterable
+        self.nested_config = nested_config
 
 
 class DataSource:
@@ -158,7 +159,17 @@ trec = DataSource(
         FieldDefinition(name="images", type=list[dict] | None),
         FieldDefinition(name="has_images", type=str | None),
         FieldDefinition(name="collection_year", type=str | None),
-        FieldDefinition(name="protocol", type=str | None),
+        FieldDefinition(
+            name="protocol",
+            type=str | None,
+            filterable=True,
+            nested_config={
+                "path": "customFields",
+                "name_field": "customFields.name.keyword",
+                "name_value": "protocol label",
+                "value_field": "customFields.value.keyword",
+            }
+        ),
         # Enriched fields - parsed from customFields
         FieldDefinition(name="environment_type", type=str | None,
                         filterable=True),
@@ -189,6 +200,12 @@ trec = DataSource(
     default_sort_order="desc",
 )
 TRECData, TRECAggregationResponse, TRECSearchParams = trec.generate_classes()
+
+TREC_NESTED_CONFIGS = {
+    field.name: field.nested_config
+    for field in trec.fields
+    if field.nested_config is not None
+}
 
 
 # Station response models.
