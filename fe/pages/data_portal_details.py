@@ -19,6 +19,8 @@ API_BASE_URL = "http://0.0.0.0:8080"
 
 
 BIONGFF_VIEWER_URL = "https://biongff.github.io/biongff-viewer/"
+S3_BASE = "https://s3.embl.de/live-confocal-trec-super-plankton/"
+PROXY_BASE = f"{API_BASE_URL}/zarr-proxy"
 
 
 def layout(sample_id=None, **kwargs):
@@ -255,8 +257,14 @@ def build_detail_page(sample_id):
 
     # BioImage Archive
     if sample.get("has_images") == "Yes" and sample.get("image_zarr_url"):
-        viewer_url = (f"{BIONGFF_VIEWER_URL}?source="
-                      f"{sample['image_zarr_url']}")
+        zarr_url = sample["image_zarr_url"]
+        if zarr_url.startswith(S3_BASE):
+            zarr_path = zarr_url[len(S3_BASE):]
+        else:
+            zarr_path = zarr_url
+        proxy_url = f"{PROXY_BASE}/{zarr_path}"
+        viewer_url = f"{BIONGFF_VIEWER_URL}?source={proxy_url}"
+
         linked_cards.append(dbc.Card(dbc.CardBody([
             dbc.Row([
                 dbc.Col([
