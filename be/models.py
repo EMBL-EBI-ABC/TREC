@@ -202,6 +202,9 @@ class StationSummary(BaseModel):
     source_sample_count: int
     analysis_types: list[str]
     organism_types: list[str]
+    environment_types: list[str]
+    analysis_type_counts: dict[str, int]
+    environment_type_counts: dict[str, int]
     has_images: bool
     has_ena_data: bool
     min_collection_date: str | None

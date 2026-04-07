@@ -96,6 +96,21 @@ layout = dbc.Container([
                 type="text", debounce=True,
                 className="mb-2 mt-2",
             ),
+            dbc.RadioItems(
+                id="colour-by",
+                options=[
+                    {"label": "All same", "value": "none"},
+                    {"label": "Environment type", "value": "environment_type"},
+                    {"label": "Analysis type", "value": "analysis_type"},
+                    {"label": "Has images", "value": "has_images"},
+                ],
+                value="none",
+                inline=True,
+                input_class_name="btn-check",
+                label_class_name="btn btn-outline-secondary btn-sm",
+                label_checked_class_name="active",
+                class_name="btn-group mb-2",
+            ),
             # Map
             dbc.Spinner(
                 dcc.Graph(id="station-map", style={"height": "450px"}),
@@ -164,11 +179,12 @@ def load_stats(_):
     Output("organism-filter", "options"),
     Output("analysis-type-filter", "options"),
     Output("country-filter", "options"),
-    Input("search-input", "id"),  # Trigger on page load
+    Input("search-input", "id"),
+    Input("colour-by", "value"),
 )
-def load_map_and_filters(_):
-    """Fetch stations and build map + filter options."""
+def load_map_and_filters(_, colour_by):
     import plotly.graph_objects as go
+    from collections import defaultdict
 
     try:
         stations_resp = requests.get(f"{API_BASE_URL}/stations").json()
@@ -176,35 +192,102 @@ def load_map_and_filters(_):
         stations_resp = {"stations": []}
     stations = stations_resp.get("stations", [])
 
-    # Build map
+    # Colour logic
+    COLOUR_MAPS = {
+        "environment_type": {"marine": "#3498db", "soil": "#e67e22",
+                              "aerosol": "#9b59b6"},
+        "analysis_type": {"Metagenomics": "#2ecc71", "Metabolomics": "#e74c3c",
+                          "Imaging": "#f39c12", "Ions": "#1abc9c"},
+    }
+
+    LABELS = {
+        "none": {"#2c7a5c": "Stations"},
+        "has_images": {"#f39c12": "Has images", "#95a5a6": "No images"},
+        "environment_type": {"#3498db": "Marine", "#e67e22": "Soil",
+                             "#9b59b6": "Aerosol", "#95a5a6": "Unknown"},
+        "analysis_type": {"#2ecc71": "Metagenomics", "#e74c3c": "Metabolomics",
+                          "#f39c12": "Imaging", "#1abc9c": "Ions",
+                          "#95a5a6": "Unknown"},
+    }
+
+    def get_colour(station):
+        if colour_by == "none":
+            return "#2c7a5c"
+        if colour_by == "has_images":
+            return "#f39c12" if station.get("has_images") else "#95a5a6"
+        if colour_by in COLOUR_MAPS:
+            counts = station.get(
+                "analysis_type_counts" if colour_by == "analysis_type"
+                else "environment_type_counts", {}
+            )
+            if counts:
+                dominant = max(counts, key=counts.get)
+                return COLOUR_MAPS[colour_by].get(dominant, "#95a5a6")
+        return "#95a5a6"
+
     lats = [s["lat"] for s in stations]
     lons = [s["lon"] for s in stations]
     names = [s["station_name"] for s in stations]
+    colours = [get_colour(s) for s in stations]
+
+    def get_dominant_label(station):
+        if colour_by == "none" or colour_by == "has_images":
+            return ""
+        counts = station.get(
+            "analysis_type_counts" if colour_by == "analysis_type"
+            else "environment_type_counts", {}
+        )
+        if not counts:
+            return ""
+        dominant = max(counts, key=counts.get)
+        pct = int(counts[dominant] / sum(counts.values()) * 100)
+        return f"<br><b>Dominant: {dominant} ({pct}%)</b>"
+
     hover_texts = [
         f"{s['station_name']}<br>"
         f"{s['sample_count']} samples, {s['source_sample_count']} source<br>"
         f"Types: {', '.join(s['analysis_types'][:3])}"
+        f"{get_dominant_label(s)}"
         for s in stations
     ]
+
     sizes = [max(8, min(20, s["sample_count"] // 10)) for s in stations]
 
-    fig = go.Figure(go.Scattermap(
-        lat=lats, lon=lons,
-        mode="markers",
-        marker=dict(size=sizes, color="#2c7a5c", opacity=0.8),
-        text=names,
-        hovertext=hover_texts,
-        hoverinfo="text",
-        customdata=names,
-    ))
+    # Group stations by colour label for legend
+    groups = defaultdict(list)
+    for i, s in enumerate(stations):
+        groups[colours[i]].append(i)
+
+    fig = go.Figure()
+    for colour, indices in groups.items():
+        label = LABELS.get(colour_by, {}).get(colour, colour)
+        fig.add_trace(go.Scattermap(
+            lat=[lats[i] for i in indices],
+            lon=[lons[i] for i in indices],
+            mode="markers",
+            marker=dict(size=[sizes[i] for i in indices],
+                        color=colour, opacity=0.8),
+            text=[names[i] for i in indices],
+            hovertext=[hover_texts[i] for i in indices],
+            hoverinfo="text",
+            customdata=[names[i] for i in indices],
+            name=label,
+        ))
+
     fig.update_layout(
         map=dict(style="open-street-map",
                  center=dict(lat=43, lon=10), zoom=3.5),
         margin=dict(l=0, r=0, t=0, b=0),
-        showlegend=False,
+        showlegend=colour_by != "none",
+        legend=dict(
+            bgcolor="rgba(255,255,255,0.8)",
+            bordercolor="#ccc",
+            borderwidth=1,
+            y=0.90,
+        ),
     )
 
-    # Build filter options from aggregations
+    # Filter options
     try:
         agg_resp = requests.get(f"{API_BASE_URL}/data_portal",
                                 params={"size": 0}).json()
@@ -215,8 +298,7 @@ def load_map_and_filters(_):
     def make_options(agg_key):
         if agg_key in aggs:
             return [
-                {"label": f"{b['key']} ({b['doc_count']})",
-                 "value": b["key"]}
+                {"label": f"{b['key']} ({b['doc_count']})", "value": b["key"]}
                 for b in aggs[agg_key].get("buckets", [])
             ]
         return []

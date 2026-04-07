@@ -211,6 +211,9 @@ async def list_stations() -> StationListResponse:
                     "organism_types": {
                         "terms": {"field": "organism.keyword", "size": 20},
                     },
+                    "environment_types": {
+                        "terms": {"field": "environment_type", "size": 10},
+                    },
                     "has_any_images": {
                         "filter": {"term": {"has_images": "Yes"}},
                     },
@@ -241,6 +244,12 @@ async def list_stations() -> StationListResponse:
                                 bucket["analysis_types"]["buckets"]],
                 organism_types=[b["key"] for b in
                                 bucket["organism_types"]["buckets"]],
+                environment_types=[b["key"] for b in
+                                   bucket["environment_types"]["buckets"]],
+                analysis_type_counts={b["key"]: b["doc_count"] for b in
+                                      bucket["analysis_types"]["buckets"]},
+                environment_type_counts={b["key"]: b["doc_count"] for b in
+                                         bucket["environment_types"]["buckets"]},
                 has_images=bucket["has_any_images"]["doc_count"] > 0,
                 has_ena_data=bucket["has_any_ena"]["doc_count"] > 0,
                 min_collection_date=(
