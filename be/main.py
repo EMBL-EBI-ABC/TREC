@@ -5,7 +5,11 @@ import json
 
 from pathlib import Path as FilePath
 from dotenv import load_dotenv
-load_dotenv(FilePath(__file__).resolve().parent.parent / ".env")
+# load_dotenv(FilePath(__file__).resolve().parent.parent / ".env")
+
+# Load environment variables from .env file
+load_dotenv()
+
 
 ES_INDEX = os.getenv("ES_INDEX", "data_portal_development_4")
 
@@ -33,6 +37,7 @@ from models import (
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Initialize AsyncElasticsearch.
+    print("Koosum ----> ", os.getenv("ES_URL"), "ES_INDEX ---> ", ES_INDEX)
     es_client = AsyncElasticsearch(
         [os.getenv("ES_URL")],
         http_auth=(os.getenv("ES_USERNAME"), os.getenv("ES_PASSWORD")),

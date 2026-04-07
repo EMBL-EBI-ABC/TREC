@@ -2,7 +2,12 @@ import dash
 import requests
 import dash_bootstrap_components as dbc
 from dash import callback, Output, Input, State, html, dcc, dash_table
-from api_config import API_BASE_URL
+# from api_config import API_BASE_URL
+
+from dotenv import load_dotenv
+import os
+load_dotenv()
+API_BASE_URL = "http://0.0.0.0:8080"
 
 dash.register_page(
     __name__,
