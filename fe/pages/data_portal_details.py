@@ -15,19 +15,28 @@ dash.register_page(
 from dotenv import load_dotenv
 import os
 load_dotenv()
-API_BASE_URL = "http://0.0.0.0:8080"
+API_BASE_URL = "http://localhost:8080"
 
 
-BIONGFF_VIEWER_URL = "https://biongff.github.io/biongff-viewer/"
+BIONGFF_VIEWER_URL = "https://biongff-viewer-868757013548.europe-west2.run.app/"
 S3_BASE = "https://s3.embl.de/live-confocal-trec-super-plankton/"
-PROXY_BASE = f"{API_BASE_URL}/zarr-proxy"
+PROXY_BASE = "https://trec-be-test-868757013548.europe-west2.run.app/zarr-proxy"
 
+def build_zarr_proxy_url(file_entry: dict) -> str:
+    location = file_entry["acquisition_location"]
+    date = file_entry["acquisition_date"]
+    name = file_entry["name"]
+    tile = file_entry["tile"]
+    folder = f"LSM900_{date}"
+    ome_zarr = f"{name}_{tile}.ome.zarr"
+    inner_zarr = f"{name}.zarr"
+    return f"{PROXY_BASE}/{location}/{folder}/{ome_zarr}/{inner_zarr}"
 
 def layout(sample_id=None, **kwargs):
-    return dbc.Container(
-        dbc.Spinner(html.Div(id="detail-content", key=sample_id)),
-        className="mt-3",
-    )
+    return dbc.Container([
+        dcc.Store(id="sample-id-store", data=sample_id),
+        dbc.Spinner(html.Div(id="detail-content")),
+    ], className="mt-3")
 
 
 def make_breadcrumb(sample, station_name, parent_id):
@@ -79,7 +88,7 @@ def get_field(custom_fields, name):
 
 @callback(
     Output("detail-content", "children"),
-    Input("detail-content", "key"),
+    Input("sample-id-store", "data"),
 )
 def build_detail_page(sample_id):
     if not sample_id:
@@ -256,26 +265,29 @@ def build_detail_page(sample_id):
     ])), className="mb-2"))
 
     # BioImage Archive
-    if sample.get("has_images") == "Yes" and sample.get("image_zarr_url"):
-        zarr_url = sample["image_zarr_url"]
-        if zarr_url.startswith(S3_BASE):
-            zarr_path = zarr_url[len(S3_BASE):]
-        else:
-            zarr_path = zarr_url
-        proxy_url = f"{PROXY_BASE}/{zarr_path}"
-        viewer_url = f"{BIONGFF_VIEWER_URL}?source={proxy_url}"
+    zarr_url = None
+    if sample.get("image_zarr_url"):
+        # Use enriched field if available
+        raw = sample["image_zarr_url"]
+        zarr_path = raw[len(S3_BASE):] if raw.startswith(S3_BASE) else raw
+        zarr_url = f"{PROXY_BASE}/{zarr_path}"
+    elif sample.get("images"):
+        # Fall back to building from the images tile list
+        tiles = sorted(sample["images"], key=lambda x: int(x.get("tile", 0)))
+        if tiles:
+            zarr_url = build_zarr_proxy_url(tiles[0])
 
+    if sample.get("has_images") == "Yes" and zarr_url:
+        viewer_url = f"{BIONGFF_VIEWER_URL}?source={zarr_url}"
         linked_cards.append(dbc.Card(dbc.CardBody([
             dbc.Row([
                 dbc.Col([
                     html.Div("🖼️ BioImage Archive", className="fw-bold small"),
-                    html.Small("Microscopy images available",
-                               className="text-muted"),
+                    html.Small("Microscopy images available", className="text-muted"),
                 ]),
                 dbc.Col(
                     dbc.Button("Open viewer →", color="success", size="sm",
-                               href=viewer_url, external_link=True,
-                               target="_blank"),
+                               href=viewer_url, external_link=True, target="_blank"),
                     width="auto", className="d-flex align-items-center",
                 ),
             ]),
