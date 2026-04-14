@@ -15,12 +15,12 @@ dash.register_page(
 from dotenv import load_dotenv
 import os
 load_dotenv()
-API_BASE_URL = "http://localhost:8080"
+API_BASE_URL = "https://trec-be-test-868757013548.europe-west2.run.app"
 
 
 BIONGFF_VIEWER_URL = "https://biongff-viewer-868757013548.europe-west2.run.app/"
 S3_BASE = "https://s3.embl.de/live-confocal-trec-super-plankton/"
-PROXY_BASE = "https://trec-be-test-868757013548.europe-west2.run.app/zarr-proxy"
+PROXY_BASE = f"https://trec-be-test-868757013548.europe-west2.run.app/zarr-proxy"
 
 def build_zarr_proxy_url(file_entry: dict) -> str:
     location = file_entry["acquisition_location"]
