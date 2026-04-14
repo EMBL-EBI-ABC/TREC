@@ -95,6 +95,8 @@ async def elastic_search(index_name, params, data_class, aggregation_class,
         for aggregation_field in aggregation_fields:
             filter_value = getattr(params, aggregation_field)
             if filter_value:
+                # Support comma-separated multiple values
+                values = [v.strip() for v in str(filter_value).split(",") if v.strip()]
                 nested_cfg = nested_configs.get(aggregation_field)
                 if nested_cfg:
                     filters.append({
@@ -104,14 +106,14 @@ async def elastic_search(index_name, params, data_class, aggregation_class,
                                 "bool": {
                                     "must": [
                                         {"term": {nested_cfg["name_field"]: nested_cfg["name_value"]}},
-                                        {"term": {nested_cfg["value_field"]: filter_value}}
+                                        {"terms": {nested_cfg["value_field"]: values}}
                                     ]
                                 }
                             }
                         }
                     })
                 else:
-                    filters.append({"terms": {aggregation_field: [filter_value]}})
+                    filters.append({"terms": {aggregation_field: values}})
 
     # Combine query with filters.
     search_body = {
@@ -203,6 +205,12 @@ async def trec_search(
     if params.parent_sample_id is not None:
         extra_filters.append(
             {"term": {"parent_sample_id": params.parent_sample_id}})
+    if params.has_images is not None:
+        extra_filters.append(
+            {"term": {"has_images": params.has_images}})
+    if params.has_ena_data is not None:
+        extra_filters.append(
+            {"term": {"has_ena_data": params.has_ena_data}})
     return await elastic_search(
         index_name=ES_INDEX,
         params=params,

@@ -1,7 +1,7 @@
 import dash
 import requests
 import dash_bootstrap_components as dbc
-from dash import callback, Output, Input, State, html, dcc, dash_table
+from dash import callback, Output, Input, State, html, dcc, dash_table, ALL, ctx
 # from api_config import API_BASE_URL
 
 from dotenv import load_dotenv
@@ -112,7 +112,7 @@ layout = dbc.Container([
             dbc.RadioItems(
                 id="colour-by",
                 options=[
-                    {"label": "All same", "value": "none"},
+                    {"label": "All samples", "value": "none"},
                     {"label": "Environment type", "value": "environment_type"},
                     {"label": "Analysis type", "value": "analysis_type"},
                     {"label": "Has images", "value": "has_images"},
@@ -124,6 +124,8 @@ layout = dbc.Container([
                 label_checked_class_name="active",
                 class_name="btn-group mb-2",
             ),
+            html.Div(id="active-filters-bar", className="d-flex flex-wrap gap-1 mb-2"),
+
             # Map
             dbc.Spinner(
                 dcc.Graph(id="station-map", style={"height": "450px"}),
@@ -195,8 +197,16 @@ def load_stats(_):
     Output("protocol-all-options", "data"),
     Input("search-input", "id"),
     Input("colour-by", "value"),
+    Input("env-type-filter", "value"),
+    Input("organism-filter", "value"),
+    Input("analysis-type-filter", "value"),
+    Input("country-filter", "value"),
+    Input("protocol-filter", "value"),
+    Input("source-filter", "value"),
+    Input("linked-data-filter", "value"),
 )
-def load_map_and_filters(_, colour_by):
+def load_map_and_filters(_, colour_by, env_type, organism, analysis_type,
+                         country, protocol, source_filter, linked_data):
     import plotly.graph_objects as go
     from collections import defaultdict
 
@@ -205,6 +215,41 @@ def load_map_and_filters(_, colour_by):
     except Exception:
         stations_resp = {"stations": []}
     stations = stations_resp.get("stations", [])
+
+    # find which stations have matching samples when filters are applied
+    active_filters = {}
+    if env_type:
+        active_filters["environment_type"] = ",".join(env_type)
+    if organism:
+        active_filters["organism"] = ",".join(organism)
+    if analysis_type:
+        active_filters["analysis_type"] = ",".join(analysis_type)
+    if country:
+        active_filters["country"] = ",".join(country)
+    if protocol:
+        active_filters["protocol"] = ",".join(protocol)
+    if source_filter == "source":
+        active_filters["is_source_sample"] = True
+    if linked_data:
+        if "images" in linked_data:
+            active_filters["has_images"] = "Yes"
+        if "ena" in linked_data:
+            active_filters["has_ena_data"] = "true"
+
+    active_station_names = None
+    if active_filters:
+        try:
+            # Fetch all matching samples to find which stations are represented
+            filter_resp = requests.get(
+                f"{API_BASE_URL}/data_portal",
+                params={**active_filters, "size": 0}
+            ).json()
+            agg_stations = filter_resp.get("aggregations", {}).get(
+                "station_name", {}).get("buckets", [])
+            active_station_names = {b["key"] for b in agg_stations}
+        except Exception:
+            active_station_names = None
+
 
     # Colour logic
     COLOUR_MAPS = {
@@ -215,16 +260,22 @@ def load_map_and_filters(_, colour_by):
     }
 
     LABELS = {
-        "none": {"#2c7a5c": "Stations"},
-        "has_images": {"#f39c12": "Has images", "#95a5a6": "No images"},
+        "none": {"#2c7a5c": "Stations", "#cccccc": "No matching samples"},
+        "has_images": {"#f39c12": "Has images", "#95a5a6": "No images",
+                       "#cccccc": "No matching samples"},
         "environment_type": {"#3498db": "Marine", "#e67e22": "Soil",
-                             "#9b59b6": "Aerosol", "#95a5a6": "Unknown"},
+                             "#9b59b6": "Aerosol", "#95a5a6": "Unknown",
+                             "#cccccc": "No matching samples"},
         "analysis_type": {"#2ecc71": "Metagenomics", "#e74c3c": "Metabolomics",
                           "#f39c12": "Imaging", "#1abc9c": "Ions",
-                          "#95a5a6": "Unknown"},
+                          "#95a5a6": "Unknown", "#cccccc": "No matching samples"},
     }
 
     def get_colour(station):
+        # Grey out stations with no matching samples when filters are active
+        if active_station_names is not None:
+            if station["station_name"] not in active_station_names:
+                return "#cccccc"
         if colour_by == "none":
             return "#2c7a5c"
         if colour_by == "has_images":
@@ -303,8 +354,9 @@ def load_map_and_filters(_, colour_by):
 
     # Filter options
     try:
+        agg_params = {"size": 0, **active_filters}
         agg_resp = requests.get(f"{API_BASE_URL}/data_portal",
-                                params={"size": 0}).json()
+                                params=agg_params).json()
         aggs = agg_resp.get("aggregations", {})
     except Exception:
         aggs = {}
@@ -394,29 +446,66 @@ def show_station_panel(click_data):
     Input("samples-pagination", "active_page"),
     Input("selected-station", "data"),
     Input("protocol-filter", "value"),
+    Input("env-type-filter", "value"),
+    Input("organism-filter", "value"),
+    Input("analysis-type-filter", "value"),
+    Input("country-filter", "value"),
+    Input("source-filter", "value"),
+    Input("linked-data-filter", "value"),
     prevent_initial_call=True,
 )
-def load_samples_page(page, station_name, protocol):
-    """Fetch a page of source samples for the selected station."""
-    if not station_name:
+def load_samples_page(page, station_name, protocol, env_type, organism,
+                      analysis_type, country, source_filter, linked_data):
+
+    active_filters = {}
+    if protocol:
+        active_filters["protocol"] = ",".join(protocol)
+    if env_type:
+        active_filters["environment_type"] = ",".join(env_type)
+    if organism:
+        active_filters["organism"] = ",".join(organism)
+    if analysis_type:
+        active_filters["analysis_type"] = ",".join(analysis_type)
+    if country:
+        active_filters["country"] = ",".join(country)
+    if linked_data:
+        if "images" in linked_data:
+            active_filters["has_images"] = "Yes"
+        if "ena" in linked_data:
+            active_filters["has_ena_data"] = "true"
+
+    has_filters = bool(active_filters)
+
+    if not station_name and not has_filters:
         return None
 
     page = page or 1
     start = (page - 1) * 10
+
+    params = {
+        "size": 10,
+        "start": start,
+        **active_filters,
+    }
+
+    if station_name:
+        params["station_name"] = station_name
+
+    if source_filter == "source":
+        params["is_source_sample"] = True
+
     try:
-        resp = requests.get(f"{API_BASE_URL}/data_portal", params={
-            "station_name": station_name,
-            "size": 10,
-            "start": start,
-            "is_source_sample": True,
-            **({"protocol": protocol} if protocol else {}),
-        }).json()
+        resp = requests.get(
+            f"{API_BASE_URL}/data_portal", params=params).json()
     except Exception as e:
         return html.P(f"Error: {e}", className="text-danger")
 
     results = resp.get("results", [])
+    total = resp.get("total", 0)
+
     if not results:
-        return html.P("No samples found", className="text-muted")
+        return html.P("No samples found for the selected filters.",
+                      className="text-muted")
 
     rows = []
     for s in results:
@@ -428,25 +517,30 @@ def load_samples_page(page, station_name, protocol):
             "depth": s.get("depth") or "",
             "collection_device": s.get("collection_device") or "",
             "derived": str(n_derived) if n_derived else "",
+            "station": s.get("station_name") or "",
         })
 
-    return dash_table.DataTable(
-        columns=[
-            {"name": "BioSample ID", "id": "biosampleId",
-             "presentation": "markdown"},
-            {"name": "Organism", "id": "organism"},
-            {"name": "Depth", "id": "depth"},
-            {"name": "Collection Device", "id": "collection_device"},
-            {"name": "Derived Samples", "id": "derived"},
-        ],
-        data=rows,
-        style_cell={"textAlign": "left", "fontSize": "13px",
-                     "padding": "6px 10px"},
-        style_header={"fontWeight": "bold", "fontSize": "13px"},
-        css=[{"selector": "p", "rule": "margin: 0"},
-             {"selector": "a",
-              "rule": "text-decoration: none; color: #2c7a5c"}],
-    )
+    return html.Div([
+        html.Small(f"{total:,} samples found", className="text-muted mb-2 d-block"),
+        dash_table.DataTable(
+            columns=[
+                {"name": "BioSample ID", "id": "biosampleId",
+                 "presentation": "markdown"},
+                {"name": "Organism", "id": "organism"},
+                {"name": "Station", "id": "station"},
+                {"name": "Depth", "id": "depth"},
+                {"name": "Collection Device", "id": "collection_device"},
+                {"name": "Derived Samples", "id": "derived"},
+            ],
+            data=rows,
+            style_cell={"textAlign": "left", "fontSize": "13px",
+                        "padding": "6px 10px"},
+            style_header={"fontWeight": "bold", "fontSize": "13px"},
+            css=[{"selector": "p", "rule": "margin: 0"},
+                 {"selector": "a",
+                  "rule": "text-decoration: none; color: #2c7a5c"}],
+        ),
+    ])
 
 
 @callback(
@@ -464,3 +558,118 @@ def filter_protocol_options(search_value, all_options):
         opt for opt in all_options
         if search_lower in str(opt["label"]).lower()
     ]
+
+
+@callback(
+    Output("active-filters-bar", "children"),
+    Input("env-type-filter", "value"),
+    Input("organism-filter", "value"),
+    Input("analysis-type-filter", "value"),
+    Input("country-filter", "value"),
+    Input("protocol-filter", "value"),
+    Input("source-filter", "value"),
+    Input("linked-data-filter", "value")
+)
+def build_active_filters_bar(env_type, organism, analysis_type, country,
+                              protocol, source_filter, linked_data):
+    badges = []
+
+    filter_map = [
+        ("env-type-filter", "Environment", env_type),
+        ("organism-filter", "Organism", organism),
+        ("analysis-type-filter", "Analysis", analysis_type),
+        ("country-filter", "Country", country),
+        ("protocol-filter", "Protocol", protocol),
+        ("linked-data-filter", "Linked Data", linked_data),
+    ]
+
+    for filter_id, label, values in filter_map:
+        if values:
+            for val in values:
+                badges.append(
+                    dbc.Badge(
+                        [f"{label}: {val} ✕"],
+                        id={"type": "filter-badge", "filter": filter_id,
+                            "value": val},
+                        color="success",
+                        className="me-1 mb-1",
+                        style={"cursor": "pointer", "fontSize": "12px"},
+                    )
+                )
+
+    if source_filter == "source":
+        badges.append(
+            dbc.Badge(
+                ["Source only ✕"],
+                id={"type": "filter-badge", "filter": "source-filter",
+                    "value": "source"},
+                color="secondary",
+                className="me-1 mb-1",
+                style={"cursor": "pointer", "fontSize": "12px"},
+            )
+        )
+
+    return badges
+
+
+
+@callback(
+    Output("env-type-filter", "value"),
+    Output("organism-filter", "value"),
+    Output("analysis-type-filter", "value"),
+    Output("country-filter", "value"),
+    Output("protocol-filter", "value"),
+    Output("source-filter", "value"),
+    Output("linked-data-filter", "value"),
+    Input({"type": "filter-badge", "filter": ALL, "value": ALL}, "n_clicks"),
+    State("env-type-filter", "value"),
+    State("organism-filter", "value"),
+    State("analysis-type-filter", "value"),
+    State("country-filter", "value"),
+    State("protocol-filter", "value"),
+    State("source-filter", "value"),
+    State("linked-data-filter", "value"),
+    prevent_initial_call=True,
+)
+def remove_filter_badge(n_clicks, env_type, organism, analysis_type,
+                        country, protocol, source_filter, linked_data):
+    if not any(n_clicks):
+        raise dash.exceptions.PreventUpdate
+
+    triggered = ctx.triggered_id
+    if not triggered:
+        raise dash.exceptions.PreventUpdate
+
+    filter_id = triggered["filter"]
+    value = triggered["value"]
+
+    def remove(current, val):
+        if not current:
+            return []
+        updated = [v for v in current if v != val]
+        return updated
+
+    if filter_id == "env-type-filter":
+        env_type = remove(env_type, value)
+    elif filter_id == "organism-filter":
+        organism = remove(organism, value)
+    elif filter_id == "analysis-type-filter":
+        analysis_type = remove(analysis_type, value)
+    elif filter_id == "country-filter":
+        country = remove(country, value)
+    elif filter_id == "protocol-filter":
+        protocol = remove(protocol, value)
+    elif filter_id == "source-filter":
+        source_filter = "all"
+    elif filter_id == "linked-data-filter":
+        linked_data = remove(linked_data, value)
+
+    return (
+        env_type or [],
+        organism or [],
+        analysis_type or [],
+        country or [],
+        protocol or [],
+        source_filter,
+        linked_data or [],
+    )

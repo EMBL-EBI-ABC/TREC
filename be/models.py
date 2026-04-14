@@ -70,6 +70,8 @@ class SearchParams(BaseModel):
     # Extra filters (not terms aggregations).
     is_source_sample: bool | None = Field(None, description="Filter source/derived samples")
     parent_sample_id: str | None = Field(None, description="Filter by parent sample ID")
+    has_images: str | None = Field(None, description="Filter by has_images")
+    has_ena_data: bool | None = Field(None, description="Filter by has_ena_data")
 
 
 # Datasource definition.
