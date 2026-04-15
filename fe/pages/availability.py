@@ -2,7 +2,7 @@ import dash
 import requests
 import dash_bootstrap_components as dbc
 from dash import callback, Output, Input, html
-# from api_config import API_BASE_URL
+from api_config import API_BASE_URL
 
 dash.register_page(
     __name__,
@@ -12,13 +12,6 @@ dash.register_page(
 
 ANALYSIS_TYPES = ["Metagenomics", "Metabolomics", "Imaging", "Ions"]
 PAGE_SIZE = 10
-
-from dotenv import load_dotenv
-import os
-load_dotenv()
-API_BASE_URL = "http://0.0.0.0:8080"
-
-
 
 def available_cell():
     return html.Td(
