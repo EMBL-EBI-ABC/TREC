@@ -95,7 +95,7 @@ async def elastic_search(index_name, params, data_class, aggregation_class,
             filter_value = getattr(params, aggregation_field)
             if filter_value:
                 # Support comma-separated multiple values
-                values = [v.strip() for v in str(filter_value).split(",") if v.strip()]
+                values = [v.strip() for v in str(filter_value).split("|") if v.strip()]
                 nested_cfg = nested_configs.get(aggregation_field)
                 if nested_cfg:
                     filters.append({

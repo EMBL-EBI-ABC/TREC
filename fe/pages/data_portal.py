@@ -219,15 +219,15 @@ def load_map_and_filters(_, colour_by, env_type, organism, analysis_type,
     # find which stations have matching samples when filters are applied
     active_filters = {}
     if env_type:
-        active_filters["environment_type"] = ",".join(env_type)
+        active_filters["environment_type"] = "|".join(env_type)
     if organism:
-        active_filters["organism"] = ",".join(organism)
+        active_filters["organism"] = "|".join(organism)
     if analysis_type:
-        active_filters["analysis_type"] = ",".join(analysis_type)
+        active_filters["analysis_type"] = "|".join(analysis_type)
     if country:
-        active_filters["country"] = ",".join(country)
+        active_filters["country"] = "|".join(country)
     if protocol:
-        active_filters["protocol"] = ",".join(protocol)
+        active_filters["protocol"] = "|".join(protocol)
     if source_filter == "source":
         active_filters["is_source_sample"] = True
     if linked_data:
@@ -244,9 +244,11 @@ def load_map_and_filters(_, colour_by, env_type, organism, analysis_type,
                 f"{API_BASE_URL}/data_portal",
                 params={**active_filters, "size": 0}
             ).json()
-            agg_stations = filter_resp.get("aggregations", {}).get(
-                "station_name", {}).get("buckets", [])
-            active_station_names = {b["key"] for b in agg_stations}
+            aggregations = filter_resp.get("aggregations")
+            if aggregations:
+                agg_stations = aggregations.get(
+                    "station_name", {}).get("buckets", [])
+                active_station_names = {b["key"] for b in agg_stations}
         except Exception:
             active_station_names = None
 
@@ -459,15 +461,15 @@ def load_samples_page(page, station_name, protocol, env_type, organism,
 
     active_filters = {}
     if protocol:
-        active_filters["protocol"] = ",".join(protocol)
+        active_filters["protocol"] = "|".join(protocol)
     if env_type:
-        active_filters["environment_type"] = ",".join(env_type)
+        active_filters["environment_type"] = "|".join(env_type)
     if organism:
-        active_filters["organism"] = ",".join(organism)
+        active_filters["organism"] = "|".join(organism)
     if analysis_type:
-        active_filters["analysis_type"] = ",".join(analysis_type)
+        active_filters["analysis_type"] = "|".join(analysis_type)
     if country:
-        active_filters["country"] = ",".join(country)
+        active_filters["country"] = "|".join(country)
     if linked_data:
         if "images" in linked_data:
             active_filters["has_images"] = "Yes"
