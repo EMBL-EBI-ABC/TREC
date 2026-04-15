@@ -204,9 +204,10 @@ def load_stats(_):
     Input("protocol-filter", "value"),
     Input("source-filter", "value"),
     Input("linked-data-filter", "value"),
+    Input("selected-station", "data"),
 )
 def load_map_and_filters(_, colour_by, env_type, organism, analysis_type,
-                         country, protocol, source_filter, linked_data):
+                         country, protocol, source_filter, linked_data, selected_station):
     import plotly.graph_objects as go
     from collections import defaultdict
 
@@ -354,9 +355,38 @@ def load_map_and_filters(_, colour_by, env_type, organism, analysis_type,
         ),
     )
 
+    # highlight selected station
+    if selected_station:
+        sel = next((s for s in stations
+                    if s["station_name"] == selected_station), None)
+        if sel:
+            fig.add_trace(go.Scattermap(
+                lat=[sel["lat"]],
+                lon=[sel["lon"]],
+                mode="markers",
+                marker=dict(size=28, color="#FFD700", opacity=0.85,
+                            allowoverlap=True),
+                hoverinfo="skip",
+                showlegend=False,
+                name="",
+            ))
+            fig.add_trace(go.Scattermap(
+                lat=[sel["lat"]],
+                lon=[sel["lon"]],
+                mode="text",
+                text=[f"  {selected_station}"],
+                textposition="middle right",
+                textfont=dict(size=13, color="#1a1a1a"),
+                hoverinfo="skip",
+                showlegend=False,
+                name="",
+            ))
+
     # Filter options
     try:
         agg_params = {"size": 0, **active_filters}
+        if selected_station:
+            agg_params["station_name"] = selected_station
         agg_resp = requests.get(f"{API_BASE_URL}/data_portal",
                                 params=agg_params).json()
         aggs = agg_resp.get("aggregations", {})
@@ -570,11 +600,24 @@ def filter_protocol_options(search_value, all_options):
     Input("country-filter", "value"),
     Input("protocol-filter", "value"),
     Input("source-filter", "value"),
-    Input("linked-data-filter", "value")
+    Input("linked-data-filter", "value"),
+    Input("selected-station", "data"),
 )
 def build_active_filters_bar(env_type, organism, analysis_type, country,
-                              protocol, source_filter, linked_data):
+                              protocol, source_filter, linked_data, selected_station):
     badges = []
+
+    if selected_station:
+        badges.append(
+            dbc.Badge(
+                [f"📍 {selected_station} ✕"],
+                id={"type": "filter-badge", "filter": "selected-station",
+                    "value": selected_station},
+                color="primary",
+                className="me-1 mb-1",
+                style={"cursor": "pointer", "fontSize": "12px"},
+            )
+        )
 
     filter_map = [
         ("env-type-filter", "Environment", env_type),
@@ -623,6 +666,7 @@ def build_active_filters_bar(env_type, organism, analysis_type, country,
     Output("protocol-filter", "value"),
     Output("source-filter", "value"),
     Output("linked-data-filter", "value"),
+    Output("selected-station", "data", allow_duplicate=True),
     Input({"type": "filter-badge", "filter": ALL, "value": ALL}, "n_clicks"),
     State("env-type-filter", "value"),
     State("organism-filter", "value"),
@@ -631,10 +675,11 @@ def build_active_filters_bar(env_type, organism, analysis_type, country,
     State("protocol-filter", "value"),
     State("source-filter", "value"),
     State("linked-data-filter", "value"),
+    State("selected-station", "data"),
     prevent_initial_call=True,
 )
 def remove_filter_badge(n_clicks, env_type, organism, analysis_type,
-                        country, protocol, source_filter, linked_data):
+                        country, protocol, source_filter, linked_data, selected_station):
     if not any(n_clicks):
         raise dash.exceptions.PreventUpdate
 
@@ -665,6 +710,8 @@ def remove_filter_badge(n_clicks, env_type, organism, analysis_type,
         source_filter = "all"
     elif filter_id == "linked-data-filter":
         linked_data = remove(linked_data, value)
+    elif filter_id == "selected-station":
+        selected_station = None
 
     return (
         env_type or [],
@@ -674,4 +721,5 @@ def remove_filter_badge(n_clicks, env_type, organism, analysis_type,
         protocol or [],
         source_filter,
         linked_data or [],
+        selected_station,
     )
