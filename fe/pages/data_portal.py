@@ -171,8 +171,8 @@ def load_stats(_):
     stats = [
         ("Stations", resp.get("total_stations", 0)),
         ("Countries", resp.get("total_countries", 0)),
-        ("Source Samples", f"~{resp.get('total_source_samples', 0):,}"),
-        ("Total Samples", f"~{resp.get('total_samples', 0):,}"),
+        ("Source Samples", f"{resp.get('total_source_samples', 0):,}"),
+        ("Total Samples", f"{resp.get('total_samples', 0):,}"),
     ]
     return [
         dbc.Col(
@@ -342,11 +342,32 @@ def load_map_and_filters(_, colour_by, env_type, organism, analysis_type,
             name=label,
         ))
 
+    # highlight selected station
+    if selected_station:
+        sel = next((s for s in stations
+                    if s["station_name"] == selected_station), None)
+        if sel:
+            fig.add_trace(go.Scattermap(
+                lat=[sel["lat"]],
+                lon=[sel["lon"]],
+                mode="markers",
+                marker=dict(size=22, color="#FFD700", opacity=1.0),
+                text=[sel["station_name"]],
+                hovertext=[
+                    f"{sel['station_name']}<br>"
+                    f"{sel['sample_count']} samples, "
+                    f"{sel['source_sample_count']} source<br>"
+                    f"Types: {', '.join(sel['analysis_types'][:3])}"
+                ],
+                hoverinfo="text",
+                name="Selected",
+            ))
+
     fig.update_layout(
         map=dict(style="open-street-map",
                  center=dict(lat=43, lon=10), zoom=3.5),
         margin=dict(l=0, r=0, t=0, b=0),
-        showlegend=colour_by != "none",
+        showlegend=colour_by != "none" or bool(selected_station),
         legend=dict(
             bgcolor="rgba(255,255,255,0.8)",
             bordercolor="#ccc",
