@@ -118,6 +118,7 @@ async def elastic_search(index_name, params, data_class, aggregation_class,
     search_body = {
         "from": params.start,
         "size": params.size,
+        "track_total_hits": True,
         "query": {
             "bool": {
                 "must": query_body,
