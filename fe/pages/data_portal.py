@@ -385,6 +385,23 @@ def load_map_and_filters(_, colour_by, env_type, organism, analysis_type,
 
 
 @callback(
+    Output("station-panel", "children", allow_duplicate=True),
+    Output("samples-pagination", "max_value", allow_duplicate=True),
+    Output("samples-pagination", "active_page", allow_duplicate=True),
+    Output("samples-pagination", "style", allow_duplicate=True),
+    Input("selected-station", "data"),
+    prevent_initial_call=True,
+)
+def clear_station_panel(selected_station):
+    if selected_station:
+        raise dash.exceptions.PreventUpdate
+    return (
+        html.P("Click a station on the map to view its samples",
+               className="text-muted text-center py-3"),
+        1, 1, {"display": "none"},
+    )
+
+@callback(
     Output("station-panel", "children"),
     Output("selected-station", "data"),
     Output("samples-pagination", "max_value"),
