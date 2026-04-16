@@ -355,33 +355,6 @@ def load_map_and_filters(_, colour_by, env_type, organism, analysis_type,
         ),
     )
 
-    # highlight selected station
-    if selected_station:
-        sel = next((s for s in stations
-                    if s["station_name"] == selected_station), None)
-        if sel:
-            fig.add_trace(go.Scattermap(
-                lat=[sel["lat"]],
-                lon=[sel["lon"]],
-                mode="markers",
-                marker=dict(size=28, color="#FFD700", opacity=0.85,
-                            allowoverlap=True),
-                hoverinfo="skip",
-                showlegend=False,
-                name="",
-            ))
-            fig.add_trace(go.Scattermap(
-                lat=[sel["lat"]],
-                lon=[sel["lon"]],
-                mode="text",
-                text=[f"  {selected_station}"],
-                textposition="middle right",
-                textfont=dict(size=13, color="#1a1a1a"),
-                hoverinfo="skip",
-                showlegend=False,
-                name="",
-            ))
-
     # Filter options
     try:
         agg_params = {"size": 0, **active_filters}
@@ -475,6 +448,9 @@ def show_station_panel(click_data):
 
 @callback(
     Output("samples-table-container", "children"),
+    Output("samples-pagination", "max_value", allow_duplicate=True),
+    Output("samples-pagination", "active_page", allow_duplicate=True),
+    Output("samples-pagination", "style", allow_duplicate=True),
     Input("samples-pagination", "active_page"),
     Input("selected-station", "data"),
     Input("protocol-filter", "value"),
@@ -488,6 +464,10 @@ def show_station_panel(click_data):
 )
 def load_samples_page(page, station_name, protocol, env_type, organism,
                       analysis_type, country, source_filter, linked_data):
+
+    hide_pagination = {"display": "none"}
+    show_pagination = {"display": "flex", "justifyContent": "end",
+                       "marginTop": "8px"}
 
     active_filters = {}
     if protocol:
@@ -509,7 +489,10 @@ def load_samples_page(page, station_name, protocol, env_type, organism,
     has_filters = bool(active_filters)
 
     if not station_name and not has_filters:
-        return None
+        return None, 1, 1, hide_pagination
+
+    if ctx.triggered_id != "samples-pagination":
+        page = 1
 
     page = page or 1
     start = (page - 1) * 10
@@ -530,14 +513,16 @@ def load_samples_page(page, station_name, protocol, env_type, organism,
         resp = requests.get(
             f"{API_BASE_URL}/data_portal", params=params).json()
     except Exception as e:
-        return html.P(f"Error: {e}", className="text-danger")
+        return html.P(f"Error: {e}", className="text-danger"), 1, 1, hide_pagination
 
     results = resp.get("results", [])
     total = resp.get("total", 0)
+    max_pages = max(1, (total + 9) // 10)
 
     if not results:
-        return html.P("No samples found for the selected filters.",
-                      className="text-muted")
+        return (html.P("No samples found for the selected filters.",
+                       className="text-muted"),
+                1, 1, hide_pagination)
 
     rows = []
     for s in results:
@@ -552,7 +537,7 @@ def load_samples_page(page, station_name, protocol, env_type, organism,
             "station": s.get("station_name") or "",
         })
 
-    return html.Div([
+    table = html.Div([
         html.Small(f"{total:,} samples found", className="text-muted mb-2 d-block"),
         dash_table.DataTable(
             columns=[
@@ -573,6 +558,9 @@ def load_samples_page(page, station_name, protocol, env_type, organism,
                   "rule": "text-decoration: none; color: #2c7a5c"}],
         ),
     ])
+
+    pagination_style = show_pagination if total > 10 else hide_pagination
+    return table, max_pages, page, pagination_style
 
 
 @callback(
