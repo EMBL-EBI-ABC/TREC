@@ -1,8 +1,10 @@
 import os
+import threading
 import urllib.parse
 from contextlib import asynccontextmanager
 import json
 import httpx
+from cachetools import TTLCache
 from fastapi.responses import Response
 
 from pathlib import Path as FilePath
@@ -232,9 +234,25 @@ async def trec_details(
     )
 
 
+# Caches the full station list (all stations + aggregated metadata).
+# TTL is 5 minutes — station data only changes when enrich.py is re-run,
+# so this is conservative. Cache is per-process: each Cloud Run instance
+# holds its own copy, which is acceptable since the data is read-only between
+# re-index runs.
+_stations_cache: TTLCache = TTLCache(maxsize=1, ttl=300)
+_stations_lock = threading.Lock()
+
+
 @app.get("/stations")
 async def list_stations() -> StationListResponse:
     """List all sampling stations with summary aggregations."""
+    _CACHE_KEY = "stations"
+
+    with _stations_lock:
+        cached = _stations_cache.get(_CACHE_KEY)
+    if cached is not None:
+        return cached
+
     search_body = {
         "size": 0,
         "aggs": {
@@ -303,7 +321,10 @@ async def list_stations() -> StationListResponse:
                     bucket["max_date"]["value_as_string"]
                     if bucket["max_date"]["value"] else None),
             ))
-        return StationListResponse(stations=stations)
+        result = StationListResponse(stations=stations)
+        with _stations_lock:
+            _stations_cache[_CACHE_KEY] = result
+        return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Station list error: {str(e)}")
 
