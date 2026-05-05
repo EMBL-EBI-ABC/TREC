@@ -358,31 +358,44 @@ async def station_detail(
             index=ES_INDEX, body=source_body)
         source_count = source_resp["hits"]["total"]["value"]
 
-        source_samples = []
-        for hit in source_resp["hits"]["hits"]:
-            src = hit["_source"]
-            derived_ids = src.get("derived_sample_ids") or []
-            # Fetch derived sample summaries
-            derived_samples = []
-            if derived_ids:
+        source_hits = source_resp["hits"]["hits"]
+
+        # Collect all derived IDs across all source samples in one pass
+        all_derived_ids = []
+        for hit in source_hits:
+            all_derived_ids.extend(hit["_source"].get("derived_sample_ids") or [])
+
+        # Fetch all derived samples in one batched terms query
+        BATCH_SIZE = 10_000
+        derived_lookup: dict[str, dict] = {}
+        if all_derived_ids:
+            for chunk_start in range(0, len(all_derived_ids), BATCH_SIZE):
+                chunk = all_derived_ids[chunk_start:chunk_start + BATCH_SIZE]
                 derived_body = {
-                    "size": len(derived_ids),
-                    "query": {
-                        "terms": {"biosampleId.keyword": derived_ids}
-                    },
+                    "size": len(chunk),
+                    "query": {"terms": {"biosampleId.keyword": chunk}},
                     "_source": ["biosampleId", "analysis_type", "has_images"],
                 }
                 derived_resp = await app.state.es_client.search(
                     index=ES_INDEX, body=derived_body)
-                derived_samples = [
-                    {
-                        "biosampleId": d["_source"]["biosampleId"],
-                        "analysis_type": d["_source"].get("analysis_type"),
-                        "has_images": d["_source"].get("has_images", "No"),
+                for d in derived_resp["hits"]["hits"]:
+                    s = d["_source"]
+                    derived_lookup[s["biosampleId"]] = {
+                        "biosampleId": s["biosampleId"],
+                        "analysis_type": s.get("analysis_type"),
+                        "has_images": s.get("has_images", "No"),
                     }
-                    for d in derived_resp["hits"]["hits"]
-                ]
 
+        # Build source_samples list from the lookup — no further ES calls
+        source_samples = []
+        for hit in source_hits:
+            src = hit["_source"]
+            derived_ids = src.get("derived_sample_ids") or []
+            derived_samples = [
+                derived_lookup[did]
+                for did in derived_ids
+                if did in derived_lookup
+            ]
             source_samples.append(SourceSampleSummary(
                 biosampleId=src["biosampleId"],
                 organism=src.get("organism"),

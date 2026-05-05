@@ -794,6 +794,7 @@ def build_active_filters_bar(env_type, organism, analysis_type, country,
     Output("source-filter", "value"),
     Output("linked-data-filter", "value"),
     Output("selected-station", "data", allow_duplicate=True),
+    Output("url", "search", allow_duplicate=True),
     Input({"type": "filter-badge", "filter": ALL, "value": ALL}, "n_clicks"),
     State("env-type-filter", "value"),
     State("organism-filter", "value"),
@@ -816,6 +817,7 @@ def remove_filter_badge(n_clicks, env_type, organism, analysis_type,
 
     filter_id = triggered["filter"]
     value = triggered["value"]
+    clear_station_url = dash.no_update
 
     def remove(current, val):
         if not current:
@@ -839,6 +841,7 @@ def remove_filter_badge(n_clicks, env_type, organism, analysis_type,
         linked_data = remove(linked_data, value)
     elif filter_id == "selected-station":
         selected_station = None
+        clear_station_url = ""
 
     return (
         env_type or [],
@@ -849,6 +852,7 @@ def remove_filter_badge(n_clicks, env_type, organism, analysis_type,
         source_filter,
         linked_data or [],
         selected_station,
+        clear_station_url,
     )
 
 
