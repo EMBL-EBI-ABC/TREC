@@ -2,6 +2,7 @@ import dash
 import requests
 import dash_bootstrap_components as dbc
 from dash import callback, Output, Input, State, html, dcc, dash_table, ALL, ctx
+from urllib.parse import parse_qs, unquote
 # from api_config import API_BASE_URL
 
 # from dotenv import load_dotenv
@@ -156,6 +157,7 @@ layout = dbc.Container([
             # Samples table (always in DOM, hidden until station selected)
             dcc.Store(id="selected-station"),
             dcc.Store(id="table-sort-by", data=[]),
+            dcc.Location(id="url", refresh=False),
             html.Div(id="samples-table-container"),
             dbc.Pagination(
                 id="samples-pagination",
@@ -436,6 +438,53 @@ def clear_station_panel(selected_station):
                className="text-muted text-center py-3"),
         1, 1, {"display": "none"},
     )
+
+@callback(
+    Output("station-panel", "children", allow_duplicate=True),
+    Output("selected-station", "data", allow_duplicate=True),
+    Output("samples-pagination", "max_value", allow_duplicate=True),
+    Output("samples-pagination", "active_page", allow_duplicate=True),
+    Output("samples-pagination", "style", allow_duplicate=True),
+    Input("url", "search"),
+    prevent_initial_call="initial_duplicate",
+)
+def initialize_from_url(search):
+    hide_pagination = {"display": "none"}
+    if not search:
+        raise dash.exceptions.PreventUpdate
+    params = parse_qs(search.lstrip("?"))
+    station_name = params.get("station", [None])[0]
+    if not station_name:
+        raise dash.exceptions.PreventUpdate
+    station_name = unquote(station_name)
+    try:
+        detail = requests.get(f"{API_BASE_URL}/stations/{station_name}").json()
+    except Exception as e:
+        return (dbc.Alert(f"Error loading station: {e}", color="danger",
+                          className="mt-3"),
+                None, 1, 1, hide_pagination)
+    summary = dbc.Card(
+        dbc.CardBody([
+            html.H5(f"📍 {detail['station_name']}", className="mb-0"),
+            html.Small(detail.get("country") or "", className="text-muted"),
+            html.Div([
+                html.Span(str(detail["source_sample_count"]),
+                          className="fw-bold text-success"),
+                html.Small(" source", className="text-muted"),
+                html.Span(" / ", className="text-muted mx-1"),
+                html.Span(str(detail["sample_count"]),
+                          className="fw-bold text-success"),
+                html.Small(" total samples", className="text-muted me-3"),
+                *[dbc.Badge(t, color="success", className="me-1")
+                  for t in detail.get("analysis_types", [])],
+            ], className="mt-2"),
+        ]),
+        className="mt-3 mb-2 bg-success bg-opacity-10",
+    )
+    max_pages = max(1, (detail["source_sample_count"] + 9) // 10)
+    return (summary, station_name, max_pages, 1,
+            {"display": "flex", "justifyContent": "end", "marginTop": "8px"})
+
 
 @callback(
     Output("station-panel", "children"),

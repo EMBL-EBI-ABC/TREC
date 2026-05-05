@@ -2,6 +2,7 @@ import dash
 import requests
 import dash_bootstrap_components as dbc
 from dash import callback, Output, Input, html
+from urllib.parse import quote
 from api_config import API_BASE_URL
 
 dash.register_page(
@@ -120,7 +121,8 @@ def build_matrix(search_value, page):
         available_types = set(station.get("analysis_types", []))
         cells = [
             html.Td(
-                html.A(station["station_name"], href="/data",
+                html.A(station["station_name"],
+                       href=f"/data?station={quote(station['station_name'])}",
                        className="text-decoration-none text-success"),
                 className="small",
             ),
