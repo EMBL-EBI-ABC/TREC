@@ -298,7 +298,7 @@ def build_detail_page(sample_id):
                 style={"width": "100%", "height": "160px", "border": "none",
                        "borderRadius": "4px", "background": "#1a1a2e"},
             ),
-        ]), className="mb-2", style={"background": "#fffdf0"}))
+        ]), className="mb-2 bg-warning bg-opacity-10"))
     elif sample.get("has_images") == "Yes":
         linked_cards.append(dbc.Card(dbc.CardBody(dbc.Row([
             dbc.Col([

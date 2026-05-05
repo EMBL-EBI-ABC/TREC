@@ -489,8 +489,7 @@ def show_station_panel(click_data):
                   for t in detail.get("analysis_types", [])],
             ], className="mt-2"),
         ]),
-        className="mt-3 mb-2",
-        style={"background": "#f0f7f4"},
+        className="mt-3 mb-2 bg-success bg-opacity-10",
     )
 
     max_pages = max(1, (detail["source_sample_count"] + 9) // 10)
