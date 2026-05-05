@@ -19,16 +19,10 @@ dash.register_page(
 
 
 def make_stats_banner():
-    """Global stats banner — populated by callback on page load."""
-    return html.Div(
-        dbc.Row(
-            id="stats-banner-row",
-            className="g-0 justify-content-center px-3 py-2",
-        ),
-        style={
-            "background": "linear-gradient(135deg, #2c7a5c, #3da87a)",
-            "color": "white",
-        },
+    """Global stats cards — populated by callback on page load."""
+    return dbc.Row(
+        id="stats-banner-row",
+        className="g-3 my-3",
     )
 
 
@@ -191,21 +185,27 @@ def load_stats(_):
     except Exception:
         return []
     stats = [
-        ("Stations", resp.get("total_stations", 0)),
-        ("Countries", resp.get("total_countries", 0)),
-        ("Source Samples", f"{resp.get('total_source_samples', 0):,}"),
-        ("Total Samples", f"{resp.get('total_samples', 0):,}"),
+        ("Stations", resp.get("total_stations", 0), "bi-geo-alt-fill"),
+        ("Countries", resp.get("total_countries", 0), "bi-globe-europe-africa"),
+        ("Source Samples", resp.get("total_source_samples", 0), "bi-droplet-fill"),
+        ("Total Samples", resp.get("total_samples", 0), "bi-collection-fill"),
     ]
     return [
         dbc.Col(
-            html.Div([
-                html.Div(str(val), className="fs-2 fw-bold"),
-                html.Div(label, className="small opacity-75"),
-            ], className="text-center"),
-            width="auto",
-            className="px-4",
+            dbc.Card(
+                dbc.CardBody([
+                    html.I(className=f"bi {icon} text-success fs-5 d-block stat-icon"),
+                    html.Div(f"{val:,}", className="stat-number"),
+                    html.Div(label, className="text-uppercase text-muted small fw-semibold stat-label"),
+                ], className="py-2 px-3"),
+                className=(
+                    "stat-card shadow-sm h-100 border-0 border-start "
+                    "border-3 border-success"
+                ),
+            ),
+            xs=6, md=3,
         )
-        for label, val in stats
+        for label, val, icon in stats
     ]
 
 
