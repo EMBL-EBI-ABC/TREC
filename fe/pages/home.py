@@ -19,20 +19,20 @@ banner = html.Div(
                 dbc.Card(
                     dbc.CardBody(
                         [
-                            html.H1("TREC Data Portal", className="display-3",
-                                    style={"textAlign": "center"}),
+                            html.H1("TREC Data Portal",
+                                    className="display-3 text-center"),
                             html.H2("Traversing European Coastlines",
-                                    style={"textAlign": "center"}),
+                                    className="text-center"),
                             html.H4(
                                 "An expedition to study coastal ecosystems "
                                 "and their response to the environment, from "
                                 "molecules to communities",
-                                style={"textAlign": "center"}),
+                                className="text-center"),
                         ]
                     ),
                     color="light",
                 ),
-                style={"marginTop": "2em"},
+                className="mt-4",
             )
         )
     ),
@@ -40,7 +40,7 @@ banner = html.Div(
         'backgroundImage': f'url({BACKGROUND_URL})',
         'backgroundPosition': 'center',
         'backgroundRepeat': 'no-repeat',
-        'background-size': 'cover',
+        'backgroundSize': 'cover',
         'height': '20em',
     }
 )
@@ -59,7 +59,7 @@ layout = html.Div([
                 ]),
                 dbc.CardFooter(dbc.Button(
                     "Explore Data", color="primary", href="/data")),
-            ]), md=4, style={"marginTop": "1em"}),
+            ]), sm=6, md=4, className="mt-3"),
             dbc.Col(dbc.Card([
                 dbc.CardBody([
                     html.H4("Data Availability", className="card-title"),
@@ -71,7 +71,7 @@ layout = html.Div([
                 dbc.CardFooter(dbc.Button(
                     "View Availability", color="primary",
                     href="/availability")),
-            ]), md=4, style={"marginTop": "1em"}),
+            ]), sm=6, md=4, className="mt-3"),
             dbc.Col(dbc.Card([
                 dbc.CardBody([
                     html.H4("API Documentation", className="card-title"),
@@ -81,8 +81,8 @@ layout = html.Div([
                 ]),
                 dbc.CardFooter(dbc.Button(
                     "API Documentation", color="primary", href="/api")),
-            ]), md=4, style={"marginTop": "1em"}),
-        ], style={"marginBottom": "1em", "marginTop": "2em"}),
+            ]), sm=6, md=4, className="mt-3"),
+        ], className="mb-3 mt-4"),
         dbc.Row(
             dbc.Col(dbc.Card([
                 dbc.CardBody([
@@ -93,8 +93,8 @@ layout = html.Div([
                 ]),
                 dbc.CardFooter(dbc.Button(
                     "About", color="primary", href="/about")),
-            ]), md=4),
-            style={"marginBottom": "2em"},
+            ]), sm=6, md=4),
+            className="mb-4 justify-content-center",
         ),
     ]),
 ])

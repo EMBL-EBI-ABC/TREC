@@ -22,6 +22,7 @@ app.layout = html.Div([
                          outline=True, color="primary", size="lg"),
         color="white",
         dark=False,
+        expand="lg",
     ),
     dash.page_container
 ])

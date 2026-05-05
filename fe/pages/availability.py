@@ -15,14 +15,14 @@ PAGE_SIZE = 10
 
 def available_cell():
     return html.Td(
-        dbc.Badge("✓", color="success", style={"fontSize": "11px"}),
+        dbc.Badge("✓", color="success", className="small"),
         className="text-center",
     )
 
 
 def unavailable_cell():
     return html.Td(
-        html.Span("—", className="text-muted", style={"fontSize": "11px"}),
+        html.Span("—", className="text-muted small"),
         className="text-center",
     )
 
@@ -31,6 +31,8 @@ layout = dbc.Container([
     html.H3("Data Availability Across Stations", className="mt-3 mb-1"),
     html.P("Which data types are available at each sampling station",
            className="text-muted mb-3"),
+    html.Label("Search stations", htmlFor="availability-search",
+               className="visually-hidden"),
     dbc.Input(
         id="availability-search",
         placeholder="Search stations...",
@@ -40,7 +42,7 @@ layout = dbc.Container([
     dbc.Spinner(html.Div(id="availability-table")),
     dbc.Row([
         dbc.Col([
-            dbc.Badge("✓", color="success", style={"fontSize": "10px"}),
+            dbc.Badge("✓", color="success", className="small"),
             html.Span(" Available", className="small me-3"),
             html.Span("—", className="text-muted me-1"),
             html.Span("Not available", className="small"),
@@ -71,12 +73,13 @@ def build_matrix(search_value, page):
     try:
         resp = requests.get(f"{API_BASE_URL}/stations").json()
     except Exception as e:
-        return html.P(f"Error loading stations: {e}",
-                       className="text-danger"), 1, 1
+        return dbc.Alert(f"Error loading stations: {e}",
+                         color="danger", className="mt-2"), 1, 1
 
     stations = resp.get("stations", [])
     if not stations:
-        return html.P("No stations found", className="text-muted"), 1, 1
+        return dbc.Alert("No stations found",
+                         color="secondary", className="mt-2"), 1, 1
 
     # Filter by search
     if search_value:
@@ -86,8 +89,8 @@ def build_matrix(search_value, page):
                     or q in (s.get("country") or "").lower()]
 
     if not stations:
-        return html.P("No stations match your search",
-                       className="text-muted"), 1, 1
+        return dbc.Alert("No stations match your search",
+                         color="secondary", className="mt-2"), 1, 1
 
     # Sort by country then name
     stations.sort(key=lambda s: (s.get("country") or "", s["station_name"]))
@@ -103,14 +106,13 @@ def build_matrix(search_value, page):
 
     # Build table
     header = html.Thead(html.Tr([
-        html.Th("Station", style={"textAlign": "left"}),
-        html.Th("Country", style={"textAlign": "left"}),
-        html.Th("Samples", className="text-center"),
-        *[html.Th(at, className="text-center", style={"fontSize": "13px"})
+        html.Th("Station", className="text-start", scope="col"),
+        html.Th("Country", className="text-start", scope="col"),
+        html.Th("Samples", className="text-center", scope="col"),
+        *[html.Th(at, className="text-center small", scope="col")
           for at in ANALYSIS_TYPES],
-        html.Th("ENA", className="text-center", style={"fontSize": "13px"}),
-        html.Th("Images", className="text-center",
-                style={"fontSize": "13px"}),
+        html.Th("ENA", className="text-center small", scope="col"),
+        html.Th("Images", className="text-center small", scope="col"),
     ]))
 
     rows = []
@@ -120,12 +122,11 @@ def build_matrix(search_value, page):
             html.Td(
                 html.A(station["station_name"], href="/data",
                        className="text-decoration-none text-success"),
-                style={"fontSize": "13px"},
+                className="small",
             ),
-            html.Td(station.get("country") or "",
-                    style={"fontSize": "13px"}),
+            html.Td(station.get("country") or "", className="small"),
             html.Td(str(station.get("sample_count", 0)),
-                    className="text-center", style={"fontSize": "13px"}),
+                    className="text-center small"),
         ]
         for at in ANALYSIS_TYPES:
             cells.append(
