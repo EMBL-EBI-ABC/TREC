@@ -147,18 +147,22 @@ layout = dbc.Container([
                 dcc.Graph(id="station-map", style={"height": "450px"}),
             ),
             # Station detail below map
-            html.Div(
-                id="station-panel",
-                children=html.P(
-                    "Click a station on the map to view its samples",
-                    className="text-muted text-center py-3",
+            dbc.Spinner(
+                html.Div(
+                    id="station-panel",
+                    children=html.P(
+                        "Click a station on the map to view its samples",
+                        className="text-muted text-center py-3",
+                    ),
                 ),
             ),
             # Samples table (always in DOM, hidden until station selected)
             dcc.Store(id="selected-station"),
             dcc.Store(id="table-sort-by", data=[]),
             dcc.Location(id="url", refresh=False),
-            html.Div(id="samples-table-container"),
+            dbc.Spinner(
+                html.Div(id="samples-table-container"),
+            ),
             dbc.Pagination(
                 id="samples-pagination",
                 max_value=1,
