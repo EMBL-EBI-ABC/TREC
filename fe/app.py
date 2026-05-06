@@ -28,38 +28,44 @@ app.index_string = """<!DOCTYPE html>
         {%css%}
         <style>
             .trec-header {
-                height: 70px; background-color: #1d5e4a;
-                border-bottom: 1px solid rgba(0,0,0,0.1);
+                height: 60px; background: #fff;
+                border-bottom: 1px solid #e9e9e9;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+            }
+            @media (min-width: 768px) {
+                .trec-header { height: 70px; }
             }
             .trec-logo {
-                color: #fff; font-weight: 700; font-size: 1.5rem;
-                letter-spacing: .15em; text-decoration: none;
+                color: #1d3a2e; font-weight: 700; font-size: 1.4rem;
+                letter-spacing: .1em; text-decoration: none;
                 transition: opacity .15s;
             }
             .trec-logo:hover, .trec-logo:focus {
-                color: #fff; opacity: .8; text-decoration: none;
+                color: #1d3a2e; opacity: .75; text-decoration: none;
+            }
+            .trec-logo-accent {
+                color: #1d5e4a; margin-left: .35em;
+                font-size: 1.6rem; line-height: 1;
+                vertical-align: -.05em;
             }
             .trec-nav-link {
-                color: #fff; opacity: .85; text-decoration: none;
-                font-size: .85rem; transition: opacity .15s;
-                white-space: nowrap;
+                color: #555; font-weight: 400; font-size: .85rem;
+                text-decoration: none; transition: color .15s;
+                white-space: nowrap; padding: .25rem 0;
             }
             .trec-nav-link:hover, .trec-nav-link:focus {
-                color: #fff; opacity: 1; text-decoration: underline;
-                text-underline-offset: .25em;
+                color: #1d3a2e; text-decoration: none;
             }
             .trec-nav-link--active {
-                opacity: 1; font-weight: 600;
-                text-decoration: underline; text-underline-offset: .3em;
-                text-decoration-thickness: 2px;
+                color: #1d5e4a; font-weight: 600;
+                border-bottom: 2px solid #1d5e4a;
             }
             .trec-nav { gap: .65rem; }
             @media (min-width: 480px) {
-                .trec-nav-link { font-size: .95rem; }
+                .trec-nav-link { font-size: .9rem; }
                 .trec-nav { gap: 1rem; }
             }
             @media (min-width: 768px) {
-                .trec-header { height: 90px; }
                 .trec-nav { gap: 1.5rem; }
             }
         </style>
@@ -79,7 +85,14 @@ def _site_header():
     return html.Header(
         html.Div(
             [
-                dcc.Link("TREC", href="/", className="trec-logo"),
+                dcc.Link(
+                    [
+                        html.Span("TREC"),
+                        html.Span("•", className="trec-logo-accent"),
+                    ],
+                    href="/",
+                    className="trec-logo",
+                ),
                 html.Nav(
                     [
                         dcc.Link(

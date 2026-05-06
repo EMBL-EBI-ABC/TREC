@@ -32,50 +32,46 @@ def _fmt(val):
 
 
 def _hero():
-    return html.Div(
-        [
-            html.Div(
-                style={
-                    "position": "absolute",
-                    "inset": 0,
-                    "background": (
-                        "linear-gradient(to bottom, transparent 40%, "
-                        "rgba(0,0,0,0.55) 100%)"
-                    ),
-                },
-            ),
-            dbc.Container(
-                html.Div(
-                    [
-                        html.H1(
-                            "TREC Data Portal",
-                            className="display-5 fw-bold text-white mb-1",
-                        ),
-                        html.H2(
-                            "Traversing European Coastlines",
-                            className="h5 fw-light text-white mb-1",
-                        ),
-                        html.P(
-                            "Exploring coastal ecosystem biodiversity from "
-                            "molecules to communities.",
-                            className="text-white-50 mb-0 small",
-                        ),
-                    ],
-                    className="pb-3",
+    card = dbc.Card(
+        dbc.CardBody(
+            [
+                html.H1(
+                    "TREC Data Portal",
+                    className="display-4 fw-bold mb-2",
+                    style={"color": "#1d3a2e"},
                 ),
-                style={"position": "relative", "zIndex": 1},
-                className="h-100 d-flex flex-column justify-content-end",
-                fluid=False,
+                html.P(
+                    "Traversing European Coastlines",
+                    className="lead mb-2",
+                ),
+                html.P(
+                    "Exploring coastal ecosystem biodiversity from "
+                    "molecules to communities.",
+                    className="text-muted mb-0 small",
+                ),
+            ],
+            className="p-4 p-md-5 text-center",
+        ),
+        className="shadow rounded border-0",
+        style={"backgroundColor": "rgba(255,255,255,0.95)"},
+    )
+    return html.Div(
+        dbc.Container(
+            dbc.Row(
+                dbc.Col(card, xs=12, md=8, lg=6),
+                className="justify-content-center w-100 g-0",
             ),
-        ],
+        ),
         style={
-            "position": "relative",
             "backgroundImage": f"url({BACKGROUND_URL})",
             "backgroundPosition": "center",
             "backgroundRepeat": "no-repeat",
             "backgroundSize": "cover",
-            "height": "min(14em, 28vh)",
+            "height": "min(18em, 35vh)",
             "width": "100%",
+            "display": "flex",
+            "alignItems": "center",
+            "justifyContent": "center",
         },
     )
 
