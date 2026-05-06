@@ -37,7 +37,7 @@ layout = dbc.Container([
     dbc.Input(
         id="availability-search",
         placeholder="Search stations...",
-        type="text", debounce=True,
+        type="text",
         className="mb-3",
     ),
     dbc.Spinner(html.Div(id="availability-table")),
