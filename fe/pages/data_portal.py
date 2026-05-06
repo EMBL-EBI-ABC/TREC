@@ -8,8 +8,8 @@ from urllib.parse import parse_qs, unquote
 # from dotenv import load_dotenv
 # import os
 # load_dotenv()
-# API_BASE_URL = "https://trec-be-test-868757013548.europe-west2.run.app"
-API_BASE_URL = "http://0.0.0.0:8080"
+API_BASE_URL = "https://trec-be-test-868757013548.europe-west2.run.app"
+# API_BASE_URL = "http://0.0.0.0:8080"
 
 dash.register_page(
     __name__,
