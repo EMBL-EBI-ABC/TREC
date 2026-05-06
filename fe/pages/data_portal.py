@@ -117,7 +117,7 @@ layout = dbc.Container([
                 id="predictive-search",
                 options=[],
                 value=None,
-                placeholder="Search countries, stations, or organisms...",
+                placeholder="Search countries, stations, organisms, environments, analyses, protocols,...",
                 searchable=True,
                 clearable=True,
                 optionHeight=44,
@@ -238,24 +238,28 @@ def _suggestion_option(kind, type_label, name, count):
     Input("predictive-search", "id"),  # Trigger once on page load
 )
 def load_suggestions(_):
-    """Fetch unfiltered counts for countries, stations, and organisms,
-    and produce categorised dcc.Dropdown options."""
+    """Fetch unfiltered counts for the six named-value filters and produce
+    categorised dcc.Dropdown options."""
     countries, organisms, stations = [], [], []
+    environments, analyses, protocols = [], [], []
+
+    def _buckets(aggs, key):
+        return [
+            (b["key"], b["doc_count"])
+            for b in aggs.get(key, {}).get("buckets", [])
+            if b.get("key")
+        ]
+
     try:
         agg_resp = requests.get(
             f"{API_BASE_URL}/data_portal", params={"size": 0}
         ).json()
         aggs = agg_resp.get("aggregations", {})
-        countries = [
-            (b["key"], b["doc_count"])
-            for b in aggs.get("country", {}).get("buckets", [])
-            if b.get("key")
-        ]
-        organisms = [
-            (b["key"], b["doc_count"])
-            for b in aggs.get("organism", {}).get("buckets", [])
-            if b.get("key")
-        ]
+        countries = _buckets(aggs, "country")
+        organisms = _buckets(aggs, "organism")
+        environments = _buckets(aggs, "environment_type")
+        analyses = _buckets(aggs, "analysis_type")
+        protocols = _buckets(aggs, "protocol")
     except Exception:
         pass
 
@@ -269,20 +273,27 @@ def load_suggestions(_):
     except Exception:
         pass
 
-    countries.sort(key=lambda x: (-x[1], x[0].lower()))
-    stations.sort(key=lambda x: (-x[1], x[0].lower()))
-    organisms.sort(key=lambda x: (-x[1], x[0].lower()))
+    for lst in (countries, stations, organisms,
+                environments, analyses, protocols):
+        lst.sort(key=lambda x: (-x[1], x[0].lower()))
 
     options = (
         [_suggestion_option("country", "country", n, c) for n, c in countries]
         + [_suggestion_option("station", "station", n, c) for n, c in stations]
         + [_suggestion_option("organism", "organism", n, c) for n, c in organisms]
+        + [_suggestion_option("environment", "environment", n, c)
+           for n, c in environments]
+        + [_suggestion_option("analysis", "analysis", n, c) for n, c in analyses]
+        + [_suggestion_option("protocol", "protocol", n, c) for n, c in protocols]
     )
 
     raw = {
         "countries": countries,
         "stations": stations,
         "organisms": organisms,
+        "environments": environments,
+        "analyses": analyses,
+        "protocols": protocols,
     }
     return options, raw
 
@@ -290,14 +301,21 @@ def load_suggestions(_):
 @callback(
     Output("country-filter", "value", allow_duplicate=True),
     Output("organism-filter", "value", allow_duplicate=True),
+    Output("env-type-filter", "value", allow_duplicate=True),
+    Output("analysis-type-filter", "value", allow_duplicate=True),
+    Output("protocol-filter", "value", allow_duplicate=True),
     Output("selected-station", "data", allow_duplicate=True),
     Output("predictive-search", "value"),
     Input("predictive-search", "value"),
     State("country-filter", "value"),
     State("organism-filter", "value"),
+    State("env-type-filter", "value"),
+    State("analysis-type-filter", "value"),
+    State("protocol-filter", "value"),
     prevent_initial_call=True,
 )
-def apply_predictive_search(picked, country, organism):
+def apply_predictive_search(picked, country, organism, env_type,
+                            analysis_type, protocol):
     """Translate a selected suggestion into the corresponding filter,
     then clear the dropdown."""
     if not picked or "::" not in picked:
@@ -306,17 +324,26 @@ def apply_predictive_search(picked, country, organism):
     kind, name = picked.split("::", 1)
     country = country or []
     organism = organism or []
+    env_type = env_type or []
+    analysis_type = analysis_type or []
+    protocol = protocol or []
+    NU = dash.no_update
+
+    def _add(lst, val):
+        return lst if val in lst else lst + [val]
 
     if kind == "country":
-        if name not in country:
-            country = country + [name]
-        return country, dash.no_update, dash.no_update, None
+        return _add(country, name), NU, NU, NU, NU, NU, None
     if kind == "organism":
-        if name not in organism:
-            organism = organism + [name]
-        return dash.no_update, organism, dash.no_update, None
+        return NU, _add(organism, name), NU, NU, NU, NU, None
+    if kind == "environment":
+        return NU, NU, _add(env_type, name), NU, NU, NU, None
+    if kind == "analysis":
+        return NU, NU, NU, _add(analysis_type, name), NU, NU, None
+    if kind == "protocol":
+        return NU, NU, NU, NU, _add(protocol, name), NU, None
     if kind == "station":
-        return dash.no_update, dash.no_update, name, None
+        return NU, NU, NU, NU, NU, name, None
 
     raise dash.exceptions.PreventUpdate
 
