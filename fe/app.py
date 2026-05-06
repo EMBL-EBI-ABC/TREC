@@ -87,6 +87,61 @@ app.index_string = """<!DOCTYPE html>
                 color: #fff;
                 border-color: #1d5e4a;
             }
+            /* Predictive-search dropdown */
+            .trec-predictive-search .Select-control {
+                border: 1px solid #1d5e4a;
+                border-radius: .375rem;
+                box-shadow: none;
+                min-height: 38px;
+            }
+            .trec-predictive-search .Select-control:hover {
+                border-color: #14463a;
+            }
+            .trec-predictive-search.is-focused:not(.is-open)
+                > .Select-control {
+                border-color: #1d5e4a;
+                box-shadow: 0 0 0 .15rem rgba(29, 94, 74, 0.2);
+            }
+            .trec-predictive-search .Select-placeholder {
+                color: #6c757d;
+                font-size: .9rem;
+            }
+            .trec-predictive-search .Select-menu-outer {
+                border: 1px solid #d6e3df;
+                box-shadow: 0 6px 14px rgba(0,0,0,0.08);
+                border-radius: .375rem;
+                margin-top: 2px;
+                z-index: 1050;
+            }
+            .trec-predictive-search .Select-option.is-focused {
+                background-color: rgba(29, 94, 74, 0.08);
+            }
+            .trec-predictive-search .Select-option.is-selected {
+                background-color: rgba(29, 94, 74, 0.16);
+                color: #1d3a2e;
+            }
+            .trec-suggest-option {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: .75rem;
+                width: 100%;
+            }
+            .trec-suggest-name {
+                color: #1d3a2e;
+                font-size: .9rem;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+            .trec-suggest-meta {
+                color: #6c757d;
+                font-size: .75rem;
+                font-variant: small-caps;
+                letter-spacing: .03em;
+                white-space: nowrap;
+                flex-shrink: 0;
+            }
             @media (min-width: 480px) {
                 .trec-nav-link { font-size: .9rem; }
                 .trec-nav { gap: 1rem; }

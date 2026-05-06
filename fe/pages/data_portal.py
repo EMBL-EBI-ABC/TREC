@@ -8,8 +8,8 @@ from urllib.parse import parse_qs, unquote
 # from dotenv import load_dotenv
 # import os
 # load_dotenv()
-API_BASE_URL = "https://trec-be-test-868757013548.europe-west2.run.app"
-# API_BASE_URL = "http://0.0.0.0:8080"
+# API_BASE_URL = "https://trec-be-test-868757013548.europe-west2.run.app"
+API_BASE_URL = "http://0.0.0.0:8080"
 
 dash.register_page(
     __name__,
@@ -110,14 +110,18 @@ layout = dbc.Container([
         ),
         # Right: search + map + station detail
         dbc.Col([
-            # Search bar
-            html.Label("Search samples, organisms, locations",
-                       htmlFor="search-input", className="visually-hidden"),
-            dbc.Input(
-                id="search-input",
-                placeholder="Search samples, organisms, locations...",
-                type="text", debounce=True,
-                className="mb-2 mt-2",
+            # Predictive-text search
+            html.Label("Search countries, stations, or organisms",
+                       htmlFor="predictive-search", className="visually-hidden"),
+            dcc.Dropdown(
+                id="predictive-search",
+                options=[],
+                value=None,
+                placeholder="Search countries, stations, or organisms...",
+                searchable=True,
+                clearable=True,
+                optionHeight=44,
+                className="trec-predictive-search mb-2 mt-2",
             ),
             dbc.RadioItems(
                 id="colour-by",
@@ -153,6 +157,7 @@ layout = dbc.Container([
             # Samples table (always in DOM, hidden until station selected)
             dcc.Store(id="selected-station"),
             dcc.Store(id="table-sort-by", data=[]),
+            dcc.Store(id="suggestions-data"),
             dcc.Location(id="url", refresh=False),
             dbc.Spinner(
                 html.Div(id="samples-table-container"),
@@ -176,7 +181,7 @@ layout = dbc.Container([
 
 @callback(
     Output("stats-banner-row", "children"),
-    Input("search-input", "id"),  # Trigger on page load
+    Input("predictive-search", "id"),  # Trigger on page load
 )
 def load_stats(_):
     """Fetch global stats and render banner."""
@@ -209,6 +214,113 @@ def load_stats(_):
     ]
 
 
+def _suggestion_option(kind, type_label, name, count):
+    """Build one dcc.Dropdown option with a rich label."""
+    return {
+        "label": html.Div(
+            [
+                html.Span(name, className="trec-suggest-name"),
+                html.Span(
+                    f"{type_label} · {count:,}",
+                    className="trec-suggest-meta",
+                ),
+            ],
+            className="trec-suggest-option",
+        ),
+        "value": f"{kind}::{name}",
+        "search": f"{name} {type_label}",
+    }
+
+
+@callback(
+    Output("predictive-search", "options"),
+    Output("suggestions-data", "data"),
+    Input("predictive-search", "id"),  # Trigger once on page load
+)
+def load_suggestions(_):
+    """Fetch unfiltered counts for countries, stations, and organisms,
+    and produce categorised dcc.Dropdown options."""
+    countries, organisms, stations = [], [], []
+    try:
+        agg_resp = requests.get(
+            f"{API_BASE_URL}/data_portal", params={"size": 0}
+        ).json()
+        aggs = agg_resp.get("aggregations", {})
+        countries = [
+            (b["key"], b["doc_count"])
+            for b in aggs.get("country", {}).get("buckets", [])
+            if b.get("key")
+        ]
+        organisms = [
+            (b["key"], b["doc_count"])
+            for b in aggs.get("organism", {}).get("buckets", [])
+            if b.get("key")
+        ]
+    except Exception:
+        pass
+
+    try:
+        stations_resp = requests.get(f"{API_BASE_URL}/stations").json()
+        stations = [
+            (s["station_name"], s.get("sample_count", 0))
+            for s in stations_resp.get("stations", [])
+            if s.get("station_name")
+        ]
+    except Exception:
+        pass
+
+    countries.sort(key=lambda x: (-x[1], x[0].lower()))
+    stations.sort(key=lambda x: (-x[1], x[0].lower()))
+    organisms.sort(key=lambda x: (-x[1], x[0].lower()))
+
+    options = (
+        [_suggestion_option("country", "country", n, c) for n, c in countries]
+        + [_suggestion_option("station", "station", n, c) for n, c in stations]
+        + [_suggestion_option("organism", "organism", n, c) for n, c in organisms]
+    )
+
+    raw = {
+        "countries": countries,
+        "stations": stations,
+        "organisms": organisms,
+    }
+    return options, raw
+
+
+@callback(
+    Output("country-filter", "value", allow_duplicate=True),
+    Output("organism-filter", "value", allow_duplicate=True),
+    Output("selected-station", "data", allow_duplicate=True),
+    Output("predictive-search", "value"),
+    Input("predictive-search", "value"),
+    State("country-filter", "value"),
+    State("organism-filter", "value"),
+    prevent_initial_call=True,
+)
+def apply_predictive_search(picked, country, organism):
+    """Translate a selected suggestion into the corresponding filter,
+    then clear the dropdown."""
+    if not picked or "::" not in picked:
+        raise dash.exceptions.PreventUpdate
+
+    kind, name = picked.split("::", 1)
+    country = country or []
+    organism = organism or []
+
+    if kind == "country":
+        if name not in country:
+            country = country + [name]
+        return country, dash.no_update, dash.no_update, None
+    if kind == "organism":
+        if name not in organism:
+            organism = organism + [name]
+        return dash.no_update, organism, dash.no_update, None
+    if kind == "station":
+        return dash.no_update, dash.no_update, name, None
+
+    raise dash.exceptions.PreventUpdate
+
+
 @callback(
     Output("station-map", "figure"),
     Output("env-type-filter", "options"),
@@ -216,7 +328,7 @@ def load_stats(_):
     Output("analysis-type-filter", "options"),
     Output("country-filter", "options"),
     Output("protocol-all-options", "data"),
-    Input("search-input", "id"),
+    Input("predictive-search", "id"),
     Input("colour-by", "value"),
     Input("env-type-filter", "value"),
     Input("organism-filter", "value"),
