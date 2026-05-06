@@ -130,7 +130,7 @@ layout = dbc.Container([
                 value="none",
                 inline=True,
                 input_class_name="btn-check",
-                label_class_name="btn btn-outline-secondary btn-sm",
+                label_class_name="btn btn-sm trec-chip",
                 label_checked_class_name="active",
                 class_name="btn-group mb-2",
             ),

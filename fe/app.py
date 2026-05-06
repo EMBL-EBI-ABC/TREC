@@ -28,7 +28,7 @@ app.index_string = """<!DOCTYPE html>
         {%css%}
         <style>
             .trec-header {
-                height: 60px; background: #fff;
+                height: 60px; background: #fafaf8;
                 border-bottom: 1px solid #e9e9e9;
                 box-shadow: 0 1px 3px rgba(0,0,0,0.04);
             }
@@ -36,6 +36,7 @@ app.index_string = """<!DOCTYPE html>
                 .trec-header { height: 70px; }
             }
             .trec-logo {
+                display: inline-flex; align-items: center;
                 color: #1d3a2e; font-weight: 700; font-size: 1.4rem;
                 letter-spacing: .1em; text-decoration: none;
                 transition: opacity .15s;
@@ -43,10 +44,9 @@ app.index_string = """<!DOCTYPE html>
             .trec-logo:hover, .trec-logo:focus {
                 color: #1d3a2e; opacity: .75; text-decoration: none;
             }
-            .trec-logo-accent {
-                color: #1d5e4a; margin-left: .35em;
-                font-size: 1.6rem; line-height: 1;
-                vertical-align: -.05em;
+            .trec-logo-droplet {
+                color: #1d5e4a; font-size: 1.2rem;
+                margin-right: .4rem;
             }
             .trec-nav-link {
                 color: #555; font-weight: 400; font-size: .85rem;
@@ -61,12 +61,58 @@ app.index_string = """<!DOCTYPE html>
                 border-bottom: 2px solid #1d5e4a;
             }
             .trec-nav { gap: .65rem; }
+            .trec-chip {
+                background-color: transparent;
+                color: #1d5e4a;
+                border: 1px solid #1d5e4a;
+                transition: background-color .15s, color .15s;
+            }
+            .trec-chip:hover, .trec-chip:focus {
+                background-color: rgba(29, 94, 74, 0.08);
+                color: #1d5e4a;
+                border-color: #1d5e4a;
+            }
+            .trec-chip.active,
+            .btn-check:checked + .trec-chip {
+                background-color: #1d5e4a;
+                color: #fff;
+                border-color: #1d5e4a;
+            }
             @media (min-width: 480px) {
                 .trec-nav-link { font-size: .9rem; }
                 .trec-nav { gap: 1rem; }
             }
             @media (min-width: 768px) {
                 .trec-nav { gap: 1.5rem; }
+            }
+            .trec-footer {
+                background: #fafaf8;
+                border-top: 1px solid #e9e9e9;
+                padding: 1.25rem 1.5rem;
+                color: #6c757d; font-size: .85rem;
+                margin-top: 2rem;
+            }
+            .trec-footer-row {
+                display: flex; flex-direction: column;
+                align-items: center; gap: .5rem;
+                text-align: center;
+            }
+            @media (min-width: 768px) {
+                .trec-footer-row {
+                    flex-direction: row;
+                    justify-content: space-between;
+                    text-align: left;
+                }
+            }
+            .trec-footer-brand {
+                color: #1d3a2e; font-weight: 600;
+                font-size: .9rem; letter-spacing: .08em;
+            }
+            .trec-footer-link {
+                color: #6c757d; text-decoration: none;
+            }
+            .trec-footer-link:hover, .trec-footer-link:focus {
+                color: #1d3a2e; text-decoration: underline;
             }
         </style>
     </head>
@@ -87,8 +133,8 @@ def _site_header():
             [
                 dcc.Link(
                     [
+                        html.I(className="bi bi-house-fill trec-logo-droplet"),
                         html.Span("TREC"),
-                        html.Span("•", className="trec-logo-accent"),
                     ],
                     href="/",
                     className="trec-logo",
@@ -116,11 +162,44 @@ def _site_header():
     )
 
 
-app.layout = html.Div([
-    dcc.Location(id="trec-nav-url", refresh=False),
-    _site_header(),
-    dash.page_container,
-])
+def _site_footer():
+    return html.Footer(
+        html.Div(
+            [
+                html.Span("TREC", className="trec-footer-brand"),
+                html.Span(
+                    [
+                        "Traversing European Coastlines · ",
+                        html.A(
+                            "An EMBL initiative",
+                            href="https://www.embl.org/about/info/trec/",
+                            target="_blank",
+                            rel="noopener noreferrer",
+                            className="trec-footer-link",
+                        ),
+                    ],
+                ),
+                html.Span("© 2026 EMBL"),
+            ],
+            className="trec-footer-row",
+        ),
+        className="trec-footer",
+    )
+
+
+app.layout = html.Div(
+    [
+        dcc.Location(id="trec-nav-url", refresh=False),
+        _site_header(),
+        html.Div(dash.page_container, style={"flex": "1 0 auto"}),
+        _site_footer(),
+    ],
+    style={
+        "minHeight": "100vh",
+        "display": "flex",
+        "flexDirection": "column",
+    },
+)
 server = app.server
 
 
