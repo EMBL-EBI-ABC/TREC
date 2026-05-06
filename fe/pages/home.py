@@ -74,7 +74,7 @@ def _hero():
             "backgroundPosition": "center",
             "backgroundRepeat": "no-repeat",
             "backgroundSize": "cover",
-            "height": "min(15em, 30vh)",
+            "height": "min(14em, 28vh)",
             "width": "100%",
         },
     )
