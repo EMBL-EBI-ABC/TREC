@@ -39,10 +39,13 @@ app.index_string = """<!DOCTYPE html>
                 display: inline-flex; align-items: center;
                 color: #1d3a2e; font-weight: 700; font-size: 1.4rem;
                 letter-spacing: .1em; text-decoration: none;
-                transition: opacity .15s;
+                padding: .25rem .5rem; border-radius: 4px;
+                transition: background-color .15s, color .15s;
             }
             .trec-logo:hover, .trec-logo:focus {
-                color: #1d3a2e; opacity: .75; text-decoration: none;
+                color: #122620;
+                background-color: rgba(29, 94, 74, 0.06);
+                text-decoration: none;
             }
             .trec-logo-droplet {
                 color: #1d5e4a; font-size: 1.2rem;
@@ -50,15 +53,21 @@ app.index_string = """<!DOCTYPE html>
             }
             .trec-nav-link {
                 color: #555; font-weight: 400; font-size: .85rem;
-                text-decoration: none; transition: color .15s;
-                white-space: nowrap; padding: .25rem 0;
+                text-decoration: none;
+                transition: color .15s, background-color .15s,
+                            border-color .15s;
+                white-space: nowrap;
+                padding: .25rem .5rem;
+                border-bottom: 2px solid transparent;
+                border-radius: 4px;
             }
             .trec-nav-link:hover, .trec-nav-link:focus {
                 color: #1d3a2e; text-decoration: none;
+                background-color: rgba(29, 94, 74, 0.06);
             }
             .trec-nav-link--active {
                 color: #1d5e4a; font-weight: 600;
-                border-bottom: 2px solid #1d5e4a;
+                border-bottom-color: #1d5e4a;
             }
             .trec-nav { gap: .65rem; }
             .trec-chip {
