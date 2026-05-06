@@ -1,8 +1,10 @@
 import os
+import threading
 import urllib.parse
 from contextlib import asynccontextmanager
 import json
 import httpx
+from cachetools import TTLCache
 from fastapi.responses import Response
 
 from pathlib import Path as FilePath
@@ -232,9 +234,25 @@ async def trec_details(
     )
 
 
+# Caches the full station list (all stations + aggregated metadata).
+# TTL is 5 minutes — station data only changes when enrich.py is re-run,
+# so this is conservative. Cache is per-process: each Cloud Run instance
+# holds its own copy, which is acceptable since the data is read-only between
+# re-index runs.
+_stations_cache: TTLCache = TTLCache(maxsize=1, ttl=300)
+_stations_lock = threading.Lock()
+
+
 @app.get("/stations")
 async def list_stations() -> StationListResponse:
     """List all sampling stations with summary aggregations."""
+    _CACHE_KEY = "stations"
+
+    with _stations_lock:
+        cached = _stations_cache.get(_CACHE_KEY)
+    if cached is not None:
+        return cached
+
     search_body = {
         "size": 0,
         "aggs": {
@@ -303,7 +321,10 @@ async def list_stations() -> StationListResponse:
                     bucket["max_date"]["value_as_string"]
                     if bucket["max_date"]["value"] else None),
             ))
-        return StationListResponse(stations=stations)
+        result = StationListResponse(stations=stations)
+        with _stations_lock:
+            _stations_cache[_CACHE_KEY] = result
+        return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Station list error: {str(e)}")
 
@@ -358,31 +379,44 @@ async def station_detail(
             index=ES_INDEX, body=source_body)
         source_count = source_resp["hits"]["total"]["value"]
 
-        source_samples = []
-        for hit in source_resp["hits"]["hits"]:
-            src = hit["_source"]
-            derived_ids = src.get("derived_sample_ids") or []
-            # Fetch derived sample summaries
-            derived_samples = []
-            if derived_ids:
+        source_hits = source_resp["hits"]["hits"]
+
+        # Collect all derived IDs across all source samples in one pass
+        all_derived_ids = []
+        for hit in source_hits:
+            all_derived_ids.extend(hit["_source"].get("derived_sample_ids") or [])
+
+        # Fetch all derived samples in one batched terms query
+        BATCH_SIZE = 10_000
+        derived_lookup: dict[str, dict] = {}
+        if all_derived_ids:
+            for chunk_start in range(0, len(all_derived_ids), BATCH_SIZE):
+                chunk = all_derived_ids[chunk_start:chunk_start + BATCH_SIZE]
                 derived_body = {
-                    "size": len(derived_ids),
-                    "query": {
-                        "terms": {"biosampleId.keyword": derived_ids}
-                    },
+                    "size": len(chunk),
+                    "query": {"terms": {"biosampleId.keyword": chunk}},
                     "_source": ["biosampleId", "analysis_type", "has_images"],
                 }
                 derived_resp = await app.state.es_client.search(
                     index=ES_INDEX, body=derived_body)
-                derived_samples = [
-                    {
-                        "biosampleId": d["_source"]["biosampleId"],
-                        "analysis_type": d["_source"].get("analysis_type"),
-                        "has_images": d["_source"].get("has_images", "No"),
+                for d in derived_resp["hits"]["hits"]:
+                    s = d["_source"]
+                    derived_lookup[s["biosampleId"]] = {
+                        "biosampleId": s["biosampleId"],
+                        "analysis_type": s.get("analysis_type"),
+                        "has_images": s.get("has_images", "No"),
                     }
-                    for d in derived_resp["hits"]["hits"]
-                ]
 
+        # Build source_samples list from the lookup — no further ES calls
+        source_samples = []
+        for hit in source_hits:
+            src = hit["_source"]
+            derived_ids = src.get("derived_sample_ids") or []
+            derived_samples = [
+                derived_lookup[did]
+                for did in derived_ids
+                if did in derived_lookup
+            ]
             source_samples.append(SourceSampleSummary(
                 biosampleId=src["biosampleId"],
                 organism=src.get("organism"),

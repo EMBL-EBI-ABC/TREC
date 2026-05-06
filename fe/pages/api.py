@@ -11,12 +11,13 @@ dash.register_page(
 def iframe_layout():
     return html.Iframe(
         src="https://trec-be-test-868757013548.europe-west2.run.app/redoc",
+        title="TREC API Documentation",
         style={
             "display": "block",
             "height": "100vh",
             "width": "100%",
             "border": "none",
-            "overflow": "auto"
+            "overflow": "auto",
         }
     )
 
@@ -29,7 +30,5 @@ layout = dbc.Container(
         ),
     ),
     fluid=True,
-    style={
-        "backgroundColor": "white"
-    },
+    className="bg-white",
 )

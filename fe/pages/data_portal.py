@@ -2,12 +2,14 @@ import dash
 import requests
 import dash_bootstrap_components as dbc
 from dash import callback, Output, Input, State, html, dcc, dash_table, ALL, ctx
+from urllib.parse import parse_qs, unquote
 # from api_config import API_BASE_URL
 
 # from dotenv import load_dotenv
 # import os
 # load_dotenv()
-API_BASE_URL = "https://trec-be-test-868757013548.europe-west2.run.app"
+# API_BASE_URL = "https://trec-be-test-868757013548.europe-west2.run.app"
+API_BASE_URL = "http://0.0.0.0:8080"
 
 dash.register_page(
     __name__,
@@ -17,23 +19,16 @@ dash.register_page(
 
 
 def make_stats_banner():
-    """Global stats banner — populated by callback on page load."""
-    return html.Div(
-        dbc.Row(
-            id="stats-banner-row",
-            className="g-0 justify-content-center",
-            style={"padding": "12px 24px"},
-        ),
-        style={
-            "background": "linear-gradient(135deg, #2c7a5c, #3da87a)",
-            "color": "white",
-        },
+    """Global stats cards — populated by callback on page load."""
+    return dbc.Row(
+        id="stats-banner-row",
+        className="g-3 my-3",
     )
 
 
 def make_filters_sidebar():
-    """Always-visible filters sidebar on the left."""
-    return html.Div([
+    """Filters sidebar — collapsible on mobile, always visible on desktop."""
+    filter_content = [
         html.H6("Filters", className="fw-bold mb-3"),
 
         html.Label("Environment", className="fw-bold small"),
@@ -54,12 +49,14 @@ def make_filters_sidebar():
 
         dcc.Store(id="protocol-all-options"),
         html.Label("Protocol", className="fw-bold small"),
+        html.Label("Search protocols", htmlFor="protocol-search",
+                   className="visually-hidden"),
         dbc.Input(
             id="protocol-search",
             placeholder="Search protocols...",
             type="text",
             size="sm",
-            style={"marginBottom": "8px"},
+            className="mb-2",
         ),
         dbc.Checklist(
             id="protocol-filter", className="small mb-3",
@@ -85,8 +82,19 @@ def make_filters_sidebar():
             value="all",
             className="small",
         ),
-    ], style={"padding": "15px", "borderRight": "1px solid #e0e0e0",
-              "height": "100%"})
+    ]
+
+    return html.Div([
+        dbc.Button(
+            "Filters",
+            id="filters-toggle",
+            color="outline-secondary",
+            size="sm",
+            className="d-md-none mb-2 w-100",
+            n_clicks=0,
+        ),
+        dbc.Collapse(filter_content, id="filters-collapse", is_open=True),
+    ], className="p-3 border-end h-100")
 
 
 layout = dbc.Container([
@@ -97,12 +105,14 @@ layout = dbc.Container([
         # Left: filters sidebar
         dbc.Col(
             make_filters_sidebar(),
-            md=2,
-            style={"paddingRight": "0"},
+            xs=12, md=2,
+            className="pe-0",
         ),
         # Right: search + map + station detail
         dbc.Col([
             # Search bar
+            html.Label("Search samples, organisms, locations",
+                       htmlFor="search-input", className="visually-hidden"),
             dbc.Input(
                 id="search-input",
                 placeholder="Search samples, organisms, locations...",
@@ -120,7 +130,7 @@ layout = dbc.Container([
                 value="none",
                 inline=True,
                 input_class_name="btn-check",
-                label_class_name="btn btn-outline-secondary btn-sm",
+                label_class_name="btn btn-sm trec-chip",
                 label_checked_class_name="active",
                 class_name="btn-group mb-2",
             ),
@@ -131,16 +141,22 @@ layout = dbc.Container([
                 dcc.Graph(id="station-map", style={"height": "450px"}),
             ),
             # Station detail below map
-            html.Div(
-                id="station-panel",
-                children=html.P(
-                    "Click a station on the map to view its samples",
-                    className="text-muted text-center py-3",
+            dbc.Spinner(
+                html.Div(
+                    id="station-panel",
+                    children=html.P(
+                        "Click a station on the map to view its samples",
+                        className="text-muted text-center py-3",
+                    ),
                 ),
             ),
             # Samples table (always in DOM, hidden until station selected)
             dcc.Store(id="selected-station"),
-            html.Div(id="samples-table-container"),
+            dcc.Store(id="table-sort-by", data=[]),
+            dcc.Location(id="url", refresh=False),
+            dbc.Spinner(
+                html.Div(id="samples-table-container"),
+            ),
             dbc.Pagination(
                 id="samples-pagination",
                 max_value=1,
@@ -151,7 +167,7 @@ layout = dbc.Container([
                 className="justify-content-end mt-2",
                 style={"display": "none"},
             ),
-        ], md=10),
+        ], xs=12, md=10),
     ], className="mt-2"),
 ])
 
@@ -169,22 +185,27 @@ def load_stats(_):
     except Exception:
         return []
     stats = [
-        ("Stations", resp.get("total_stations", 0)),
-        ("Countries", resp.get("total_countries", 0)),
-        ("Source Samples", f"{resp.get('total_source_samples', 0):,}"),
-        ("Total Samples", f"{resp.get('total_samples', 0):,}"),
+        ("Stations", resp.get("total_stations", 0), "bi-geo-alt-fill"),
+        ("Countries", resp.get("total_countries", 0), "bi-globe-europe-africa"),
+        ("Source Samples", resp.get("total_source_samples", 0), "bi-droplet-fill"),
+        ("Total Samples", resp.get("total_samples", 0), "bi-collection-fill"),
     ]
     return [
         dbc.Col(
-            html.Div([
-                html.Div(str(val), style={"fontSize": "28px",
-                                          "fontWeight": "bold"}),
-                html.Div(label, style={"fontSize": "12px", "opacity": "0.85"}),
-            ], className="text-center"),
-            width="auto",
-            className="px-4",
+            dbc.Card(
+                dbc.CardBody([
+                    html.I(className=f"bi {icon} text-success fs-5 d-block stat-icon"),
+                    html.Div(f"{val:,}", className="stat-number"),
+                    html.Div(label, className="text-uppercase text-muted small fw-semibold stat-label"),
+                ], className="py-2 px-3"),
+                className=(
+                    "stat-card shadow-sm h-100 border-0 border-start "
+                    "border-3 border-success"
+                ),
+            ),
+            xs=6, md=3,
         )
-        for label, val in stats
+        for label, val, icon in stats
     ]
 
 
@@ -423,6 +444,53 @@ def clear_station_panel(selected_station):
     )
 
 @callback(
+    Output("station-panel", "children", allow_duplicate=True),
+    Output("selected-station", "data", allow_duplicate=True),
+    Output("samples-pagination", "max_value", allow_duplicate=True),
+    Output("samples-pagination", "active_page", allow_duplicate=True),
+    Output("samples-pagination", "style", allow_duplicate=True),
+    Input("url", "search"),
+    prevent_initial_call="initial_duplicate",
+)
+def initialize_from_url(search):
+    hide_pagination = {"display": "none"}
+    if not search:
+        raise dash.exceptions.PreventUpdate
+    params = parse_qs(search.lstrip("?"))
+    station_name = params.get("station", [None])[0]
+    if not station_name:
+        raise dash.exceptions.PreventUpdate
+    station_name = unquote(station_name)
+    try:
+        detail = requests.get(f"{API_BASE_URL}/stations/{station_name}").json()
+    except Exception as e:
+        return (dbc.Alert(f"Error loading station: {e}", color="danger",
+                          className="mt-3"),
+                None, 1, 1, hide_pagination)
+    summary = dbc.Card(
+        dbc.CardBody([
+            html.H5(f"📍 {detail['station_name']}", className="mb-0"),
+            html.Small(detail.get("country") or "", className="text-muted"),
+            html.Div([
+                html.Span(str(detail["source_sample_count"]),
+                          className="fw-bold text-success"),
+                html.Small(" source", className="text-muted"),
+                html.Span(" / ", className="text-muted mx-1"),
+                html.Span(str(detail["sample_count"]),
+                          className="fw-bold text-success"),
+                html.Small(" total samples", className="text-muted me-3"),
+                *[dbc.Badge(t, color="success", className="me-1")
+                  for t in detail.get("analysis_types", [])],
+            ], className="mt-2"),
+        ]),
+        className="mt-3 mb-2 bg-success bg-opacity-10",
+    )
+    max_pages = max(1, (detail["source_sample_count"] + 9) // 10)
+    return (summary, station_name, max_pages, 1,
+            {"display": "flex", "justifyContent": "end", "marginTop": "8px"})
+
+
+@callback(
     Output("station-panel", "children"),
     Output("selected-station", "data"),
     Output("samples-pagination", "max_value"),
@@ -442,16 +510,16 @@ def show_station_panel(click_data):
     if not station_name:
         station_name = click_data["points"][0].get("text", "")
     if not station_name:
-        return (html.P("Could not identify station",
-                        className="text-muted text-center mt-3"),
+        return (dbc.Alert("Could not identify station",
+                          color="warning", className="mt-3"),
                 None, 1, 1, hide_pagination)
 
     try:
         detail = requests.get(
             f"{API_BASE_URL}/stations/{station_name}").json()
     except Exception as e:
-        return (html.P(f"Error loading station: {e}",
-                        className="text-danger text-center mt-3"),
+        return (dbc.Alert(f"Error loading station: {e}",
+                          color="danger", className="mt-3"),
                 None, 1, 1, hide_pagination)
 
     # --- Summary ---
@@ -474,8 +542,7 @@ def show_station_panel(click_data):
                   for t in detail.get("analysis_types", [])],
             ], className="mt-2"),
         ]),
-        className="mt-3 mb-2",
-        style={"background": "#f0f7f4"},
+        className="mt-3 mb-2 bg-success bg-opacity-10",
     )
 
     max_pages = max(1, (detail["source_sample_count"] + 9) // 10)
@@ -498,10 +565,11 @@ def show_station_panel(click_data):
     Input("country-filter", "value"),
     Input("source-filter", "value"),
     Input("linked-data-filter", "value"),
+    Input("table-sort-by", "data"),
     prevent_initial_call=True,
 )
 def load_samples_page(page, station_name, protocol, env_type, organism,
-                      analysis_type, country, source_filter, linked_data):
+                      analysis_type, country, source_filter, linked_data, sort_by):
 
     hide_pagination = {"display": "none"}
     show_pagination = {"display": "flex", "justifyContent": "end",
@@ -535,11 +603,27 @@ def load_samples_page(page, station_name, protocol, env_type, organism,
     page = page or 1
     start = (page - 1) * 10
 
+    sort_field = None
+    sort_order = "asc"
+    if sort_by and len(sort_by) > 0:
+        sort_field = sort_by[0]["column_id"]
+        sort_order = sort_by[0]["direction"]
+
+    SORT_FIELD_MAP = {
+        "biosampleId": "biosampleId.keyword",
+        "organism": "organism.keyword",
+        "station": "station_name",
+    }
+    sort_field = SORT_FIELD_MAP.get(sort_field, sort_field)
+
     params = {
         "size": 10,
         "start": start,
         **active_filters,
     }
+    if sort_field:
+        params["sort_field"] = sort_field
+        params["sort_order"] = sort_order
 
     if station_name:
         params["station_name"] = station_name
@@ -551,15 +635,15 @@ def load_samples_page(page, station_name, protocol, env_type, organism,
         resp = requests.get(
             f"{API_BASE_URL}/data_portal", params=params).json()
     except Exception as e:
-        return html.P(f"Error: {e}", className="text-danger"), 1, 1, hide_pagination
+        return dbc.Alert(f"Error: {e}", color="danger", className="mt-2"), 1, 1, hide_pagination
 
     results = resp.get("results", [])
     total = resp.get("total", 0)
     max_pages = max(1, (total + 9) // 10)
 
     if not results:
-        return (html.P("No samples found for the selected filters.",
-                       className="text-muted"),
+        return (dbc.Alert("No samples found for the selected filters.",
+                          color="secondary", className="mt-2"),
                 1, 1, hide_pagination)
 
     rows = []
@@ -573,11 +657,14 @@ def load_samples_page(page, station_name, protocol, env_type, organism,
             "collection_device": s.get("collection_device") or "",
             "derived": str(n_derived) if n_derived else "",
             "station": s.get("station_name") or "",
+            "has_images": "✓" if s.get("has_images") == "Yes" else "",
+            "has_ena": "✓" if s.get("has_ena_data") else "",
         })
 
     table = html.Div([
         html.Small(f"{total:,} samples found", className="text-muted mb-2 d-block"),
         dash_table.DataTable(
+            id="samples-table",
             columns=[
                 {"name": "BioSample ID", "id": "biosampleId",
                  "presentation": "markdown"},
@@ -586,8 +673,13 @@ def load_samples_page(page, station_name, protocol, env_type, organism,
                 {"name": "Depth", "id": "depth"},
                 {"name": "Collection Device", "id": "collection_device"},
                 {"name": "Derived Samples", "id": "derived"},
+                {"name": "Images", "id": "has_images"},
+                {"name": "ENA", "id": "has_ena"},
             ],
             data=rows,
+            sort_action="custom",
+            sort_mode="single",
+            sort_by=sort_by or [],
             style_cell={"textAlign": "left", "fontSize": "13px",
                         "padding": "6px 10px"},
             style_header={"fontWeight": "bold", "fontSize": "13px"},
@@ -599,6 +691,19 @@ def load_samples_page(page, station_name, protocol, env_type, organism,
 
     pagination_style = show_pagination if total > 10 else hide_pagination
     return table, max_pages, page, pagination_style
+
+
+@callback(
+    Output("table-sort-by", "data"),
+    Input("samples-table", "sort_by"),
+    State("table-sort-by", "data"),
+    prevent_initial_call=True,
+)
+def capture_sort(sort_by, current_sort):
+    new_sort = sort_by or []
+    if new_sort == current_sort:
+        raise dash.exceptions.PreventUpdate
+    return new_sort
 
 
 @callback(
@@ -640,8 +745,8 @@ def build_active_filters_bar(env_type, organism, analysis_type, country,
                 id={"type": "filter-badge", "filter": "selected-station",
                     "value": selected_station},
                 color="primary",
-                className="me-1 mb-1",
-                style={"cursor": "pointer", "fontSize": "12px"},
+                className="me-1 mb-1 small",
+                style={"cursor": "pointer"},
             )
         )
 
@@ -663,8 +768,8 @@ def build_active_filters_bar(env_type, organism, analysis_type, country,
                         id={"type": "filter-badge", "filter": filter_id,
                             "value": val},
                         color="success",
-                        className="me-1 mb-1",
-                        style={"cursor": "pointer", "fontSize": "12px"},
+                        className="me-1 mb-1 small",
+                        style={"cursor": "pointer"},
                     )
                 )
 
@@ -675,8 +780,8 @@ def build_active_filters_bar(env_type, organism, analysis_type, country,
                 id={"type": "filter-badge", "filter": "source-filter",
                     "value": "source"},
                 color="secondary",
-                className="me-1 mb-1",
-                style={"cursor": "pointer", "fontSize": "12px"},
+                className="me-1 mb-1 small",
+                style={"cursor": "pointer"},
             )
         )
 
@@ -693,6 +798,7 @@ def build_active_filters_bar(env_type, organism, analysis_type, country,
     Output("source-filter", "value"),
     Output("linked-data-filter", "value"),
     Output("selected-station", "data", allow_duplicate=True),
+    Output("url", "search", allow_duplicate=True),
     Input({"type": "filter-badge", "filter": ALL, "value": ALL}, "n_clicks"),
     State("env-type-filter", "value"),
     State("organism-filter", "value"),
@@ -715,6 +821,7 @@ def remove_filter_badge(n_clicks, env_type, organism, analysis_type,
 
     filter_id = triggered["filter"]
     value = triggered["value"]
+    clear_station_url = dash.no_update
 
     def remove(current, val):
         if not current:
@@ -738,6 +845,7 @@ def remove_filter_badge(n_clicks, env_type, organism, analysis_type,
         linked_data = remove(linked_data, value)
     elif filter_id == "selected-station":
         selected_station = None
+        clear_station_url = ""
 
     return (
         env_type or [],
@@ -748,4 +856,15 @@ def remove_filter_badge(n_clicks, env_type, organism, analysis_type,
         source_filter,
         linked_data or [],
         selected_station,
+        clear_station_url,
     )
+
+
+@callback(
+    Output("filters-collapse", "is_open"),
+    Input("filters-toggle", "n_clicks"),
+    State("filters-collapse", "is_open"),
+    prevent_initial_call=True,
+)
+def toggle_filters(n_clicks, is_open):
+    return not is_open
