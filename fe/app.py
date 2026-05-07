@@ -210,6 +210,56 @@ app.index_string = """<!DOCTYPE html>
                 color: #6c757d;
                 font-weight: 500;
             }
+            /* ===== Tables: shared polish for HTML tables (dbc.Table).
+                  The samples DataTable mirrors these values inline via
+                  style_header / style_cell on the component itself
+                  (DataTable has its own DOM and can't consume this
+                  class). Apply this class to dbc.Table components to
+                  match the samples-table visual rhythm. ===== */
+            .trec-table {
+                margin-bottom: 0;
+                font-size: 13px;
+            }
+            .trec-table thead th {
+                font-weight: 600;
+                font-size: 12px;
+                text-transform: uppercase;
+                letter-spacing: 0.04em;
+                color: #1d3a2e;
+                background-color: rgba(29, 94, 74, 0.06);
+                border-bottom: 1px solid #d6e3df;
+                border-top: none;
+                padding: 10px 14px 10px 18px;
+                vertical-align: middle;
+            }
+            .trec-table tbody td {
+                padding: 10px 14px;
+                border-top: none;
+                border-bottom: 1px solid #eef2f0;
+                vertical-align: middle;
+                font-size: 13px;
+            }
+            .trec-table.table-striped > tbody
+                > tr:nth-of-type(odd) > * {
+                background-color: rgba(29, 94, 74, 0.025);
+                --bs-table-bg-type: rgba(29, 94, 74, 0.025);
+                color: inherit;
+            }
+            .trec-table.table-hover > tbody > tr:hover > * {
+                background-color: rgba(29, 94, 74, 0.08) !important;
+                --bs-table-hover-bg: rgba(29, 94, 74, 0.08);
+                color: inherit;
+            }
+            .trec-table tbody td a {
+                text-decoration: none;
+                color: #1d5e4a;
+                border-bottom: 1px solid transparent;
+                transition: color .15s, border-color .15s;
+            }
+            .trec-table tbody td a:hover {
+                color: #14463a;
+                border-bottom-color: #1d5e4a;
+            }
         </style>
     </head>
     <body>

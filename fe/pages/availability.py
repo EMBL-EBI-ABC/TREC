@@ -122,8 +122,7 @@ def build_matrix(search_value, page):
         cells = [
             html.Td(
                 html.A(station["station_name"],
-                       href=f"/data?station={quote(station['station_name'])}",
-                       className="text-decoration-none text-success"),
+                       href=f"/data?station={quote(station['station_name'])}"),
                 className="small",
             ),
             html.Td(station.get("country") or "", className="small"),
@@ -144,7 +143,8 @@ def build_matrix(search_value, page):
 
     table = dbc.Table(
         [header, html.Tbody(rows)],
-        striped=True, hover=True, responsive=True, bordered=True, size="sm",
+        striped=True, hover=True, responsive=True,
+        className="trec-table",
     )
 
     return table, total_pages, page
