@@ -142,7 +142,7 @@ layout = dbc.Container([
 
             # Map
             dbc.Spinner(
-                dcc.Graph(id="station-map", style={"height": "450px"}),
+                dcc.Graph(id="station-map", style={"height": "520px"}),
             ),
             # Station detail below map
             dbc.Spinner(
@@ -542,13 +542,17 @@ def load_map_and_filters(_, colour_by, env_type, organism, analysis_type,
     fig.update_layout(
         map=dict(style="open-street-map",
                  center=dict(lat=43, lon=10), zoom=3.5),
-        margin=dict(l=0, r=0, t=0, b=0),
+        margin=dict(l=0, r=0, t=0, b=70),
         showlegend=colour_by != "none" or bool(selected_station),
         legend=dict(
             bgcolor="rgba(255,255,255,0.8)",
             bordercolor="#ccc",
             borderwidth=1,
-            y=0.90,
+            orientation="h",
+            yanchor="top",
+            y=-0.05,
+            xanchor="center",
+            x=0.5,
         ),
     )
 
