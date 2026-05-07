@@ -823,14 +823,12 @@ def load_samples_page(page, station_name, protocol, env_type, organism,
 
     rows = []
     for s in results:
-        n_derived = len(s.get("derived_sample_ids") or [])
         rows.append({
             "biosampleId": f"[{s['biosampleId']}](/data-portal/"
                            f"{s['biosampleId']})",
             "organism": s.get("organism") or "",
             "depth": s.get("depth") or "",
             "collection_device": s.get("collection_device") or "",
-            "derived": _badge_count(n_derived),
             "station": s.get("station_name") or "",
             "has_images": _badge_available()
                           if s.get("has_images") == "Yes" else _muted_dash(),
@@ -849,8 +847,6 @@ def load_samples_page(page, station_name, protocol, env_type, organism,
                 {"name": "Station", "id": "station"},
                 {"name": "Depth", "id": "depth"},
                 {"name": "Collection Device", "id": "collection_device"},
-                {"name": "Derived Samples", "id": "derived",
-                 "presentation": "markdown"},
                 {"name": "Images", "id": "has_images",
                  "presentation": "markdown"},
                 {"name": "ENA", "id": "has_ena",
@@ -878,7 +874,7 @@ def load_samples_page(page, station_name, protocol, env_type, organism,
                 "color": "#1d3a2e",
                 "backgroundColor": "rgba(29, 94, 74, 0.06)",
                 "borderBottom": "1px solid #d6e3df",
-                "padding": "10px 14px",
+                "padding": "10px 14px 10px 18px",
             },
             style_data_conditional=[
                 {"if": {"row_index": "odd"},
@@ -889,7 +885,7 @@ def load_samples_page(page, station_name, protocol, env_type, organism,
                 {"if": {"state": "selected"},
                  "backgroundColor": "rgba(29, 94, 74, 0.10)",
                  "border": "1px solid rgba(29, 94, 74, 0.20)"},
-                {"if": {"column_id": ["has_images", "has_ena", "derived"]},
+                {"if": {"column_id": ["has_images", "has_ena"]},
                  "textAlign": "center"},
             ],
             css=[
@@ -906,8 +902,24 @@ def load_samples_page(page, station_name, protocol, env_type, organism,
                 {"selector": ".dash-spreadsheet-inner tr:hover td.dash-cell",
                  "rule": "background-color: rgba(29, 94, 74, 0.08) "
                          "!important;"},
+                # Sort indicator polish: gap to label, vertically
+                # centered, slightly larger glyph, muted at rest.
+                # The sort glyph renders BEFORE the label in Dash's
+                # header DOM, so margin-right is what creates the gap.
                 {"selector": ".dash-header .column-header--sort",
-                 "rule": "color: #1d5e4a;"},
+                 "rule": "color: #1d5e4a; font-size: 14px; "
+                         "line-height: 1; "
+                         "display: inline-block; "
+                         "margin-right: .65rem; "
+                         "margin-left: 0px; "
+                         "vertical-align: middle; "
+                         "opacity: 0.55; cursor: pointer; "
+                         "transition: opacity .15s, color .15s;"},
+                {"selector": ".dash-header:hover .column-header--sort",
+                 "rule": "opacity: 1; color: #14463a;"},
+                {"selector": ".dash-header .column-header-name",
+                 "rule": "vertical-align: middle; "
+                         "display: inline-block;"},
             ],
         ),
     ])
