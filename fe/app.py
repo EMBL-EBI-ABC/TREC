@@ -178,6 +178,38 @@ app.index_string = """<!DOCTYPE html>
             .trec-footer-link:hover, .trec-footer-link:focus {
                 color: #1d3a2e; text-decoration: underline;
             }
+            /* ===== Tables: shared badge primitives ===== */
+            .trec-badge {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                gap: .3rem;
+                padding: .15rem .5rem;
+                border-radius: 999px;
+                font-size: .75rem;
+                font-weight: 600;
+                line-height: 1.4;
+                white-space: nowrap;
+            }
+            .trec-badge-available {
+                background-color: rgba(29, 94, 74, 0.10);
+                color: #1d5e4a;
+                border: 1px solid rgba(29, 94, 74, 0.20);
+            }
+            .trec-badge-available .trec-badge-glyph {
+                font-weight: 700;
+                line-height: 1;
+            }
+            .trec-badge-count {
+                background-color: rgba(29, 94, 74, 0.06);
+                color: #1d3a2e;
+                border: 1px solid rgba(29, 94, 74, 0.16);
+                min-width: 1.75rem;
+            }
+            .trec-muted-dash {
+                color: #6c757d;
+                font-weight: 500;
+            }
         </style>
     </head>
     <body>

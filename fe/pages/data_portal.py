@@ -18,6 +18,22 @@ dash.register_page(
 )
 
 
+def _badge_available():
+    return ("<span class='trec-badge trec-badge-available'>"
+            "<span class='trec-badge-glyph'>&#10003;</span>"
+            "</span>")
+
+
+def _muted_dash():
+    return "<span class='trec-muted-dash'>&mdash;</span>"
+
+
+def _badge_count(n):
+    if not n:
+        return _muted_dash()
+    return f"<span class='trec-badge trec-badge-count'>{n}</span>"
+
+
 def make_stats_banner():
     """Global stats cards — populated by callback on page load."""
     return dbc.Row(
@@ -814,10 +830,12 @@ def load_samples_page(page, station_name, protocol, env_type, organism,
             "organism": s.get("organism") or "",
             "depth": s.get("depth") or "",
             "collection_device": s.get("collection_device") or "",
-            "derived": str(n_derived) if n_derived else "",
+            "derived": _badge_count(n_derived),
             "station": s.get("station_name") or "",
-            "has_images": "✓" if s.get("has_images") == "Yes" else "",
-            "has_ena": "✓" if s.get("has_ena_data") else "",
+            "has_images": _badge_available()
+                          if s.get("has_images") == "Yes" else _muted_dash(),
+            "has_ena": _badge_available()
+                       if s.get("has_ena_data") else _muted_dash(),
         })
 
     table = html.Div([
@@ -831,20 +849,66 @@ def load_samples_page(page, station_name, protocol, env_type, organism,
                 {"name": "Station", "id": "station"},
                 {"name": "Depth", "id": "depth"},
                 {"name": "Collection Device", "id": "collection_device"},
-                {"name": "Derived Samples", "id": "derived"},
-                {"name": "Images", "id": "has_images"},
-                {"name": "ENA", "id": "has_ena"},
+                {"name": "Derived Samples", "id": "derived",
+                 "presentation": "markdown"},
+                {"name": "Images", "id": "has_images",
+                 "presentation": "markdown"},
+                {"name": "ENA", "id": "has_ena",
+                 "presentation": "markdown"},
             ],
             data=rows,
             sort_action="custom",
             sort_mode="single",
             sort_by=sort_by or [],
-            style_cell={"textAlign": "left", "fontSize": "13px",
-                        "padding": "6px 10px"},
-            style_header={"fontWeight": "bold", "fontSize": "13px"},
-            css=[{"selector": "p", "rule": "margin: 0"},
-                 {"selector": "a",
-                  "rule": "text-decoration: none; color: #2c7a5c"}],
+            markdown_options={"html": True, "link_target": "_self"},
+            style_table={"overflowX": "auto"},
+            style_cell={
+                "textAlign": "left",
+                "fontSize": "13px",
+                "padding": "10px 14px",
+                "fontFamily": "inherit",
+                "border": "none",
+                "borderBottom": "1px solid #eef2f0",
+            },
+            style_header={
+                "fontWeight": "600",
+                "fontSize": "12px",
+                "textTransform": "uppercase",
+                "letterSpacing": "0.04em",
+                "color": "#1d3a2e",
+                "backgroundColor": "rgba(29, 94, 74, 0.06)",
+                "borderBottom": "1px solid #d6e3df",
+                "padding": "10px 14px",
+            },
+            style_data_conditional=[
+                {"if": {"row_index": "odd"},
+                 "backgroundColor": "rgba(29, 94, 74, 0.025)"},
+                {"if": {"state": "active"},
+                 "backgroundColor": "rgba(29, 94, 74, 0.10)",
+                 "border": "1px solid rgba(29, 94, 74, 0.20)"},
+                {"if": {"state": "selected"},
+                 "backgroundColor": "rgba(29, 94, 74, 0.10)",
+                 "border": "1px solid rgba(29, 94, 74, 0.20)"},
+                {"if": {"column_id": ["has_images", "has_ena", "derived"]},
+                 "textAlign": "center"},
+            ],
+            css=[
+                {"selector": ".dash-spreadsheet-container",
+                 "rule": "border-radius: 6px;"},
+                {"selector": ".dash-cell p", "rule": "margin: 0;"},
+                {"selector": ".dash-header p", "rule": "margin: 0;"},
+                {"selector": ".dash-cell a",
+                 "rule": "text-decoration: none; color: #1d5e4a; "
+                         "border-bottom: 1px solid transparent; "
+                         "transition: color .15s, border-color .15s;"},
+                {"selector": ".dash-cell a:hover",
+                 "rule": "color: #14463a; border-bottom-color: #1d5e4a;"},
+                {"selector": ".dash-spreadsheet-inner tr:hover td.dash-cell",
+                 "rule": "background-color: rgba(29, 94, 74, 0.08) "
+                         "!important;"},
+                {"selector": ".dash-header .column-header--sort",
+                 "rule": "color: #1d5e4a;"},
+            ],
         ),
     ])
 
