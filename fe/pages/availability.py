@@ -76,11 +76,18 @@ layout = dbc.Container([
     dbc.Spinner(html.Div(id="availability-table")),
     dbc.Row([
         dbc.Col([
-            dbc.Badge("✓", color="success", className="small"),
-            html.Span(" Available", className="small me-3"),
-            html.Span("—", className="text-muted me-1"),
-            html.Span("Not available", className="small"),
-        ], className="d-flex align-items-center"),
+            html.Div([
+                dbc.Badge("✓", color="success", className="small"),
+                html.Span("Available", className="small text-muted"),
+            ], className="d-flex align-items-center",
+                style={"gap": "0.45rem"}),
+            html.Div([
+                html.Span("—", className="text-muted"),
+                html.Span("Not available", className="small text-muted"),
+            ], className="d-flex align-items-center",
+                style={"gap": "0.45rem"}),
+        ], className="d-flex align-items-center",
+            style={"gap": "1.75rem"}),
         dbc.Col(
             dbc.Pagination(
                 id="availability-pagination",

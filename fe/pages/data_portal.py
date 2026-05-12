@@ -8,8 +8,8 @@ from urllib.parse import parse_qs, unquote
 # from dotenv import load_dotenv
 # import os
 # load_dotenv()
-# API_BASE_URL = "https://trec-be-test-868757013548.europe-west2.run.app"
-API_BASE_URL = "http://0.0.0.0:8080"
+API_BASE_URL = "https://trec-be-test-868757013548.europe-west2.run.app"
+# API_BASE_URL = "http://0.0.0.0:8080"
 
 dash.register_page(
     __name__,
@@ -906,21 +906,6 @@ def load_samples_page(page, station_name, protocol, env_type, organism,
                 {"selector": ".dash-spreadsheet-inner tr:hover td.dash-cell",
                  "rule": "background-color: rgba(29, 94, 74, 0.08) "
                          "!important;"},
-                # Sort indicator polish: gap to label, vertically
-                # centered, slightly larger glyph, muted at rest.
-                # The sort glyph renders BEFORE the label in Dash's
-                # header DOM, so margin-right is what creates the gap.
-                {"selector": ".dash-header .column-header--sort",
-                 "rule": "color: #1d5e4a; font-size: 14px; "
-                         "line-height: 1; "
-                         "display: inline-block; "
-                         "margin-right: .65rem; "
-                         "margin-left: 0px; "
-                         "vertical-align: middle; "
-                         "opacity: 0.55; cursor: pointer; "
-                         "transition: opacity .15s, color .15s;"},
-                {"selector": ".dash-header:hover .column-header--sort",
-                 "rule": "opacity: 1; color: #14463a;"},
                 {"selector": ".dash-header .column-header-name",
                  "rule": "vertical-align: middle; "
                          "display: inline-block;"},
