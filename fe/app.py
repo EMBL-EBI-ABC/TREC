@@ -302,6 +302,58 @@ app.index_string = """<!DOCTYPE html>
                 opacity: 1;
                 color: #14463a;
             }
+            /* Samples table (Dash DataTable) sort indicator.
+               DataTable bundles a Font Awesome fa-sort SVG (both
+               triangles in one glyph) which renders too tightly
+               stacked. Hide the SVG and synthesize the same
+               two-Bootstrap-Icon stack the dbc.Table version above
+               uses — shared font-size + line-height keeps the gap
+               pixel-identical across both tables. Active-direction
+               highlight uses :has() against FA's data-icon. */
+            .dash-header .column-header--sort {
+                display: inline-flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                color: #1d5e4a;
+                line-height: 1;
+                margin-right: .55rem;
+                margin-left: 0;
+                vertical-align: middle;
+                cursor: pointer;
+                transition: color .15s;
+            }
+            .dash-header .column-header--sort svg {
+                display: none;
+            }
+            .dash-header .column-header--sort::before,
+            .dash-header .column-header--sort::after {
+                font-family: "bootstrap-icons";
+                font-style: normal;
+                font-weight: normal;
+                font-size: 9px;
+                line-height: 0.85;
+                display: block;
+                opacity: 0.35;
+                transition: opacity .15s, color .15s;
+            }
+            .dash-header .column-header--sort::before {
+                content: "\\F229";
+            }
+            .dash-header .column-header--sort::after {
+                content: "\\F22C";
+            }
+            .dash-header:hover .column-header--sort::before,
+            .dash-header:hover .column-header--sort::after {
+                opacity: 0.65;
+            }
+            .dash-header .column-header--sort:has(
+                svg[data-icon="sort-up"])::before,
+            .dash-header .column-header--sort:has(
+                svg[data-icon="sort-down"])::after {
+                opacity: 1;
+                color: #14463a;
+            }
         </style>
     </head>
     <body>
