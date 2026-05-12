@@ -1,7 +1,7 @@
 import dash
 import requests
 import dash_bootstrap_components as dbc
-from dash import callback, Output, Input, html
+from dash import callback, Output, Input, State, html, dcc, ALL, ctx
 from urllib.parse import quote
 from api_config import API_BASE_URL
 
@@ -28,10 +28,43 @@ def unavailable_cell():
     )
 
 
+def _sort_arrow(col_id, sort_state):
+    """Two stacked Bootstrap-Icon carets (matches the fa-sort look
+    used internally by Dash DataTable on the samples table)."""
+    state = sort_state or {}
+    direction = (state.get("direction")
+                 if state.get("column") == col_id else None)
+    up_cls = "trec-sort-caret bi bi-caret-up-fill"
+    down_cls = "trec-sort-caret bi bi-caret-down-fill"
+    if direction == "asc":
+        up_cls += " active"
+    elif direction == "desc":
+        down_cls += " active"
+    return html.Span([
+        html.I(className=up_cls),
+        html.I(className=down_cls),
+    ], className="trec-sort-arrow")
+
+
+def _sortable_th(label, col_id, sort_state, extra_class=""):
+    cls = ("trec-sortable " + extra_class).strip()
+    return html.Th(
+        html.Span([
+            _sort_arrow(col_id, sort_state),
+            html.Span(label, className="trec-sort-label"),
+        ], className="trec-sort-trigger"),
+        id={"type": "availability-sort-header", "column": col_id},
+        scope="col",
+        className=cls,
+        n_clicks=0,
+    )
+
+
 layout = dbc.Container([
     html.H3("Data Availability Across Stations", className="mt-3 mb-1"),
     html.P("Which data types are available at each sampling station",
            className="text-muted mb-3"),
+    dcc.Store(id="availability-sort", data={}),
     html.Label("Search stations", htmlFor="availability-search",
                className="visually-hidden"),
     dbc.Input(
@@ -69,8 +102,9 @@ layout = dbc.Container([
     Output("availability-pagination", "active_page"),
     Input("availability-search", "value"),
     Input("availability-pagination", "active_page"),
+    Input("availability-sort", "data"),
 )
-def build_matrix(search_value, page):
+def build_matrix(search_value, page, sort_state):
     try:
         resp = requests.get(f"{API_BASE_URL}/stations").json()
     except Exception as e:
@@ -93,8 +127,25 @@ def build_matrix(search_value, page):
         return dbc.Alert("No stations match your search",
                          color="secondary", className="mt-2"), 1, 1
 
-    # Sort by country then name
-    stations.sort(key=lambda s: (s.get("country") or "", s["station_name"]))
+    # Sort: user-driven if set, else default (country, then station)
+    if sort_state and sort_state.get("column"):
+        col = sort_state["column"]
+        reverse = sort_state.get("direction") == "desc"
+        if col == "station":
+            stations.sort(key=lambda s: s["station_name"].lower(),
+                          reverse=reverse)
+        elif col == "country":
+            # Stable secondary sort by station name preserved within
+            # each country block when toggling country direction.
+            stations.sort(key=lambda s: s["station_name"].lower())
+            stations.sort(key=lambda s: (s.get("country") or "").lower(),
+                          reverse=reverse)
+        elif col == "samples":
+            stations.sort(key=lambda s: s.get("sample_count", 0),
+                          reverse=reverse)
+    else:
+        stations.sort(key=lambda s: ((s.get("country") or "").lower(),
+                                     s["station_name"].lower()))
 
     # Pagination
     total_pages = max(1, (len(stations) + PAGE_SIZE - 1) // PAGE_SIZE)
@@ -107,9 +158,12 @@ def build_matrix(search_value, page):
 
     # Build table
     header = html.Thead(html.Tr([
-        html.Th("Station", className="text-start", scope="col"),
-        html.Th("Country", className="text-start", scope="col"),
-        html.Th("Samples", className="text-center", scope="col"),
+        _sortable_th("Station", "station", sort_state,
+                     extra_class="text-start"),
+        _sortable_th("Country", "country", sort_state,
+                     extra_class="text-start"),
+        _sortable_th("Samples", "samples", sort_state,
+                     extra_class="text-center"),
         *[html.Th(at, className="text-center small", scope="col")
           for at in ANALYSIS_TYPES],
         html.Th("ENA", className="text-center small", scope="col"),
@@ -148,3 +202,28 @@ def build_matrix(search_value, page):
     )
 
     return table, total_pages, page
+
+
+@callback(
+    Output("availability-sort", "data"),
+    Output("availability-pagination", "active_page",
+           allow_duplicate=True),
+    Input({"type": "availability-sort-header", "column": ALL}, "n_clicks"),
+    State("availability-sort", "data"),
+    prevent_initial_call=True,
+)
+def update_sort(_n_clicks_list, current):
+    triggered = ctx.triggered_id
+    if not triggered:
+        raise dash.exceptions.PreventUpdate
+    triggered_value = ctx.triggered[0].get("value") if ctx.triggered else None
+    # Skip when headers re-mount on table rebuild (n_clicks fires None/0).
+    if not triggered_value:
+        raise dash.exceptions.PreventUpdate
+    col = triggered["column"]
+    cur = current or {}
+    if cur.get("column") != col:
+        return {"column": col, "direction": "asc"}, 1
+    if cur.get("direction") == "asc":
+        return {"column": col, "direction": "desc"}, 1
+    return {"column": col, "direction": "asc"}, 1

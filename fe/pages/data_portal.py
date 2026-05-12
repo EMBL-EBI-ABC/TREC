@@ -888,6 +888,10 @@ def load_samples_page(page, station_name, protocol, env_type, organism,
                 {"if": {"column_id": ["has_images", "has_ena"]},
                  "textAlign": "center"},
             ],
+            style_header_conditional=[
+                {"if": {"column_id": ["has_images", "has_ena"]},
+                 "textAlign": "center"},
+            ],
             css=[
                 {"selector": ".dash-spreadsheet-container",
                  "rule": "border-radius: 6px;"},

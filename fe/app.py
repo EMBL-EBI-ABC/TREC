@@ -260,6 +260,48 @@ app.index_string = """<!DOCTYPE html>
                 color: #14463a;
                 border-bottom-color: #1d5e4a;
             }
+            /* Sort indicators for dbc.Table headers — visually
+               mirrors Dash DataTable's bundled fa-sort icons used on
+               the samples table. Bootstrap Icons (loaded site-wide)
+               doesn't have a single combined sort glyph, so we stack
+               bi-caret-up-fill + bi-caret-down-fill and toggle the
+               active caret based on sort direction. */
+            .trec-table thead th.trec-sortable {
+                cursor: pointer;
+                user-select: none;
+            }
+            .trec-table .trec-sort-trigger {
+                display: inline-flex;
+                align-items: center;
+                gap: .55rem;
+                vertical-align: middle;
+            }
+            .trec-table .trec-sort-arrow {
+                display: inline-flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                color: #1d5e4a;
+                font-weight: normal;
+                text-transform: none;
+                letter-spacing: 0;
+                line-height: 1;
+            }
+            .trec-table .trec-sort-caret {
+                font-size: 9px;
+                line-height: 0.85;
+                display: block;
+                opacity: 0.35;
+                transition: opacity .15s, color .15s;
+            }
+            .trec-table thead th.trec-sortable:hover
+                .trec-sort-caret {
+                opacity: 0.65;
+            }
+            .trec-table .trec-sort-caret.active {
+                opacity: 1;
+                color: #14463a;
+            }
         </style>
     </head>
     <body>
