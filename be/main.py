@@ -1,11 +1,19 @@
 import os
+import threading
 import urllib.parse
 from contextlib import asynccontextmanager
 import json
+import httpx
+from cachetools import TTLCache
+from fastapi.responses import Response
 
 from pathlib import Path as FilePath
 from dotenv import load_dotenv
-load_dotenv(FilePath(__file__).resolve().parent.parent / ".env")
+# load_dotenv(FilePath(__file__).resolve().parent.parent / ".env")
+
+# Load environment variables from .env file
+load_dotenv()
+
 
 ES_INDEX = os.getenv("ES_INDEX", "data_portal_development_4")
 
@@ -27,6 +35,7 @@ from models import (
     SourceSampleSummary,
     StationDetailResponse,
     GlobalStats,
+    TREC_NESTED_CONFIGS,
 )
 
 
@@ -69,11 +78,14 @@ app.add_middleware(
 # Generic search methods.
 
 async def elastic_search(index_name, params, data_class, aggregation_class,
-                         extra_filters=None):
+                         extra_filters=None, nested_configs=None):
+    nested_configs = nested_configs or {}
+
     # Build the query body based on whether there is full text search.
     if params.q:
         query_body = {
-            "multi_match": {"query": params.q, "fields": ["*"], "operator": "and", "fuzziness": "AUTO"},}
+            "multi_match": {"query": params.q, "fields": ["*"], "operator": "and", "fuzziness": "AUTO"},
+        }
     else:
         query_body = {"match_all": {}}
 
@@ -84,12 +96,31 @@ async def elastic_search(index_name, params, data_class, aggregation_class,
         for aggregation_field in aggregation_fields:
             filter_value = getattr(params, aggregation_field)
             if filter_value:
-                filters.append({"terms": {aggregation_field: [filter_value]}})
+                # Support comma-separated multiple values
+                values = [v.strip() for v in str(filter_value).split("|") if v.strip()]
+                nested_cfg = nested_configs.get(aggregation_field)
+                if nested_cfg:
+                    filters.append({
+                        "nested": {
+                            "path": nested_cfg["path"],
+                            "query": {
+                                "bool": {
+                                    "must": [
+                                        {"term": {nested_cfg["name_field"]: nested_cfg["name_value"]}},
+                                        {"terms": {nested_cfg["value_field"]: values}}
+                                    ]
+                                }
+                            }
+                        }
+                    })
+                else:
+                    filters.append({"terms": {aggregation_field: values}})
 
     # Combine query with filters.
     search_body = {
         "from": params.start,
         "size": params.size,
+        "track_total_hits": True,
         "query": {
             "bool": {
                 "must": query_body,
@@ -102,22 +133,39 @@ async def elastic_search(index_name, params, data_class, aggregation_class,
     # Adding aggregation fields.
     if aggregation_fields:
         for aggregation_field in aggregation_fields:
-            search_body["aggs"][aggregation_field] = {
-                "terms": {"field": aggregation_field, "size": 100}
-            }
+            nested_cfg = nested_configs.get(aggregation_field)
+            if nested_cfg:
+                search_body["aggs"][aggregation_field] = {
+                    "nested": {"path": nested_cfg["path"]},
+                    "aggs": {
+                        "filtered": {
+                            "filter": {"term": {nested_cfg["name_field"]: nested_cfg["name_value"]}},
+                            "aggs": {
+                                "values": {"terms": {"field": nested_cfg["value_field"], "size": 100}}
+                            }
+                        }
+                    }
+                }
+            else:
+                search_body["aggs"][aggregation_field] = {
+                    "terms": {"field": aggregation_field, "size": 100}
+                }
 
     # Adding sort field and sort order
     search_body["sort"] = [{params.sort_field: {"order": params.sort_order}}]
 
     # Performing the search.
     try:
-        # Execute the async search request.
         response = await app.state.es_client.search(index=index_name, body=search_body)
-        # Extract total count and hits.
         total = response["hits"]["total"]["value"]
         hits = [r["_source"] for r in response["hits"]["hits"]]
         aggregations = response["aggregations"]
-        # Return the results.
+
+        # Normalise nested aggregations
+        for field_name, nested_cfg in nested_configs.items():
+            if field_name in aggregations:
+                aggregations[field_name] = aggregations[field_name]["filtered"]["values"]
+
         return ElasticResponse[data_class, aggregation_class](
             total=total,
             start=params.start,
@@ -127,9 +175,7 @@ async def elastic_search(index_name, params, data_class, aggregation_class,
         )
 
     except Exception as e:
-        # Handle Elasticsearch errors.
         raise HTTPException(status_code=500, detail=f"Search error: {str(e)}")
-
 
 async def elastic_details(index_name, record_id, data_class):
     try:
@@ -161,12 +207,19 @@ async def trec_search(
     if params.parent_sample_id is not None:
         extra_filters.append(
             {"term": {"parent_sample_id": params.parent_sample_id}})
+    if params.has_images is not None:
+        extra_filters.append(
+            {"term": {"has_images": params.has_images}})
+    if params.has_ena_data is not None:
+        extra_filters.append(
+            {"term": {"has_ena_data": params.has_ena_data}})
     return await elastic_search(
         index_name=ES_INDEX,
         params=params,
         data_class=TRECData,
         aggregation_class=TRECAggregationResponse,
         extra_filters=extra_filters or None,
+        nested_configs=TREC_NESTED_CONFIGS,
     )
 
 
@@ -181,9 +234,25 @@ async def trec_details(
     )
 
 
+# Caches the full station list (all stations + aggregated metadata).
+# TTL is 5 minutes — station data only changes when enrich.py is re-run,
+# so this is conservative. Cache is per-process: each Cloud Run instance
+# holds its own copy, which is acceptable since the data is read-only between
+# re-index runs.
+_stations_cache: TTLCache = TTLCache(maxsize=1, ttl=300)
+_stations_lock = threading.Lock()
+
+
 @app.get("/stations")
 async def list_stations() -> StationListResponse:
     """List all sampling stations with summary aggregations."""
+    _CACHE_KEY = "stations"
+
+    with _stations_lock:
+        cached = _stations_cache.get(_CACHE_KEY)
+    if cached is not None:
+        return cached
+
     search_body = {
         "size": 0,
         "aggs": {
@@ -203,6 +272,9 @@ async def list_stations() -> StationListResponse:
                     },
                     "organism_types": {
                         "terms": {"field": "organism.keyword", "size": 20},
+                    },
+                    "environment_types": {
+                        "terms": {"field": "environment_type", "size": 10},
                     },
                     "has_any_images": {
                         "filter": {"term": {"has_images": "Yes"}},
@@ -234,6 +306,12 @@ async def list_stations() -> StationListResponse:
                                 bucket["analysis_types"]["buckets"]],
                 organism_types=[b["key"] for b in
                                 bucket["organism_types"]["buckets"]],
+                environment_types=[b["key"] for b in
+                                   bucket["environment_types"]["buckets"]],
+                analysis_type_counts={b["key"]: b["doc_count"] for b in
+                                      bucket["analysis_types"]["buckets"]},
+                environment_type_counts={b["key"]: b["doc_count"] for b in
+                                         bucket["environment_types"]["buckets"]},
                 has_images=bucket["has_any_images"]["doc_count"] > 0,
                 has_ena_data=bucket["has_any_ena"]["doc_count"] > 0,
                 min_collection_date=(
@@ -243,7 +321,10 @@ async def list_stations() -> StationListResponse:
                     bucket["max_date"]["value_as_string"]
                     if bucket["max_date"]["value"] else None),
             ))
-        return StationListResponse(stations=stations)
+        result = StationListResponse(stations=stations)
+        with _stations_lock:
+            _stations_cache[_CACHE_KEY] = result
+        return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Station list error: {str(e)}")
 
@@ -298,31 +379,44 @@ async def station_detail(
             index=ES_INDEX, body=source_body)
         source_count = source_resp["hits"]["total"]["value"]
 
-        source_samples = []
-        for hit in source_resp["hits"]["hits"]:
-            src = hit["_source"]
-            derived_ids = src.get("derived_sample_ids") or []
-            # Fetch derived sample summaries
-            derived_samples = []
-            if derived_ids:
+        source_hits = source_resp["hits"]["hits"]
+
+        # Collect all derived IDs across all source samples in one pass
+        all_derived_ids = []
+        for hit in source_hits:
+            all_derived_ids.extend(hit["_source"].get("derived_sample_ids") or [])
+
+        # Fetch all derived samples in one batched terms query
+        BATCH_SIZE = 10_000
+        derived_lookup: dict[str, dict] = {}
+        if all_derived_ids:
+            for chunk_start in range(0, len(all_derived_ids), BATCH_SIZE):
+                chunk = all_derived_ids[chunk_start:chunk_start + BATCH_SIZE]
                 derived_body = {
-                    "size": len(derived_ids),
-                    "query": {
-                        "terms": {"biosampleId.keyword": derived_ids}
-                    },
+                    "size": len(chunk),
+                    "query": {"terms": {"biosampleId.keyword": chunk}},
                     "_source": ["biosampleId", "analysis_type", "has_images"],
                 }
                 derived_resp = await app.state.es_client.search(
                     index=ES_INDEX, body=derived_body)
-                derived_samples = [
-                    {
-                        "biosampleId": d["_source"]["biosampleId"],
-                        "analysis_type": d["_source"].get("analysis_type"),
-                        "has_images": d["_source"].get("has_images", "No"),
+                for d in derived_resp["hits"]["hits"]:
+                    s = d["_source"]
+                    derived_lookup[s["biosampleId"]] = {
+                        "biosampleId": s["biosampleId"],
+                        "analysis_type": s.get("analysis_type"),
+                        "has_images": s.get("has_images", "No"),
                     }
-                    for d in derived_resp["hits"]["hits"]
-                ]
 
+        # Build source_samples list from the lookup — no further ES calls
+        source_samples = []
+        for hit in source_hits:
+            src = hit["_source"]
+            derived_ids = src.get("derived_sample_ids") or []
+            derived_samples = [
+                derived_lookup[did]
+                for did in derived_ids
+                if did in derived_lookup
+            ]
             source_samples.append(SourceSampleSummary(
                 biosampleId=src["biosampleId"],
                 organism=src.get("organism"),
@@ -389,3 +483,18 @@ async def global_stats() -> GlobalStats:
     except Exception as e:
         raise HTTPException(
             status_code=500, detail=f"Stats error: {str(e)}")
+
+
+
+
+@app.get("/zarr-proxy/{path:path}")
+async def zarr_proxy(path: str):
+    url = f"https://s3.embl.de/live-confocal-trec-super-plankton/{path}"
+    async with httpx.AsyncClient() as client:
+        r = await client.get(url)
+    return Response(
+        content=r.content,
+        status_code=r.status_code,
+        media_type=r.headers.get("content-type", "application/octet-stream"),
+        headers={"Access-Control-Allow-Origin": "*"}
+    )

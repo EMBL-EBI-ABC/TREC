@@ -70,6 +70,8 @@ class SearchParams(BaseModel):
     # Extra filters (not terms aggregations).
     is_source_sample: bool | None = Field(None, description="Filter source/derived samples")
     parent_sample_id: str | None = Field(None, description="Filter by parent sample ID")
+    has_images: str | None = Field(None, description="Filter by has_images")
+    has_ena_data: bool | None = Field(None, description="Filter by has_ena_data")
 
 
 # Datasource definition.
@@ -77,10 +79,11 @@ class SearchParams(BaseModel):
 
 class FieldDefinition:
     def __init__(self, name: str, type: type | types.UnionType,
-                 filterable: bool = False):
+                 filterable: bool = False, nested_config: dict | None = None):
         self.name = name
         self.type = type
         self.filterable = filterable
+        self.nested_config = nested_config
 
 
 class DataSource:
@@ -155,10 +158,20 @@ trec = DataSource(
         FieldDefinition(name="customFields", type=list[CustomField] | None),
         FieldDefinition(name="relationships",
                         type=list[BioSamplesRelationships] | None),
-        FieldDefinition(name="images", type=str | None),
+        FieldDefinition(name="images", type=list[dict] | None),
         FieldDefinition(name="has_images", type=str | None),
         FieldDefinition(name="collection_year", type=str | None),
-        FieldDefinition(name="protocol", type=str | None),
+        FieldDefinition(
+            name="protocol",
+            type=str | None,
+            filterable=True,
+            nested_config={
+                "path": "customFields",
+                "name_field": "customFields.name.keyword",
+                "name_value": "protocol label",
+                "value_field": "customFields.value.keyword",
+            }
+        ),
         # Enriched fields - parsed from customFields
         FieldDefinition(name="environment_type", type=str | None,
                         filterable=True),
@@ -190,6 +203,12 @@ trec = DataSource(
 )
 TRECData, TRECAggregationResponse, TRECSearchParams = trec.generate_classes()
 
+TREC_NESTED_CONFIGS = {
+    field.name: field.nested_config
+    for field in trec.fields
+    if field.nested_config is not None
+}
+
 
 # Station response models.
 
@@ -202,6 +221,9 @@ class StationSummary(BaseModel):
     source_sample_count: int
     analysis_types: list[str]
     organism_types: list[str]
+    environment_types: list[str]
+    analysis_type_counts: dict[str, int]
+    environment_type_counts: dict[str, int]
     has_images: bool
     has_ena_data: bool
     min_collection_date: str | None

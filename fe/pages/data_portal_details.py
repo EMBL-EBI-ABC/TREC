@@ -4,7 +4,7 @@ import plotly.express as px
 import pandas as pd
 import dash_bootstrap_components as dbc
 from dash import callback, html, Output, Input, dcc
-from api_config import API_BASE_URL
+# from api_config import API_BASE_URL
 
 dash.register_page(
     __name__,
@@ -12,14 +12,31 @@ dash.register_page(
     title="Sample Details",
 )
 
-BIONGFF_VIEWER_URL = "https://biongff.github.io/biongff-viewer/"
+from dotenv import load_dotenv
+import os
+load_dotenv()
+# API_BASE_URL = "https://trec-be-test-868757013548.europe-west2.run.app"
+API_BASE_URL = "http://0.0.0.0:8080"
 
+BIONGFF_VIEWER_URL = "https://biongff-viewer-868757013548.europe-west2.run.app/"
+S3_BASE = "https://s3.embl.de/live-confocal-trec-super-plankton/"
+PROXY_BASE = f"https://trec-be-test-868757013548.europe-west2.run.app/zarr-proxy"
+
+def build_zarr_proxy_url(file_entry: dict) -> str:
+    location = file_entry["acquisition_location"]
+    date = file_entry["acquisition_date"]
+    name = file_entry["name"]
+    tile = file_entry["tile"]
+    folder = f"LSM900_{date}"
+    ome_zarr = f"{name}_{tile}.ome.zarr"
+    inner_zarr = f"{name}.zarr"
+    return f"{PROXY_BASE}/{location}/{folder}/{ome_zarr}/{inner_zarr}"
 
 def layout(sample_id=None, **kwargs):
-    return dbc.Container(
-        dbc.Spinner(html.Div(id="detail-content", key=sample_id)),
-        className="mt-3",
-    )
+    return dbc.Container([
+        dcc.Store(id="sample-id-store", data=sample_id),
+        dbc.Spinner(html.Div(id="detail-content")),
+    ], className="mt-3")
 
 
 def make_breadcrumb(sample, station_name, parent_id):
@@ -36,20 +53,22 @@ def make_breadcrumb(sample, station_name, parent_id):
                    className="text-decoration-none"),
             className="breadcrumb-item"))
     items.append(html.Li(
-        sample["biosampleId"], className="breadcrumb-item active"))
-    return html.Nav(html.Ol(items, className="breadcrumb"))
+        sample["biosampleId"], className="breadcrumb-item active",
+        **{"aria-current": "page"}))
+    return html.Nav(html.Ol(items, className="breadcrumb"),
+                    **{"aria-label": "Sample navigation"})
 
 
 def make_metadata_table(label, rows):
     """Build a labeled metadata table."""
     return html.Div([
-        html.Small(label, className="text-muted d-block mb-2 fw-bold"),
+        html.H6(label, className="text-muted mb-2"),
         dbc.Table([
             html.Tbody([
                 html.Tr([
-                    html.Td(k, className="text-muted",
-                            style={"width": "160px", "fontSize": "13px"}),
-                    html.Td(v, style={"fontSize": "13px"}),
+                    html.Td(k, className="text-muted small",
+                            style={"width": "160px"}),
+                    html.Td(v, className="small"),
                 ])
                 for k, v in rows if v
             ])
@@ -71,20 +90,20 @@ def get_field(custom_fields, name):
 
 @callback(
     Output("detail-content", "children"),
-    Input("detail-content", "key"),
+    Input("sample-id-store", "data"),
 )
 def build_detail_page(sample_id):
     if not sample_id:
-        return html.P("No sample ID provided", className="text-danger")
+        return dbc.Alert("No sample ID provided", color="danger")
 
     try:
         resp = requests.get(
             f"{API_BASE_URL}/data_portal/{sample_id}").json()
     except Exception as e:
-        return html.P(f"Error: {e}", className="text-danger")
+        return dbc.Alert(f"Error: {e}", color="danger")
 
     if not resp.get("results"):
-        return html.P("Sample not found", className="text-danger")
+        return dbc.Alert("Sample not found", color="danger")
 
     sample = resp["results"][0]
     cf = sample.get("customFields") or []
@@ -193,22 +212,20 @@ def build_detail_page(sample_id):
                         d["biosampleId"],
                         href=f"/data-portal/{d['biosampleId']}",
                         className="text-decoration-none text-success",
-                    ), style={"fontSize": "13px"}),
-                    html.Td(d.get("analysis_type") or "",
-                            style={"fontSize": "13px"}),
-                    html.Td(d.get("organism") or "",
-                            style={"fontSize": "13px"}),
+                    ), className="small"),
+                    html.Td(d.get("analysis_type") or "", className="small"),
+                    html.Td(d.get("organism") or "", className="small"),
                 ])
                 for d in derived_results
             ]
             derived_section = html.Div([
-                html.Small(f"DERIVED SAMPLES ({len(derived_results)})",
-                           className="text-muted d-block mb-2 fw-bold"),
+                html.H6(f"Derived Samples ({len(derived_results)})",
+                        className="text-muted mb-2"),
                 dbc.Table([
                     html.Thead(html.Tr([
-                        html.Th("BioSample ID", style={"fontSize": "13px"}),
-                        html.Th("Analysis Type", style={"fontSize": "13px"}),
-                        html.Th("Organism", style={"fontSize": "13px"}),
+                        html.Th("BioSample ID", className="small"),
+                        html.Th("Analysis Type", className="small"),
+                        html.Th("Organism", className="small"),
                     ])),
                     html.Tbody(derived_rows),
                 ], striped=True, hover=True, bordered=True, size="sm"),
@@ -227,7 +244,7 @@ def build_detail_page(sample_id):
         fig = px.scatter_map(df, lat="lat", lon="lon", zoom=9)
         fig.update_layout(margin=dict(l=0, r=0, t=0, b=0), height=180)
         map_section = dcc.Graph(figure=fig, config={"scrollZoom": False},
-                                style={"marginBottom": "16px"})
+                                className="mb-3")
 
     # Linked data cards
     linked_cards = []
@@ -235,7 +252,7 @@ def build_detail_page(sample_id):
     # BioSamples link
     linked_cards.append(dbc.Card(dbc.CardBody(dbc.Row([
         dbc.Col([
-            html.Div("BioSamples", className="fw-bold small"),
+            html.H6("BioSamples", className="mb-0"),
             html.Small("Original record at EBI", className="text-muted"),
         ]),
         dbc.Col(
@@ -248,34 +265,44 @@ def build_detail_page(sample_id):
     ])), className="mb-2"))
 
     # BioImage Archive
-    if sample.get("has_images") == "Yes" and sample.get("image_zarr_url"):
-        viewer_url = (f"{BIONGFF_VIEWER_URL}?source="
-                      f"{sample['image_zarr_url']}")
+    zarr_url = None
+    if sample.get("image_zarr_url"):
+        # Use enriched field if available
+        raw = sample["image_zarr_url"]
+        zarr_path = raw[len(S3_BASE):] if raw.startswith(S3_BASE) else raw
+        zarr_url = f"{PROXY_BASE}/{zarr_path}"
+    elif sample.get("images"):
+        # Fall back to building from the images tile list
+        tiles = sorted(sample["images"], key=lambda x: int(x.get("tile", 0)))
+        if tiles:
+            zarr_url = build_zarr_proxy_url(tiles[0])
+
+    if sample.get("has_images") == "Yes" and zarr_url:
+        viewer_url = f"{BIONGFF_VIEWER_URL}?source={zarr_url}"
         linked_cards.append(dbc.Card(dbc.CardBody([
             dbc.Row([
                 dbc.Col([
-                    html.Div("🖼️ BioImage Archive", className="fw-bold small"),
-                    html.Small("Microscopy images available",
-                               className="text-muted"),
+                    html.H6("BioImage Archive", className="mb-0"),
+                    html.Small("Microscopy images available", className="text-muted"),
                 ]),
                 dbc.Col(
                     dbc.Button("Open viewer →", color="success", size="sm",
-                               href=viewer_url, external_link=True,
-                               target="_blank"),
+                               href=viewer_url, external_link=True, target="_blank"),
                     width="auto", className="d-flex align-items-center",
                 ),
             ]),
             html.Iframe(
                 src=viewer_url,
+                title="Sample imaging viewer",
+                className="mt-2",
                 style={"width": "100%", "height": "160px", "border": "none",
-                       "borderRadius": "4px", "marginTop": "10px",
-                       "background": "#1a1a2e"},
+                       "borderRadius": "4px", "background": "#1a1a2e"},
             ),
-        ]), className="mb-2", style={"background": "#fffdf0"}))
+        ]), className="mb-2 bg-warning bg-opacity-10"))
     elif sample.get("has_images") == "Yes":
         linked_cards.append(dbc.Card(dbc.CardBody(dbc.Row([
             dbc.Col([
-                html.Div("🖼️ BioImage Archive", className="fw-bold small"),
+                html.H6("BioImage Archive", className="mb-0"),
                 html.Small("Images available", className="text-muted"),
             ]),
         ])), className="mb-2"))
@@ -285,7 +312,7 @@ def build_detail_page(sample_id):
     if sample.get("has_ena_data") and ena_accession:
         linked_cards.append(dbc.Card(dbc.CardBody(dbc.Row([
             dbc.Col([
-                html.Div("ENA", className="fw-bold small"),
+                html.H6("ENA", className="mb-0"),
                 html.Small("Sequence data", className="text-muted"),
             ]),
             dbc.Col(
@@ -299,7 +326,7 @@ def build_detail_page(sample_id):
     else:
         linked_cards.append(dbc.Card(dbc.CardBody(dbc.Row([
             dbc.Col([
-                html.Div("ENA", className="fw-bold small"),
+                html.H6("ENA", className="mb-0"),
                 html.Small("Sequence data (coming soon)",
                            className="text-muted"),
             ]),
@@ -329,14 +356,13 @@ def build_detail_page(sample_id):
                   for cid in controlled_ids],
             ]))
         linked_cards.append(dbc.Card(dbc.CardBody([
-            html.Div("Quality Control", className="fw-bold small mb-1"),
+            html.H6("Quality Control", className="mb-1"),
             *qc_content,
         ]), className="mb-2"))
 
     right_col = dbc.Col([
         html.Div([
-            html.Small("LINKED DATA",
-                       className="text-muted d-block mb-2 fw-bold"),
+            html.H6("Linked Data", className="text-muted mb-2"),
             map_section,
             *linked_cards,
         ]),
