@@ -8,14 +8,30 @@ from urllib.parse import parse_qs, unquote
 # from dotenv import load_dotenv
 # import os
 # load_dotenv()
-API_BASE_URL = "https://trec-be-test-868757013548.europe-west2.run.app"
-# API_BASE_URL = "http://0.0.0.0:8080"
+# API_BASE_URL = "https://trec-be-test-868757013548.europe-west2.run.app"
+API_BASE_URL = "http://0.0.0.0:8080"
 
 dash.register_page(
     __name__,
     path="/data",
     title="Data Portal",
 )
+
+
+def _badge_available():
+    return ("<span class='trec-badge trec-badge-available'>"
+            "<span class='trec-badge-glyph'>&#10003;</span>"
+            "</span>")
+
+
+def _muted_dash():
+    return "<span class='trec-muted-dash'>&mdash;</span>"
+
+
+def _badge_count(n):
+    if not n:
+        return _muted_dash()
+    return f"<span class='trec-badge trec-badge-count'>{n}</span>"
 
 
 def make_stats_banner():
@@ -110,14 +126,18 @@ layout = dbc.Container([
         ),
         # Right: search + map + station detail
         dbc.Col([
-            # Search bar
-            html.Label("Search samples, organisms, locations",
-                       htmlFor="search-input", className="visually-hidden"),
-            dbc.Input(
-                id="search-input",
-                placeholder="Search samples, organisms, locations...",
-                type="text", debounce=True,
-                className="mb-2 mt-2",
+            # Predictive-text search
+            html.Label("Search countries, stations, or organisms",
+                       htmlFor="predictive-search", className="visually-hidden"),
+            dcc.Dropdown(
+                id="predictive-search",
+                options=[],
+                value=None,
+                placeholder="Search countries, stations, organisms, environments, analyses, protocols,...",
+                searchable=True,
+                clearable=True,
+                optionHeight=44,
+                className="trec-predictive-search mb-2 mt-2",
             ),
             dbc.RadioItems(
                 id="colour-by",
@@ -138,7 +158,7 @@ layout = dbc.Container([
 
             # Map
             dbc.Spinner(
-                dcc.Graph(id="station-map", style={"height": "450px"}),
+                dcc.Graph(id="station-map", style={"height": "520px"}),
             ),
             # Station detail below map
             dbc.Spinner(
@@ -153,6 +173,7 @@ layout = dbc.Container([
             # Samples table (always in DOM, hidden until station selected)
             dcc.Store(id="selected-station"),
             dcc.Store(id="table-sort-by", data=[]),
+            dcc.Store(id="suggestions-data"),
             dcc.Location(id="url", refresh=False),
             dbc.Spinner(
                 html.Div(id="samples-table-container"),
@@ -176,7 +197,7 @@ layout = dbc.Container([
 
 @callback(
     Output("stats-banner-row", "children"),
-    Input("search-input", "id"),  # Trigger on page load
+    Input("predictive-search", "id"),  # Trigger on page load
 )
 def load_stats(_):
     """Fetch global stats and render banner."""
@@ -209,6 +230,156 @@ def load_stats(_):
     ]
 
 
+def _suggestion_option(kind, type_label, name):
+    """Build one dcc.Dropdown option with a rich label."""
+    return {
+        "label": html.Div(
+            [
+                html.Span(name, className="trec-suggest-name"),
+                html.Span(type_label, className="trec-suggest-meta"),
+            ],
+            className="trec-suggest-option",
+        ),
+        "value": f"{kind}::{name}",
+        "search": f"{name} {type_label}",
+    }
+
+
+# Cache of fully-built dcc.Dropdown options. Populated by load_suggestions
+# on page load; read by filter_options on every keystroke. Per-worker, but
+# read-only after construction so contention is a non-issue.
+_SUGGEST_OPTIONS_CACHE = []
+
+
+@callback(
+    Output("suggestions-data", "data"),
+    Input("predictive-search", "id"),  # Trigger once on page load
+)
+def load_suggestions(_):
+    """Fetch unfiltered counts for the six named-value filters, build the
+    full categorised options list once, and cache it."""
+    global _SUGGEST_OPTIONS_CACHE
+
+    countries, organisms, stations = [], [], []
+    environments, analyses, protocols = [], [], []
+
+    def _buckets(aggs, key):
+        return [
+            (b["key"], b["doc_count"])
+            for b in aggs.get(key, {}).get("buckets", [])
+            if b.get("key")
+        ]
+
+    try:
+        agg_resp = requests.get(
+            f"{API_BASE_URL}/data_portal", params={"size": 0}
+        ).json()
+        aggs = agg_resp.get("aggregations", {})
+        countries = _buckets(aggs, "country")
+        organisms = _buckets(aggs, "organism")
+        environments = _buckets(aggs, "environment_type")
+        analyses = _buckets(aggs, "analysis_type")
+        protocols = _buckets(aggs, "protocol")
+    except Exception:
+        pass
+
+    try:
+        stations_resp = requests.get(f"{API_BASE_URL}/stations").json()
+        stations = [
+            (s["station_name"], s.get("sample_count", 0))
+            for s in stations_resp.get("stations", [])
+            if s.get("station_name")
+        ]
+    except Exception:
+        pass
+
+    for lst in (countries, stations, organisms,
+                environments, analyses, protocols):
+        lst.sort(key=lambda x: (-x[1], x[0].lower()))
+
+    _SUGGEST_OPTIONS_CACHE = (
+        [_suggestion_option("country", "country", n) for n, _ in countries]
+        + [_suggestion_option("station", "station", n) for n, _ in stations]
+        + [_suggestion_option("organism", "organism", n) for n, _ in organisms]
+        + [_suggestion_option("environment", "environment", n)
+           for n, _ in environments]
+        + [_suggestion_option("analysis", "analysis", n) for n, _ in analyses]
+        + [_suggestion_option("protocol", "protocol", n) for n, _ in protocols]
+    )
+
+    return {
+        "countries": countries,
+        "stations": stations,
+        "organisms": organisms,
+        "environments": environments,
+        "analyses": analyses,
+        "protocols": protocols,
+    }
+
+
+@callback(
+    Output("predictive-search", "options"),
+    Input("predictive-search", "search_value"),
+)
+def filter_options(search_value):
+    """Show suggestions only when the user has typed something. dcc.Dropdown
+    handles the actual substring filtering against each option's `search`
+    field."""
+    if not search_value:
+        return []
+    return _SUGGEST_OPTIONS_CACHE
+
+
+@callback(
+    Output("country-filter", "value", allow_duplicate=True),
+    Output("organism-filter", "value", allow_duplicate=True),
+    Output("env-type-filter", "value", allow_duplicate=True),
+    Output("analysis-type-filter", "value", allow_duplicate=True),
+    Output("protocol-filter", "value", allow_duplicate=True),
+    Output("selected-station", "data", allow_duplicate=True),
+    Output("predictive-search", "value"),
+    Input("predictive-search", "value"),
+    State("country-filter", "value"),
+    State("organism-filter", "value"),
+    State("env-type-filter", "value"),
+    State("analysis-type-filter", "value"),
+    State("protocol-filter", "value"),
+    prevent_initial_call=True,
+)
+def apply_predictive_search(picked, country, organism, env_type,
+                            analysis_type, protocol):
+    """Translate a selected suggestion into the corresponding filter,
+    then clear the dropdown."""
+    if not picked or "::" not in picked:
+        raise dash.exceptions.PreventUpdate
+
+    kind, name = picked.split("::", 1)
+    country = country or []
+    organism = organism or []
+    env_type = env_type or []
+    analysis_type = analysis_type or []
+    protocol = protocol or []
+    NU = dash.no_update
+
+    def _add(lst, val):
+        return lst if val in lst else lst + [val]
+
+    if kind == "country":
+        return _add(country, name), NU, NU, NU, NU, NU, None
+    if kind == "organism":
+        return NU, _add(organism, name), NU, NU, NU, NU, None
+    if kind == "environment":
+        return NU, NU, _add(env_type, name), NU, NU, NU, None
+    if kind == "analysis":
+        return NU, NU, NU, _add(analysis_type, name), NU, NU, None
+    if kind == "protocol":
+        return NU, NU, NU, NU, _add(protocol, name), NU, None
+    if kind == "station":
+        return NU, NU, NU, NU, NU, name, None
+
+    raise dash.exceptions.PreventUpdate
+
+
 @callback(
     Output("station-map", "figure"),
     Output("env-type-filter", "options"),
@@ -216,7 +387,7 @@ def load_stats(_):
     Output("analysis-type-filter", "options"),
     Output("country-filter", "options"),
     Output("protocol-all-options", "data"),
-    Input("search-input", "id"),
+    Input("predictive-search", "id"),
     Input("colour-by", "value"),
     Input("env-type-filter", "value"),
     Input("organism-filter", "value"),
@@ -387,13 +558,17 @@ def load_map_and_filters(_, colour_by, env_type, organism, analysis_type,
     fig.update_layout(
         map=dict(style="open-street-map",
                  center=dict(lat=43, lon=10), zoom=3.5),
-        margin=dict(l=0, r=0, t=0, b=0),
+        margin=dict(l=0, r=0, t=0, b=70),
         showlegend=colour_by != "none" or bool(selected_station),
         legend=dict(
             bgcolor="rgba(255,255,255,0.8)",
             bordercolor="#ccc",
             borderwidth=1,
-            y=0.90,
+            orientation="h",
+            yanchor="top",
+            y=-0.05,
+            xanchor="center",
+            x=0.5,
         ),
     )
 
@@ -648,17 +823,17 @@ def load_samples_page(page, station_name, protocol, env_type, organism,
 
     rows = []
     for s in results:
-        n_derived = len(s.get("derived_sample_ids") or [])
         rows.append({
             "biosampleId": f"[{s['biosampleId']}](/data-portal/"
                            f"{s['biosampleId']})",
             "organism": s.get("organism") or "",
             "depth": s.get("depth") or "",
             "collection_device": s.get("collection_device") or "",
-            "derived": str(n_derived) if n_derived else "",
             "station": s.get("station_name") or "",
-            "has_images": "✓" if s.get("has_images") == "Yes" else "",
-            "has_ena": "✓" if s.get("has_ena_data") else "",
+            "has_images": _badge_available()
+                          if s.get("has_images") == "Yes" else _muted_dash(),
+            "has_ena": _badge_available()
+                       if s.get("has_ena_data") else _muted_dash(),
         })
 
     table = html.Div([
@@ -672,20 +847,84 @@ def load_samples_page(page, station_name, protocol, env_type, organism,
                 {"name": "Station", "id": "station"},
                 {"name": "Depth", "id": "depth"},
                 {"name": "Collection Device", "id": "collection_device"},
-                {"name": "Derived Samples", "id": "derived"},
-                {"name": "Images", "id": "has_images"},
-                {"name": "ENA", "id": "has_ena"},
+                {"name": "Images", "id": "has_images",
+                 "presentation": "markdown"},
+                {"name": "ENA", "id": "has_ena",
+                 "presentation": "markdown"},
             ],
             data=rows,
             sort_action="custom",
             sort_mode="single",
             sort_by=sort_by or [],
-            style_cell={"textAlign": "left", "fontSize": "13px",
-                        "padding": "6px 10px"},
-            style_header={"fontWeight": "bold", "fontSize": "13px"},
-            css=[{"selector": "p", "rule": "margin: 0"},
-                 {"selector": "a",
-                  "rule": "text-decoration: none; color: #2c7a5c"}],
+            markdown_options={"html": True, "link_target": "_self"},
+            style_table={"overflowX": "auto"},
+            style_cell={
+                "textAlign": "left",
+                "fontSize": "13px",
+                "padding": "10px 14px",
+                "fontFamily": "inherit",
+                "border": "none",
+                "borderBottom": "1px solid #eef2f0",
+            },
+            style_header={
+                "fontWeight": "600",
+                "fontSize": "12px",
+                "textTransform": "uppercase",
+                "letterSpacing": "0.04em",
+                "color": "#1d3a2e",
+                "backgroundColor": "rgba(29, 94, 74, 0.06)",
+                "borderBottom": "1px solid #d6e3df",
+                "padding": "10px 14px 10px 18px",
+            },
+            style_data_conditional=[
+                {"if": {"row_index": "odd"},
+                 "backgroundColor": "rgba(29, 94, 74, 0.025)"},
+                {"if": {"state": "active"},
+                 "backgroundColor": "rgba(29, 94, 74, 0.10)",
+                 "border": "1px solid rgba(29, 94, 74, 0.20)"},
+                {"if": {"state": "selected"},
+                 "backgroundColor": "rgba(29, 94, 74, 0.10)",
+                 "border": "1px solid rgba(29, 94, 74, 0.20)"},
+                {"if": {"column_id": ["has_images", "has_ena"]},
+                 "textAlign": "center"},
+            ],
+            style_header_conditional=[
+                {"if": {"column_id": ["has_images", "has_ena"]},
+                 "textAlign": "center"},
+            ],
+            css=[
+                {"selector": ".dash-spreadsheet-container",
+                 "rule": "border-radius: 6px;"},
+                {"selector": ".dash-cell p", "rule": "margin: 0;"},
+                {"selector": ".dash-header p", "rule": "margin: 0;"},
+                {"selector": ".dash-cell a",
+                 "rule": "text-decoration: none; color: #1d5e4a; "
+                         "border-bottom: 1px solid transparent; "
+                         "transition: color .15s, border-color .15s;"},
+                {"selector": ".dash-cell a:hover",
+                 "rule": "color: #14463a; border-bottom-color: #1d5e4a;"},
+                {"selector": ".dash-spreadsheet-inner tr:hover td.dash-cell",
+                 "rule": "background-color: rgba(29, 94, 74, 0.08) "
+                         "!important;"},
+                # Sort indicator polish: gap to label, vertically
+                # centered, slightly larger glyph, muted at rest.
+                # The sort glyph renders BEFORE the label in Dash's
+                # header DOM, so margin-right is what creates the gap.
+                {"selector": ".dash-header .column-header--sort",
+                 "rule": "color: #1d5e4a; font-size: 14px; "
+                         "line-height: 1; "
+                         "display: inline-block; "
+                         "margin-right: .65rem; "
+                         "margin-left: 0px; "
+                         "vertical-align: middle; "
+                         "opacity: 0.55; cursor: pointer; "
+                         "transition: opacity .15s, color .15s;"},
+                {"selector": ".dash-header:hover .column-header--sort",
+                 "rule": "opacity: 1; color: #14463a;"},
+                {"selector": ".dash-header .column-header-name",
+                 "rule": "vertical-align: middle; "
+                         "display: inline-block;"},
+            ],
         ),
     ])
 

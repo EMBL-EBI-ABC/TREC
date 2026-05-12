@@ -87,6 +87,61 @@ app.index_string = """<!DOCTYPE html>
                 color: #fff;
                 border-color: #1d5e4a;
             }
+            /* Predictive-search dropdown */
+            .trec-predictive-search .Select-control {
+                border: 1px solid #1d5e4a;
+                border-radius: .375rem;
+                box-shadow: none;
+                min-height: 38px;
+            }
+            .trec-predictive-search .Select-control:hover {
+                border-color: #14463a;
+            }
+            .trec-predictive-search.is-focused:not(.is-open)
+                > .Select-control {
+                border-color: #1d5e4a;
+                box-shadow: 0 0 0 .15rem rgba(29, 94, 74, 0.2);
+            }
+            .trec-predictive-search .Select-placeholder {
+                color: #6c757d;
+                font-size: .9rem;
+            }
+            .trec-predictive-search .Select-menu-outer {
+                border: 1px solid #d6e3df;
+                box-shadow: 0 6px 14px rgba(0,0,0,0.08);
+                border-radius: .375rem;
+                margin-top: 2px;
+                z-index: 1050;
+            }
+            .trec-predictive-search .Select-option.is-focused {
+                background-color: rgba(29, 94, 74, 0.08);
+            }
+            .trec-predictive-search .Select-option.is-selected {
+                background-color: rgba(29, 94, 74, 0.16);
+                color: #1d3a2e;
+            }
+            .trec-suggest-option {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: .75rem;
+                width: 100%;
+            }
+            .trec-suggest-name {
+                color: #1d3a2e;
+                font-size: .9rem;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+            .trec-suggest-meta {
+                color: #6c757d;
+                font-size: .75rem;
+                font-variant: small-caps;
+                letter-spacing: .03em;
+                white-space: nowrap;
+                flex-shrink: 0;
+            }
             @media (min-width: 480px) {
                 .trec-nav-link { font-size: .9rem; }
                 .trec-nav { gap: 1rem; }
@@ -122,6 +177,130 @@ app.index_string = """<!DOCTYPE html>
             }
             .trec-footer-link:hover, .trec-footer-link:focus {
                 color: #1d3a2e; text-decoration: underline;
+            }
+            /* ===== Tables: shared badge primitives ===== */
+            .trec-badge {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                gap: .3rem;
+                padding: .15rem .5rem;
+                border-radius: 999px;
+                font-size: .75rem;
+                font-weight: 600;
+                line-height: 1.4;
+                white-space: nowrap;
+            }
+            .trec-badge-available {
+                background-color: rgba(29, 94, 74, 0.10);
+                color: #1d5e4a;
+                border: 1px solid rgba(29, 94, 74, 0.20);
+            }
+            .trec-badge-available .trec-badge-glyph {
+                font-weight: 700;
+                line-height: 1;
+            }
+            .trec-badge-count {
+                background-color: rgba(29, 94, 74, 0.06);
+                color: #1d3a2e;
+                border: 1px solid rgba(29, 94, 74, 0.16);
+                min-width: 1.75rem;
+            }
+            .trec-muted-dash {
+                color: #6c757d;
+                font-weight: 500;
+            }
+            /* ===== Tables: shared polish for HTML tables (dbc.Table).
+                  The samples DataTable mirrors these values inline via
+                  style_header / style_cell on the component itself
+                  (DataTable has its own DOM and can't consume this
+                  class). Apply this class to dbc.Table components to
+                  match the samples-table visual rhythm. ===== */
+            .trec-table {
+                margin-bottom: 0;
+                font-size: 13px;
+            }
+            .trec-table thead th {
+                font-weight: 600;
+                font-size: 12px;
+                text-transform: uppercase;
+                letter-spacing: 0.04em;
+                color: #1d3a2e;
+                background-color: rgba(29, 94, 74, 0.06);
+                border-bottom: 1px solid #d6e3df;
+                border-top: none;
+                padding: 10px 14px 10px 18px;
+                vertical-align: middle;
+            }
+            .trec-table tbody td {
+                padding: 10px 14px;
+                border-top: none;
+                border-bottom: 1px solid #eef2f0;
+                vertical-align: middle;
+                font-size: 13px;
+            }
+            .trec-table.table-striped > tbody
+                > tr:nth-of-type(odd) > * {
+                background-color: rgba(29, 94, 74, 0.025);
+                --bs-table-bg-type: rgba(29, 94, 74, 0.025);
+                color: inherit;
+            }
+            .trec-table.table-hover > tbody > tr:hover > * {
+                background-color: rgba(29, 94, 74, 0.08) !important;
+                --bs-table-hover-bg: rgba(29, 94, 74, 0.08);
+                color: inherit;
+            }
+            .trec-table tbody td a {
+                text-decoration: none;
+                color: #1d5e4a;
+                border-bottom: 1px solid transparent;
+                transition: color .15s, border-color .15s;
+            }
+            .trec-table tbody td a:hover {
+                color: #14463a;
+                border-bottom-color: #1d5e4a;
+            }
+            /* Sort indicators for dbc.Table headers — visually
+               mirrors Dash DataTable's bundled fa-sort icons used on
+               the samples table. Bootstrap Icons (loaded site-wide)
+               doesn't have a single combined sort glyph, so we stack
+               bi-caret-up-fill + bi-caret-down-fill and toggle the
+               active caret based on sort direction. */
+            .trec-table thead th.trec-sortable {
+                cursor: pointer;
+                user-select: none;
+            }
+            .trec-table .trec-sort-trigger {
+                display: inline-flex;
+                align-items: center;
+                gap: .55rem;
+                vertical-align: middle;
+            }
+            .trec-table .trec-sort-arrow {
+                display: inline-flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                color: #1d5e4a;
+                font-weight: normal;
+                text-transform: none;
+                letter-spacing: 0;
+                line-height: 1;
+            }
+            .trec-table .trec-sort-caret {
+                font-size: 9px;
+                line-height: 0.85;
+                display: block;
+                opacity: 0.35;
+                transition: opacity .15s, color .15s;
+            }
+            .trec-table thead th.trec-sortable:hover
+                .trec-sort-caret {
+                opacity: 0.65;
+            }
+            .trec-table .trec-sort-caret.active {
+                opacity: 1;
+                color: #14463a;
             }
         </style>
     </head>
