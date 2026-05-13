@@ -915,7 +915,7 @@ def load_samples_page(page, station_name, protocol, env_type, organism,
     return table, max_pages, page, pagination_style
 
 
-_NON_SORTABLE_COLUMNS = {"has_images", "has_ena"}
+_NON_SORTABLE_COLUMNS = {"has_ena"}
 
 
 @callback(

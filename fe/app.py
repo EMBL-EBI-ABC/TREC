@@ -354,22 +354,17 @@ app.index_string = """<!DOCTYPE html>
                 opacity: 1;
                 color: #14463a;
             }
-            /* Non-sortable badge columns on the samples table: hide
-               the sort indicator and swallow clicks on the header so
-               there's no "No samples found" round-trip when the user
-               clicks the column title. */
-            .dash-header[data-dash-column="has_images"]
-                .column-header--sort,
+            /* ENA column on the samples table is non-sortable: the
+               backend has no `has_ena` ES field (it's `has_ena_data`),
+               so clicking the header would trigger a failed sort and
+               surface "No samples found". Hide arrows + swallow clicks. */
             .dash-header[data-dash-column="has_ena"]
                 .column-header--sort {
                 display: none;
             }
-            .dash-header[data-dash-column="has_images"],
             .dash-header[data-dash-column="has_ena"] {
                 cursor: default;
             }
-            .dash-header[data-dash-column="has_images"]
-                .column-header-name,
             .dash-header[data-dash-column="has_ena"]
                 .column-header-name {
                 pointer-events: none;
