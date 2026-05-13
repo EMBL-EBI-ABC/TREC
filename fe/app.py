@@ -338,10 +338,10 @@ app.index_string = """<!DOCTYPE html>
                 transition: opacity .15s, color .15s;
             }
             .dash-header .column-header--sort::before {
-                content: "\\F229";
+                content: "\\F235";
             }
             .dash-header .column-header--sort::after {
-                content: "\\F22C";
+                content: "\\F229";
             }
             .dash-header:hover .column-header--sort::before,
             .dash-header:hover .column-header--sort::after {
@@ -353,6 +353,26 @@ app.index_string = """<!DOCTYPE html>
                 svg[data-icon="sort-down"])::after {
                 opacity: 1;
                 color: #14463a;
+            }
+            /* Non-sortable badge columns on the samples table: hide
+               the sort indicator and swallow clicks on the header so
+               there's no "No samples found" round-trip when the user
+               clicks the column title. */
+            .dash-header[data-dash-column="has_images"]
+                .column-header--sort,
+            .dash-header[data-dash-column="has_ena"]
+                .column-header--sort {
+                display: none;
+            }
+            .dash-header[data-dash-column="has_images"],
+            .dash-header[data-dash-column="has_ena"] {
+                cursor: default;
+            }
+            .dash-header[data-dash-column="has_images"]
+                .column-header-name,
+            .dash-header[data-dash-column="has_ena"]
+                .column-header-name {
+                pointer-events: none;
             }
         </style>
     </head>

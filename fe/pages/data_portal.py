@@ -915,6 +915,9 @@ def load_samples_page(page, station_name, protocol, env_type, organism,
     return table, max_pages, page, pagination_style
 
 
+_NON_SORTABLE_COLUMNS = {"has_images", "has_ena"}
+
+
 @callback(
     Output("table-sort-by", "data"),
     Input("samples-table", "sort_by"),
@@ -922,7 +925,8 @@ def load_samples_page(page, station_name, protocol, env_type, organism,
     prevent_initial_call=True,
 )
 def capture_sort(sort_by, current_sort):
-    new_sort = sort_by or []
+    new_sort = [s for s in (sort_by or [])
+                if s.get("column_id") not in _NON_SORTABLE_COLUMNS]
     if new_sort == current_sort:
         raise dash.exceptions.PreventUpdate
     return new_sort
