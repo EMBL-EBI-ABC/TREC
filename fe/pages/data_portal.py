@@ -828,7 +828,6 @@ def load_samples_page(page, station_name, protocol, env_type, organism,
                            f"{s['biosampleId']})",
             "organism": s.get("organism") or "",
             "depth": s.get("depth") or "",
-            "collection_device": s.get("collection_device") or "",
             "station": s.get("station_name") or "",
             "has_images": _badge_available()
                           if s.get("has_images") == "Yes" else _muted_dash(),
@@ -846,7 +845,6 @@ def load_samples_page(page, station_name, protocol, env_type, organism,
                 {"name": "Organism", "id": "organism"},
                 {"name": "Station", "id": "station"},
                 {"name": "Depth", "id": "depth"},
-                {"name": "Collection Device", "id": "collection_device"},
                 {"name": "Images", "id": "has_images",
                  "presentation": "markdown"},
                 {"name": "ENA", "id": "has_ena",
@@ -917,6 +915,9 @@ def load_samples_page(page, station_name, protocol, env_type, organism,
     return table, max_pages, page, pagination_style
 
 
+_NON_SORTABLE_COLUMNS = {"has_ena"}
+
+
 @callback(
     Output("table-sort-by", "data"),
     Input("samples-table", "sort_by"),
@@ -924,7 +925,8 @@ def load_samples_page(page, station_name, protocol, env_type, organism,
     prevent_initial_call=True,
 )
 def capture_sort(sort_by, current_sort):
-    new_sort = sort_by or []
+    new_sort = [s for s in (sort_by or [])
+                if s.get("column_id") not in _NON_SORTABLE_COLUMNS]
     if new_sort == current_sort:
         raise dash.exceptions.PreventUpdate
     return new_sort

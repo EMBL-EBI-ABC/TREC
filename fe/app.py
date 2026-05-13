@@ -338,10 +338,10 @@ app.index_string = """<!DOCTYPE html>
                 transition: opacity .15s, color .15s;
             }
             .dash-header .column-header--sort::before {
-                content: "\\F229";
+                content: "\\F235";
             }
             .dash-header .column-header--sort::after {
-                content: "\\F22C";
+                content: "\\F229";
             }
             .dash-header:hover .column-header--sort::before,
             .dash-header:hover .column-header--sort::after {
@@ -353,6 +353,21 @@ app.index_string = """<!DOCTYPE html>
                 svg[data-icon="sort-down"])::after {
                 opacity: 1;
                 color: #14463a;
+            }
+            /* ENA column on the samples table is non-sortable: the
+               backend has no `has_ena` ES field (it's `has_ena_data`),
+               so clicking the header would trigger a failed sort and
+               surface "No samples found". Hide arrows + swallow clicks. */
+            .dash-header[data-dash-column="has_ena"]
+                .column-header--sort {
+                display: none;
+            }
+            .dash-header[data-dash-column="has_ena"] {
+                cursor: default;
+            }
+            .dash-header[data-dash-column="has_ena"]
+                .column-header-name {
+                pointer-events: none;
             }
         </style>
     </head>
