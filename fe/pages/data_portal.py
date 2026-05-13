@@ -245,21 +245,14 @@ def _suggestion_option(kind, type_label, name):
     }
 
 
-# Cache of fully-built dcc.Dropdown options. Populated by load_suggestions
-# on page load; read by filter_options on every keystroke. Per-worker, but
-# read-only after construction so contention is a non-issue.
-_SUGGEST_OPTIONS_CACHE = []
-
-
 @callback(
     Output("suggestions-data", "data"),
     Input("predictive-search", "id"),  # Trigger once on page load
 )
 def load_suggestions(_):
-    """Fetch unfiltered counts for the six named-value filters, build the
-    full categorised options list once, and cache it."""
-    global _SUGGEST_OPTIONS_CACHE
-
+    """Fetch unfiltered counts for the six named-value filters and stash the
+    raw, sorted buckets in the per-session Store. filter_options builds the
+    dropdown options from this on demand."""
     countries, organisms, stations = [], [], []
     environments, analyses, protocols = [], [], []
 
@@ -297,16 +290,6 @@ def load_suggestions(_):
                 environments, analyses, protocols):
         lst.sort(key=lambda x: (-x[1], x[0].lower()))
 
-    _SUGGEST_OPTIONS_CACHE = (
-        [_suggestion_option("country", "country", n) for n, _ in countries]
-        + [_suggestion_option("station", "station", n) for n, _ in stations]
-        + [_suggestion_option("organism", "organism", n) for n, _ in organisms]
-        + [_suggestion_option("environment", "environment", n)
-           for n, _ in environments]
-        + [_suggestion_option("analysis", "analysis", n) for n, _ in analyses]
-        + [_suggestion_option("protocol", "protocol", n) for n, _ in protocols]
-    )
-
     return {
         "countries": countries,
         "stations": stations,
@@ -320,14 +303,31 @@ def load_suggestions(_):
 @callback(
     Output("predictive-search", "options"),
     Input("predictive-search", "search_value"),
+    State("suggestions-data", "data"),
 )
-def filter_options(search_value):
-    """Show suggestions only when the user has typed something. dcc.Dropdown
-    handles the actual substring filtering against each option's `search`
-    field."""
-    if not search_value:
+def filter_options(search_value, suggestions):
+    # Built from the per-session Store rather than a module global so it
+    # works across multiple gunicorn workers / Cloud Run instances.
+    if not search_value or not suggestions:
         return []
-    return _SUGGEST_OPTIONS_CACHE
+
+    def _items(key):
+        return suggestions.get(key) or []
+
+    return (
+        [_suggestion_option("country", "country", n)
+         for n, _ in _items("countries")]
+        + [_suggestion_option("station", "station", n)
+           for n, _ in _items("stations")]
+        + [_suggestion_option("organism", "organism", n)
+           for n, _ in _items("organisms")]
+        + [_suggestion_option("environment", "environment", n)
+           for n, _ in _items("environments")]
+        + [_suggestion_option("analysis", "analysis", n)
+           for n, _ in _items("analyses")]
+        + [_suggestion_option("protocol", "protocol", n)
+           for n, _ in _items("protocols")]
+    )
 
 
 @callback(
