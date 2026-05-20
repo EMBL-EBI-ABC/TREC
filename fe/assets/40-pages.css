@@ -33,3 +33,23 @@
 .home-navcard:hover { transform: translateY(-3px); box-shadow: var(--shadow-2); }
 .home-navcard .ico { color: var(--trec-coral); font-size: 1.6rem; margin-bottom: var(--sp-3); }
 .home-navcard h4 { font-size: 1.15rem; margin-bottom: var(--sp-2); }
+
+/* ===== Data portal stat banner ===== */
+.stat-card { background: var(--trec-paper); border: 1px solid var(--trec-border) !important; border-radius: var(--r-md); box-shadow: var(--shadow-1); }
+.stat-card .stat-icon { color: var(--trec-coral); margin-bottom: .25rem; line-height: 1; }
+.stat-card .stat-number { font-family: var(--font-mono); font-size: 1.8rem; font-weight: 600; line-height: 1.1; }
+.stat-card .stat-label { margin-top: .125rem; letter-spacing: .03em; }
+
+/* ===== Filters sidebar ===== */
+.portal-sidebar { background: var(--trec-paper-2); border: 1px solid var(--trec-border); border-radius: var(--r-md); padding: var(--sp-5); }
+.portal-sidebar h6 { font-family: var(--font-display); }
+.portal-sidebar .form-label, .portal-sidebar label.fw-bold {
+  font-size: .72rem !important; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--trec-faint); font-weight: 600;
+}
+.portal-sidebar .form-check-label { text-transform: none; letter-spacing: 0; color: var(--trec-ink); font-weight: 400; font-size: .85rem; }
+.portal-sidebar .form-check-input:checked { background-color: var(--trec-green); border-color: var(--trec-green); }
+
+/* ===== Station summary panel ===== */
+.station-panel-card { background: var(--trec-paper); border: 1px solid var(--trec-border); border-left: 4px solid var(--trec-coral); border-radius: var(--r-md); }
+.station-panel-card .count { font-family: var(--font-mono); color: var(--trec-green); font-weight: 600; }

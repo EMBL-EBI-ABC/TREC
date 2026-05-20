@@ -47,7 +47,14 @@ def make_filters_sidebar():
         html.H6("Filters", className="fw-bold mb-3"),
 
         html.Label("Environment", className="fw-bold small"),
-        dbc.Checklist(id="env-type-filter", className="small mb-3"),
+        dbc.Checklist(
+            id="env-type-filter",
+            inline=True,
+            input_class_name="btn-check",
+            label_class_name="btn btn-sm trec-chip mb-1 me-1",
+            label_checked_class_name="active",
+            class_name="mb-3",
+        ),
 
         html.Label("Organism", className="fw-bold small"),
         dbc.Checklist(
@@ -55,7 +62,14 @@ def make_filters_sidebar():
             style={"maxHeight": "12em", "overflowY": "auto"}),
 
         html.Label("Analysis Type", className="fw-bold small"),
-        dbc.Checklist(id="analysis-type-filter", className="small mb-3"),
+        dbc.Checklist(
+            id="analysis-type-filter",
+            inline=True,
+            input_class_name="btn-check",
+            label_class_name="btn btn-sm trec-chip mb-1 me-1",
+            label_checked_class_name="active",
+            class_name="mb-3",
+        ),
 
         html.Label("Country", className="fw-bold small"),
         dbc.Checklist(
@@ -109,7 +123,7 @@ def make_filters_sidebar():
             n_clicks=0,
         ),
         dbc.Collapse(filter_content, id="filters-collapse", is_open=True),
-    ], className="p-3 border-end h-100")
+    ], className="portal-sidebar")
 
 
 layout = dbc.Container([
@@ -120,8 +134,8 @@ layout = dbc.Container([
         # Left: filters sidebar
         dbc.Col(
             make_filters_sidebar(),
-            xs=12, md=2,
-            className="pe-0",
+            xs=12, md=3,
+            className="pe-3",
         ),
         # Right: search + map + station detail
         dbc.Col([
@@ -187,9 +201,9 @@ layout = dbc.Container([
                 className="justify-content-end mt-2",
                 style={"display": "none"},
             ),
-        ], xs=12, md=10),
+        ], xs=12, md=9),
     ], className="mt-2"),
-])
+], className="trec-page")
 
 
 # --- Callbacks ---
@@ -214,14 +228,11 @@ def load_stats(_):
         dbc.Col(
             dbc.Card(
                 dbc.CardBody([
-                    html.I(className=f"bi {icon} text-success fs-5 d-block stat-icon"),
+                    html.I(className=f"bi {icon} fs-5 d-block stat-icon"),
                     html.Div(f"{val:,}", className="stat-number"),
                     html.Div(label, className="text-uppercase text-muted small fw-semibold stat-label"),
                 ], className="py-2 px-3"),
-                className=(
-                    "stat-card shadow-sm h-100 border-0 border-start "
-                    "border-3 border-success"
-                ),
+                className="stat-card h-100",
             ),
             xs=6, md=3,
         )
@@ -447,33 +458,32 @@ def load_map_and_filters(_, colour_by, env_type, organism, analysis_type,
 
     # Colour logic
     COLOUR_MAPS = {
-        "environment_type": {"marine": "#3498db", "soil": "#e67e22",
-                              "aerosol": "#9b59b6"},
-        "analysis_type": {"Metagenomics": "#2ecc71", "Metabolomics": "#e74c3c",
-                          "Imaging": "#f39c12", "Ions": "#1abc9c"},
+        "environment_type": {"marine": "#2f7fa6", "soil": "#c08a3e",
+                              "aerosol": "#7a6f9b"},
+        "analysis_type": {"Metagenomics": "#0E4D3C", "Metabolomics": "#D9714E",
+                          "Imaging": "#c08a3e", "Ions": "#3a8f7d"},
     }
-
     LABELS = {
-        "none": {"#2c7a5c": "Stations", "#cccccc": "No matching samples"},
-        "has_images": {"#f39c12": "Has images", "#95a5a6": "No images",
-                       "#cccccc": "No matching samples"},
-        "environment_type": {"#3498db": "Marine", "#e67e22": "Soil",
-                             "#9b59b6": "Aerosol", "#95a5a6": "Unknown",
-                             "#cccccc": "No matching samples"},
-        "analysis_type": {"#2ecc71": "Metagenomics", "#e74c3c": "Metabolomics",
-                          "#f39c12": "Imaging", "#1abc9c": "Ions",
-                          "#95a5a6": "Unknown", "#cccccc": "No matching samples"},
+        "none": {"#0E4D3C": "Stations", "#cfc6b4": "No matching samples"},
+        "has_images": {"#D9714E": "Has images", "#9aa89f": "No images",
+                       "#cfc6b4": "No matching samples"},
+        "environment_type": {"#2f7fa6": "Marine", "#c08a3e": "Soil",
+                             "#7a6f9b": "Aerosol", "#9aa89f": "Unknown",
+                             "#cfc6b4": "No matching samples"},
+        "analysis_type": {"#0E4D3C": "Metagenomics", "#D9714E": "Metabolomics",
+                          "#c08a3e": "Imaging", "#3a8f7d": "Ions",
+                          "#9aa89f": "Unknown", "#cfc6b4": "No matching samples"},
     }
 
     def get_colour(station):
         # Grey out stations with no matching samples when filters are active
         if active_station_names is not None:
             if station["station_name"] not in active_station_names:
-                return "#cccccc"
+                return "#cfc6b4"
         if colour_by == "none":
-            return "#2c7a5c"
+            return "#0E4D3C"
         if colour_by == "has_images":
-            return "#f39c12" if station.get("has_images") else "#95a5a6"
+            return "#D9714E" if station.get("has_images") else "#9aa89f"
         if colour_by in COLOUR_MAPS:
             counts = station.get(
                 "analysis_type_counts" if colour_by == "analysis_type"
@@ -481,8 +491,8 @@ def load_map_and_filters(_, colour_by, env_type, organism, analysis_type,
             )
             if counts:
                 dominant = max(counts, key=counts.get)
-                return COLOUR_MAPS[colour_by].get(dominant, "#95a5a6")
-        return "#95a5a6"
+                return COLOUR_MAPS[colour_by].get(dominant, "#9aa89f")
+        return "#9aa89f"
 
     lats = [s["lat"] for s in stations]
     lons = [s["lon"] for s in stations]
@@ -542,7 +552,7 @@ def load_map_and_filters(_, colour_by, env_type, organism, analysis_type,
                 lat=[sel["lat"]],
                 lon=[sel["lon"]],
                 mode="markers",
-                marker=dict(size=22, color="#FFD700", opacity=1.0),
+                marker=dict(size=24, color="#0E4D3C", opacity=1.0),
                 text=[sel["station_name"]],
                 hovertext=[
                     f"{sel['station_name']}<br>"
@@ -555,7 +565,7 @@ def load_map_and_filters(_, colour_by, env_type, organism, analysis_type,
             ))
 
     fig.update_layout(
-        map=dict(style="open-street-map",
+        map=dict(style="carto-positron",
                  center=dict(lat=43, lon=10), zoom=3.5),
         margin=dict(l=0, r=0, t=0, b=70),
         showlegend=colour_by != "none" or bool(selected_station),
@@ -647,17 +657,17 @@ def initialize_from_url(search):
             html.Small(detail.get("country") or "", className="text-muted"),
             html.Div([
                 html.Span(str(detail["source_sample_count"]),
-                          className="fw-bold text-success"),
+                          className="count"),
                 html.Small(" source", className="text-muted"),
                 html.Span(" / ", className="text-muted mx-1"),
                 html.Span(str(detail["sample_count"]),
-                          className="fw-bold text-success"),
+                          className="count"),
                 html.Small(" total samples", className="text-muted me-3"),
-                *[dbc.Badge(t, color="success", className="me-1")
+                *[dbc.Badge(t, className="trec-badge trec-badge-available me-1")
                   for t in detail.get("analysis_types", [])],
             ], className="mt-2"),
         ]),
-        className="mt-3 mb-2 bg-success bg-opacity-10",
+        className="station-panel-card mt-3 mb-2 p-1",
     )
     max_pages = max(1, (detail["source_sample_count"] + 9) // 10)
     return (summary, station_name, max_pages, 1,
@@ -706,17 +716,17 @@ def show_station_panel(click_data):
             ),
             html.Div([
                 html.Span(str(detail["source_sample_count"]),
-                          className="fw-bold text-success"),
+                          className="count"),
                 html.Small(" source", className="text-muted"),
                 html.Span(" / ", className="text-muted mx-1"),
                 html.Span(str(detail["sample_count"]),
-                          className="fw-bold text-success"),
+                          className="count"),
                 html.Small(" total samples", className="text-muted me-3"),
-                *[dbc.Badge(t, color="success", className="me-1")
+                *[dbc.Badge(t, className="trec-badge trec-badge-available me-1")
                   for t in detail.get("analysis_types", [])],
             ], className="mt-2"),
         ]),
-        className="mt-3 mb-2 bg-success bg-opacity-10",
+        className="station-panel-card mt-3 mb-2 p-1",
     )
 
     max_pages = max(1, (detail["source_sample_count"] + 9) // 10)
