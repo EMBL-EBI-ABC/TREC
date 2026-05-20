@@ -31,4 +31,10 @@
   /* Shadow */
   --shadow-1: 0 6px 18px rgba(20,40,32,.06);
   --shadow-2: 0 18px 40px rgba(20,40,32,.10);
+
+  /* Re-point Bootstrap's "success" semantic to brand green so existing
+     text-success / bg-success utilities match the palette. (Button variants
+     need their own --bs-btn-* overrides — see .btn-success in components.) */
+  --bs-success: #0E4D3C;
+  --bs-success-rgb: 14, 77, 60;
 }

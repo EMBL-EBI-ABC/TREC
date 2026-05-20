@@ -232,6 +232,16 @@
 }
 .btn.trec-btn-ghost:hover { background: color-mix(in srgb, var(--trec-canvas) 12%, transparent); color: var(--trec-canvas); }
 
+/* ===== Success buttons → brand green =====
+   .btn-success compiles its own --bs-btn-* vars from Bootstrap's $success,
+   so re-pointing --bs-success alone doesn't reach it. Override here. */
+.btn-success {
+  --bs-btn-bg: var(--trec-green); --bs-btn-border-color: var(--trec-green);
+  --bs-btn-hover-bg: var(--trec-green-dark); --bs-btn-hover-border-color: var(--trec-green-dark);
+  --bs-btn-active-bg: var(--trec-green-dark); --bs-btn-active-border-color: var(--trec-green-dark);
+  --bs-btn-disabled-bg: var(--trec-green); --bs-btn-disabled-border-color: var(--trec-green);
+}
+
 /* ===== Cards ===== */
 .trec-card {
   background: var(--trec-paper); border: 1px solid var(--trec-border);
