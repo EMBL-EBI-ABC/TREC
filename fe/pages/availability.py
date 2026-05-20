@@ -16,14 +16,17 @@ PAGE_SIZE = 10
 
 def available_cell():
     return html.Td(
-        dbc.Badge("✓", color="success", className="small"),
+        html.Span(
+            html.Span("✓", className="trec-badge-glyph"),
+            className="trec-badge trec-badge-available",
+        ),
         className="text-center",
     )
 
 
 def unavailable_cell():
     return html.Td(
-        html.Span("—", className="text-muted small"),
+        html.Span("—", className="text-muted small trec-muted-dash"),
         className="text-center",
     )
 
@@ -100,7 +103,7 @@ layout = dbc.Container([
             ),
         ),
     ], className="mt-2 mb-3"),
-])
+], className="trec-page")
 
 
 @callback(
