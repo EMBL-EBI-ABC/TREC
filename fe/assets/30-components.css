@@ -1,37 +1,31 @@
+/* ===== Chips ===== */
 .trec-chip {
-    background-color: transparent;
-    color: #1d5e4a;
-    border: 1px solid #1d5e4a;
-    transition: background-color .15s, color .15s;
+  background: transparent; color: var(--trec-green);
+  border: 1px solid var(--trec-green); border-radius: var(--r-pill);
 }
-.trec-chip:hover, .trec-chip:focus {
-    background-color: rgba(29, 94, 74, 0.08);
-    color: #1d5e4a;
-    border-color: #1d5e4a;
-}
+.trec-chip:hover, .trec-chip:focus { background: rgba(14,77,60,.08); color: var(--trec-green); border-color: var(--trec-green); }
 .trec-chip.active,
-.btn-check:checked + .trec-chip {
-    background-color: #1d5e4a;
-    color: #fff;
-    border-color: #1d5e4a;
+.btn-check:checked + .trec-chip
+{
+  background: var(--trec-green); color: #fff; border-color: var(--trec-green);
 }
 /* Predictive-search dropdown */
 .trec-predictive-search .Select-control {
-    border: 1px solid #1d5e4a;
+    border: 1px solid var(--trec-green);
     border-radius: .375rem;
     box-shadow: none;
     min-height: 38px;
 }
 .trec-predictive-search .Select-control:hover {
-    border-color: #14463a;
+    border-color: var(--trec-green-dark);
 }
 .trec-predictive-search.is-focused:not(.is-open)
     > .Select-control {
-    border-color: #1d5e4a;
-    box-shadow: 0 0 0 .15rem rgba(29, 94, 74, 0.2);
+    border-color: var(--trec-green);
+    box-shadow: 0 0 0 .15rem rgba(14,77,60,.2);
 }
 .trec-predictive-search .Select-placeholder {
-    color: #6c757d;
+    color: var(--trec-muted);
     font-size: .9rem;
 }
 .trec-predictive-search .Select-menu-outer {
@@ -42,11 +36,11 @@
     z-index: 1050;
 }
 .trec-predictive-search .Select-option.is-focused {
-    background-color: rgba(29, 94, 74, 0.08);
+    background-color: rgba(14,77,60,.08);
 }
 .trec-predictive-search .Select-option.is-selected {
-    background-color: rgba(29, 94, 74, 0.16);
-    color: #1d3a2e;
+    background-color: rgba(14,77,60,.16);
+    color: var(--trec-ink);
 }
 .trec-suggest-option {
     display: flex;
@@ -56,14 +50,14 @@
     width: 100%;
 }
 .trec-suggest-name {
-    color: #1d3a2e;
+    color: var(--trec-ink);
     font-size: .9rem;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 .trec-suggest-meta {
-    color: #6c757d;
+    color: var(--trec-muted);
     font-size: .75rem;
     font-variant: small-caps;
     letter-spacing: .03em;
@@ -72,86 +66,48 @@
 }
 /* ===== Tables: shared badge primitives ===== */
 .trec-badge {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: .3rem;
-    padding: .15rem .5rem;
-    border-radius: 999px;
-    font-size: .75rem;
-    font-weight: 600;
-    line-height: 1.4;
-    white-space: nowrap;
+  display: inline-flex; align-items: center; justify-content: center;
+  gap: .3rem; padding: .15rem .5rem; border-radius: var(--r-pill);
+  font-size: .75rem; font-weight: 600; line-height: 1.4; white-space: nowrap;
 }
 .trec-badge-available {
-    background-color: rgba(29, 94, 74, 0.10);
-    color: #1d5e4a;
-    border: 1px solid rgba(29, 94, 74, 0.20);
+  background: rgba(14,77,60,.10); color: var(--trec-green);
+  border: 1px solid rgba(14,77,60,.20);
 }
-.trec-badge-available .trec-badge-glyph {
-    font-weight: 700;
-    line-height: 1;
-}
+.trec-badge-available .trec-badge-glyph { font-weight: 700; line-height: 1; }
 .trec-badge-count {
-    background-color: rgba(29, 94, 74, 0.06);
-    color: #1d3a2e;
-    border: 1px solid rgba(29, 94, 74, 0.16);
-    min-width: 1.75rem;
+  background: rgba(14,77,60,.06); color: var(--trec-green);
+  border: 1px solid rgba(14,77,60,.16); min-width: 1.75rem;
 }
-.trec-muted-dash {
-    color: #6c757d;
-    font-weight: 500;
-}
+.trec-muted-dash { color: var(--trec-muted); font-weight: 500; }
 /* ===== Tables: shared polish for HTML tables (dbc.Table).
       The samples DataTable mirrors these values inline via
       style_header / style_cell on the component itself
       (DataTable has its own DOM and can't consume this
       class). Apply this class to dbc.Table components to
       match the samples-table visual rhythm. ===== */
-.trec-table {
-    margin-bottom: 0;
-    font-size: 13px;
-}
+.trec-table { margin-bottom: 0; font-size: 13px; }
 .trec-table thead th {
-    font-weight: 600;
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    color: #1d3a2e;
-    background-color: rgba(29, 94, 74, 0.06);
-    border-bottom: 1px solid #d6e3df;
-    border-top: none;
-    padding: 10px 14px 10px 18px;
-    vertical-align: middle;
+  font-weight: 600; font-size: 12px; text-transform: uppercase;
+  letter-spacing: .04em; color: var(--trec-green);
+  background: var(--trec-paper-2);
+  border-bottom: 1px solid var(--trec-border);
+  border-top: none; padding: 10px 14px 10px 18px; vertical-align: middle;
 }
 .trec-table tbody td {
-    padding: 10px 14px;
-    border-top: none;
-    border-bottom: 1px solid #eef2f0;
-    vertical-align: middle;
-    font-size: 13px;
+  padding: 10px 14px; border-top: none;
+  border-bottom: 1px solid var(--trec-border-2);
+  vertical-align: middle; font-size: 13px;
 }
-.trec-table.table-striped > tbody
-    > tr:nth-of-type(odd) > * {
-    background-color: rgba(29, 94, 74, 0.025);
-    --bs-table-bg-type: rgba(29, 94, 74, 0.025);
-    color: inherit;
+.trec-table.table-striped > tbody > tr:nth-of-type(odd) > * {
+  background: rgba(14,77,60,.025); --bs-table-bg-type: rgba(14,77,60,.025); color: inherit;
 }
 .trec-table.table-hover > tbody > tr:hover > * {
-    background-color: rgba(29, 94, 74, 0.08) !important;
-    --bs-table-hover-bg: rgba(29, 94, 74, 0.08);
-    color: inherit;
+  background: rgba(14,77,60,.06) !important; --bs-table-hover-bg: rgba(14,77,60,.06); color: inherit;
 }
-.trec-table tbody td a {
-    text-decoration: none;
-    color: #1d5e4a;
-    border-bottom: 1px solid transparent;
-    transition: color .15s, border-color .15s;
-}
-.trec-table tbody td a:hover {
-    color: #14463a;
-    border-bottom-color: #1d5e4a;
-}
+.trec-table tbody td a { text-decoration: none; color: var(--trec-green); border-bottom: 1px solid transparent; }
+.trec-table tbody td a:hover { color: var(--trec-green-dark); border-bottom-color: var(--trec-coral); }
+.trec-table td.trec-num, .trec-table .trec-num { font-family: var(--font-mono); }
 /* Sort indicators for dbc.Table headers — visually
    mirrors Dash DataTable's bundled fa-sort icons used on
    the samples table. Bootstrap Icons (loaded site-wide)
@@ -173,7 +129,7 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    color: #1d5e4a;
+    color: var(--trec-green);
     font-weight: normal;
     text-transform: none;
     letter-spacing: 0;
@@ -192,7 +148,7 @@
 }
 .trec-table .trec-sort-caret.active {
     opacity: 1;
-    color: #14463a;
+    color: var(--trec-coral);
 }
 /* Samples table (Dash DataTable) sort indicator.
    DataTable bundles a Font Awesome fa-sort SVG (both
@@ -207,7 +163,7 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    color: #1d5e4a;
+    color: var(--trec-green);
     line-height: 1;
     margin-right: .55rem;
     margin-left: 0;
@@ -244,7 +200,7 @@
 .dash-header .column-header--sort:has(
     svg[data-icon="sort-down"])::after {
     opacity: 1;
-    color: #14463a;
+    color: var(--trec-coral);
 }
 /* ENA column on the samples table is non-sortable: the
    backend has no `has_ena` ES field (it's `has_ena_data`),
@@ -260,4 +216,29 @@
 .dash-header[data-dash-column="has_ena"]
     .column-header-name {
     pointer-events: none;
+}
+
+/* ===== Buttons ===== */
+.btn.trec-btn-primary {
+  background: var(--trec-coral); border-color: var(--trec-coral);
+  color: #fff; font-weight: 600; border-radius: var(--r-sm); padding: .6rem 1.4rem;
+}
+.btn.trec-btn-primary:hover { background: var(--trec-coral-dark); border-color: var(--trec-coral-dark); color:#fff; }
+.btn.trec-btn-ghost {
+  background: transparent; border: 1px solid rgba(247,244,236,.5);
+  color: var(--trec-canvas); font-weight: 600; border-radius: var(--r-sm); padding: .6rem 1.4rem;
+}
+.btn.trec-btn-ghost:hover { background: rgba(247,244,236,.12); color: var(--trec-canvas); }
+
+/* ===== Cards ===== */
+.trec-card {
+  background: var(--trec-paper); border: 1px solid var(--trec-border);
+  border-radius: var(--r-md); box-shadow: var(--shadow-1);
+}
+
+/* ===== Pagination (fix clashing Bootstrap pink active) ===== */
+.pagination { --bs-pagination-color: var(--trec-green); --bs-pagination-hover-color: var(--trec-green-dark);
+  --bs-pagination-focus-color: var(--trec-green-dark);
+  --bs-pagination-active-bg: var(--trec-green); --bs-pagination-active-border-color: var(--trec-green);
+  --bs-pagination-hover-bg: rgba(14,77,60,.08); --bs-pagination-border-color: var(--trec-border);
 }
