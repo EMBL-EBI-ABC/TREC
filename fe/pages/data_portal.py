@@ -930,11 +930,15 @@ def load_samples_page(page, station_name, protocol, env_type, organism,
                 {"selector": ".dash-cell p", "rule": "margin: 0;"},
                 {"selector": ".dash-header p", "rule": "margin: 0;"},
                 {"selector": ".dash-cell a",
-                 "rule": "text-decoration: none; color: #0E4D3C; "
-                         "border-bottom: 1px solid transparent; "
-                         "transition: color .15s, border-color .15s;"},
+                 "rule": "color: #0E4D3C; font-weight: 600; "
+                         "text-decoration: underline; "
+                         "text-decoration-color: rgba(14,77,60,0.45); "
+                         "text-underline-offset: 2px; "
+                         "transition: color .15s, "
+                         "text-decoration-color .15s;"},
                 {"selector": ".dash-cell a:hover",
-                 "rule": "color: #0a3a2d; border-bottom-color: #D9714E;"},
+                 "rule": "color: #0a3a2d; "
+                         "text-decoration-color: #D9714E;"},
                 {"selector": ".dash-spreadsheet-inner tr:hover td.dash-cell",
                  "rule": "background-color: rgba(14, 77, 60, 0.08) "
                          "!important;"},
