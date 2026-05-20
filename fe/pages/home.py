@@ -47,7 +47,7 @@ def _hero():
                         dcc.Link(
                             [html.Span("Explore the data"),
                              html.Span(" →", **{"aria-hidden": "true"})],
-                            href="/data",
+                            href="/data-portal",
                             className="btn trec-btn-primary me-2"),
                         dcc.Link("About TREC", href="/about",
                                  className="btn trec-btn-ghost"),
@@ -126,7 +126,7 @@ def _nav_section():
                         "Explore TREC sampling stations on an interactive map; "
                         "search and filter samples by environment, organism, "
                         "and analysis type.",
-                        "/data",
+                        "/data-portal",
                     ),
                     _nav_card(
                         "bi-grid-3x3",

@@ -189,7 +189,7 @@ def build_matrix(search_value, page, sort_state):
         cells = [
             html.Td(
                 html.A(station["station_name"],
-                       href=f"/data?station={quote(station['station_name'])}"),
+                       href=f"/data-portal?station={quote(station['station_name'])}"),
                 className="small",
             ),
             html.Td(station.get("country") or "", className="small"),

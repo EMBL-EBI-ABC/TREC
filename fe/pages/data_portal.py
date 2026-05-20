@@ -12,7 +12,7 @@ from api_config import API_BASE_URL
 
 dash.register_page(
     __name__,
-    path="/data",
+    path="/data-portal",
     title="Data Portal",
 )
 

@@ -13,7 +13,7 @@ app = dash.Dash(
 )
 
 NAV_ITEMS = [
-    ("Data Portal", "/data"),
+    ("Data Portal", "/data-portal"),
     ("Availability", "/availability"),
     ("API", "/api"),
     ("About", "/about"),
@@ -110,6 +110,16 @@ app.layout = html.Div(
     },
 )
 server = app.server
+
+
+@server.route("/data")
+def _redirect_legacy_data():
+    """Permanent redirect from the old list path to /data-portal,
+    preserving any query string (e.g. ?station=...)."""
+    from flask import redirect, request
+    qs = request.query_string.decode()
+    target = "/data-portal" + (f"?{qs}" if qs else "")
+    return redirect(target, code=301)
 
 
 @app.callback(
