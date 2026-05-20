@@ -218,8 +218,8 @@ def build_detail_page(sample_id):
                 for d in derived_results
             ]
             derived_section = html.Div([
-                html.H6(f"Derived Samples ({len(derived_results)})",
-                        className="text-muted mb-2"),
+                html.H5(f"Derived Samples ({len(derived_results)})",
+                        className="fs-6 fw-semibold text-muted mb-2"),
                 dbc.Table([
                     html.Thead(html.Tr([
                         html.Th("BioSample ID", className="small"),
@@ -303,7 +303,7 @@ def build_detail_page(sample_id):
                 ],
                 className="trec-card p-3 mb-3 mt-2",
             ),
-        ]), className="trec-card mb-2 bg-warning bg-opacity-10"))
+        ]), className="trec-card mb-2"))
     elif sample.get("has_images") == "Yes":
         linked_cards.append(dbc.Card(dbc.CardBody(dbc.Row([
             dbc.Col([
@@ -336,7 +336,7 @@ def build_detail_page(sample_id):
                            className="text-muted"),
             ]),
             dbc.Col(
-                dbc.Badge("Pending", color="secondary", className="trec-badge trec-badge-count"),
+                dbc.Badge("Pending", className="trec-badge trec-badge-count"),
                 width="auto", className="d-flex align-items-center",
             ),
         ])), className="trec-card mb-2"))
