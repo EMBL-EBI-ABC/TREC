@@ -93,7 +93,6 @@ def _site_footer():
                         ),
                     ],
                 ),
-                html.Span("© 2026 EMBL"),
             ],
             className="trec-footer-row",
         ),
