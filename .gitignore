@@ -172,3 +172,10 @@ cython_debug/
 
 # Superpowers brainstorming
 .superpowers/
+
+# Local design/QA scratch (mockups, screenshots, browser snapshots)
+.design/
+.playwright-mcp/
+/home.png
+/dataportal.png
+/availability.png
