@@ -121,7 +121,7 @@ def build_detail_page(sample_id):
     # --- Sample identity ---
     badges = []
     if sample.get("analysis_type"):
-        badges.append(dbc.Badge(sample["analysis_type"],
+        badges.append(html.Span(sample["analysis_type"],
                                 className="trec-badge trec-badge-available me-1"))
     protocol = get_field(cf, "protocol label")
     if protocol:
@@ -336,7 +336,7 @@ def build_detail_page(sample_id):
                            className="text-muted"),
             ]),
             dbc.Col(
-                dbc.Badge("Pending", className="trec-badge trec-badge-count"),
+                html.Span("Pending", className="trec-badge trec-badge-count"),
                 width="auto", className="d-flex align-items-center",
             ),
         ])), className="trec-card mb-2"))
