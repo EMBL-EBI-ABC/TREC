@@ -12,6 +12,7 @@
 }
 /* Predictive-search dropdown */
 .trec-predictive-search .Select-control {
+    background: var(--trec-paper);
     border: 1px solid var(--trec-green);
     border-radius: .375rem;
     box-shadow: none;
