@@ -2,8 +2,9 @@
 .trec-chip {
   background: transparent; color: var(--trec-green);
   border: 1px solid var(--trec-green); border-radius: var(--r-pill);
+  transition: background-color .15s, color .15s, border-color .15s;
 }
-.trec-chip:hover, .trec-chip:focus { background: rgba(14,77,60,.08); color: var(--trec-green); border-color: var(--trec-green); }
+.trec-chip:hover, .trec-chip:focus-visible { background: rgba(14,77,60,.08); color: var(--trec-green); border-color: var(--trec-green); }
 .trec-chip.active,
 .btn-check:checked + .trec-chip
 {
@@ -29,7 +30,7 @@
     font-size: .9rem;
 }
 .trec-predictive-search .Select-menu-outer {
-    border: 1px solid #d6e3df;
+    border: 1px solid var(--trec-border);
     box-shadow: 0 6px 14px rgba(0,0,0,0.08);
     border-radius: .375rem;
     margin-top: 2px;
@@ -225,10 +226,11 @@
 }
 .btn.trec-btn-primary:hover { background: var(--trec-coral-dark); border-color: var(--trec-coral-dark); color:#fff; }
 .btn.trec-btn-ghost {
-  background: transparent; border: 1px solid rgba(247,244,236,.5);
+  background: transparent;
+  border: 1px solid color-mix(in srgb, var(--trec-canvas) 50%, transparent);
   color: var(--trec-canvas); font-weight: 600; border-radius: var(--r-sm); padding: .6rem 1.4rem;
 }
-.btn.trec-btn-ghost:hover { background: rgba(247,244,236,.12); color: var(--trec-canvas); }
+.btn.trec-btn-ghost:hover { background: color-mix(in srgb, var(--trec-canvas) 12%, transparent); color: var(--trec-canvas); }
 
 /* ===== Cards ===== */
 .trec-card {
@@ -239,6 +241,7 @@
 /* ===== Pagination (fix clashing Bootstrap pink active) ===== */
 .pagination { --bs-pagination-color: var(--trec-green); --bs-pagination-hover-color: var(--trec-green-dark);
   --bs-pagination-focus-color: var(--trec-green-dark);
+  --bs-pagination-active-color: #fff;
   --bs-pagination-active-bg: var(--trec-green); --bs-pagination-active-border-color: var(--trec-green);
   --bs-pagination-hover-bg: rgba(14,77,60,.08); --bs-pagination-border-color: var(--trec-border);
 }
