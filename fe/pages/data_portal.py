@@ -33,6 +33,26 @@ def _badge_count(n):
     return f"<span class='trec-badge trec-badge-count'>{n}</span>"
 
 
+# Distinct colour per analysis type (harmonised with the map legend palette).
+ANALYSIS_COLORS = {
+    "Genomics": "#2f7fa6",      # blue
+    "Metagenomics": "#0E4D3C",  # brand green
+    "Metabolomics": "#D9714E",  # coral
+    "Imaging": "#c08a3e",       # amber
+    "Ions": "#3a8f7d",          # teal
+}
+
+
+def _analysis_badge(t):
+    """A soft pill tinted with the analysis type's own colour."""
+    c = ANALYSIS_COLORS.get(t, "#6f7a72")
+    return html.Span(
+        t, className="trec-badge me-1",
+        style={"backgroundColor": f"{c}1f", "color": c,
+               "border": f"1px solid {c}3d"},
+    )
+
+
 def make_stats_banner():
     """Global stats cards — populated by callback on page load."""
     return dbc.Row(
@@ -47,14 +67,7 @@ def make_filters_sidebar():
         html.H6("Filters", className="fw-bold mb-3"),
 
         html.Label("Environment", className="fw-bold small"),
-        dbc.Checklist(
-            id="env-type-filter",
-            inline=True,
-            input_class_name="btn-check",
-            label_class_name="btn btn-sm trec-chip mb-1 me-1",
-            label_checked_class_name="active",
-            class_name="mb-3",
-        ),
+        dbc.Checklist(id="env-type-filter", className="small mb-3"),
 
         html.Label("Organism", className="fw-bold small"),
         dbc.Checklist(
@@ -62,14 +75,7 @@ def make_filters_sidebar():
             style={"maxHeight": "12em", "overflowY": "auto"}),
 
         html.Label("Analysis Type", className="fw-bold small"),
-        dbc.Checklist(
-            id="analysis-type-filter",
-            inline=True,
-            input_class_name="btn-check",
-            label_class_name="btn btn-sm trec-chip mb-1 me-1",
-            label_checked_class_name="active",
-            class_name="mb-3",
-        ),
+        dbc.Checklist(id="analysis-type-filter", className="small mb-3"),
 
         html.Label("Country", className="fw-bold small"),
         dbc.Checklist(
@@ -219,10 +225,10 @@ def load_stats(_):
     except Exception:
         return []
     stats = [
-        ("Stations", resp.get("total_stations", 0), "bi-geo-alt-fill"),
-        ("Countries", resp.get("total_countries", 0), "bi-globe-europe-africa"),
-        ("Source Samples", resp.get("total_source_samples", 0), "bi-droplet-fill"),
-        ("Total Samples", resp.get("total_samples", 0), "bi-collection-fill"),
+        ("Stations", resp.get("total_stations", 0), "bi-geo-alt"),
+        ("Countries", resp.get("total_countries", 0), "bi-globe2"),
+        ("Source Samples", resp.get("total_source_samples", 0), "bi-droplet"),
+        ("Total Samples", resp.get("total_samples", 0), "bi-layers"),
     ]
     return [
         dbc.Col(
@@ -657,7 +663,11 @@ def initialize_from_url(search):
                 None, 1, 1, hide_pagination)
     summary = dbc.Card(
         dbc.CardBody([
-            html.H5(f"📍 {detail['station_name']}", className="mb-0"),
+            html.H5([
+                html.I(className="bi bi-geo-alt-fill me-2",
+                       style={"color": "#D9714E"}),
+                detail["station_name"],
+            ], className="mb-0"),
             html.Small(detail.get("country") or "", className="text-muted"),
             html.Div([
                 html.Span(str(detail["source_sample_count"]),
@@ -667,7 +677,7 @@ def initialize_from_url(search):
                 html.Span(str(detail["sample_count"]),
                           className="count"),
                 html.Small(" total samples", className="text-muted me-3"),
-                *[dbc.Badge(t, className="trec-badge trec-badge-available me-1")
+                *[_analysis_badge(t)
                   for t in detail.get("analysis_types", [])],
             ], className="mt-2"),
         ]),
@@ -713,7 +723,11 @@ def show_station_panel(click_data):
     # --- Summary ---
     summary = dbc.Card(
         dbc.CardBody([
-            html.H5(f"📍 {detail['station_name']}", className="mb-0"),
+            html.H5([
+                html.I(className="bi bi-geo-alt-fill me-2",
+                       style={"color": "#D9714E"}),
+                detail["station_name"],
+            ], className="mb-0"),
             html.Small(
                 detail.get("country") or "",
                 className="text-muted",
@@ -726,7 +740,7 @@ def show_station_panel(click_data):
                 html.Span(str(detail["sample_count"]),
                           className="count"),
                 html.Small(" total samples", className="text-muted me-3"),
-                *[dbc.Badge(t, className="trec-badge trec-badge-available me-1")
+                *[_analysis_badge(t)
                   for t in detail.get("analysis_types", [])],
             ], className="mt-2"),
         ]),
@@ -876,7 +890,14 @@ def load_samples_page(page, station_name, protocol, env_type, organism,
                 "fontFamily": "inherit",
                 "border": "none",
                 "borderBottom": "1px solid #f1ece1",
+                "overflow": "visible",
+                "textOverflow": "clip",
             },
+            style_cell_conditional=[
+                {"if": {"column_id": "biosampleId"},
+                 "minWidth": "160px", "width": "160px"},
+                {"if": {"column_id": "organism"}, "minWidth": "240px"},
+            ],
             style_header={
                 "fontWeight": "600",
                 "fontSize": "12px",
@@ -980,10 +1001,11 @@ def build_active_filters_bar(env_type, organism, analysis_type, country,
     if selected_station:
         badges.append(
             dbc.Badge(
-                [f"📍 {selected_station} ✕"],
+                [html.I(className="bi bi-geo-alt-fill me-1"),
+                 f"{selected_station} ✕"],
                 id={"type": "filter-badge", "filter": "selected-station",
                     "value": selected_station},
-                color="primary",
+                color="success",
                 className="me-1 mb-1 small",
                 style={"cursor": "pointer"},
             )
