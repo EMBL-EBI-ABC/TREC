@@ -1,5 +1,5 @@
 body {
-  background: var(--trec-canvas);
+  background: var(--trec-bg);
   color: var(--trec-ink);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;

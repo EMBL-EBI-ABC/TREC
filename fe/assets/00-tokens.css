@@ -7,7 +7,8 @@
   --trec-coral-dark: #c15c3b;
 
   /* Neutrals */
-  --trec-canvas: #F7F4EC;     /* page background (sand/cream) */
+  --trec-canvas: #F7F4EC;     /* cream — header/footer chrome + hero text */
+  --trec-bg: #ECEAE2;         /* page body background (soft warm grey) */
   --trec-paper: #FFFDF9;      /* cards / surfaces (warm off-white) */
   --trec-paper-2: #FBF9F3;    /* sunken surfaces (sidebars, table head) */
   --trec-ink: #1A2420;        /* primary text */
