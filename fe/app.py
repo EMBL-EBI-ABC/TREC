@@ -47,7 +47,7 @@ def _site_header():
             [
                 dcc.Link(
                     [
-                        html.I(className="bi bi-house-fill trec-logo-droplet"),
+                        html.Span(className="trec-logo-mark"),
                         html.Span("TREC"),
                     ],
                     href="/",
