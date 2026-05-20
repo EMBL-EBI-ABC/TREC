@@ -23,27 +23,27 @@
 .home-hero .orb-1 {
   width: 360px; height: 360px; right: -70px; bottom: -130px;
   background: rgba(217,113,78,.18); border-radius: 50% 50% 50% 0;
-  animation: orb-drift-1 11s ease-in-out infinite;
+  animation: orb-drift-1 6s ease-in-out infinite;
 }
 .home-hero .orb-2 {
   width: 230px; height: 230px; right: 15%; top: -90px;
   background: rgba(159,211,192,.16);
-  animation: orb-drift-2 14s ease-in-out infinite;
+  animation: orb-drift-2 7s ease-in-out infinite;
 }
 .home-hero .orb-3 {
   width: 150px; height: 150px; left: 7%; bottom: -55px;
   background: rgba(217,113,78,.13);
-  animation: orb-drift-3 9s ease-in-out infinite;
+  animation: orb-drift-3 4.5s ease-in-out infinite;
 }
 .home-hero .orb-4 {
   width: 90px; height: 90px; right: 40%; bottom: 26%;
   background: rgba(255,255,255,.10);
-  animation: orb-drift-4 12s ease-in-out infinite;
+  animation: orb-drift-4 6s ease-in-out infinite;
 }
 .home-hero .orb-5 {
   width: 56px; height: 56px; left: 30%; top: 18%;
   background: rgba(159,211,192,.12);
-  animation: orb-drift-5 10s ease-in-out infinite;
+  animation: orb-drift-5 5s ease-in-out infinite;
 }
 
 @keyframes orb-drift-1 {
