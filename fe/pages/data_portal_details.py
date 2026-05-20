@@ -43,7 +43,10 @@ def make_breadcrumb(sample, station_name, parent_id):
     items = []
     if station_name:
         items.append(html.Li(
-            html.A(f"📍 {station_name}", href="/data",
+            html.A([html.I(className="bi bi-geo-alt-fill me-1",
+                           style={"color": "#D9714E"}),
+                    station_name],
+                   href="/data",
                    className="text-decoration-none"),
             className="breadcrumb-item"))
     if parent_id:
@@ -59,7 +62,7 @@ def make_breadcrumb(sample, station_name, parent_id):
 
 
 def make_metadata_table(label, rows):
-    """Build a labeled metadata table."""
+    """Build a labeled metadata table inside a card."""
     return html.Div([
         html.H6(label, className="text-muted mb-2"),
         dbc.Table([
@@ -71,8 +74,9 @@ def make_metadata_table(label, rows):
                 ])
                 for k, v in rows if v
             ])
-        ], borderless=True, size="sm"),
-    ], className="mb-3")
+        ], borderless=True, size="sm", className="mb-0",
+            style={"--bs-table-bg": "transparent"}),
+    ], className="trec-card p-3 mb-3")
 
 
 def get_field(custom_fields, name):
@@ -227,8 +231,9 @@ def build_detail_page(sample_id):
                         html.Th("Organism", className="small"),
                     ])),
                     html.Tbody(derived_rows),
-                ], striped=True, hover=True, bordered=True, size="sm"),
-            ], className="mb-3")
+                ], striped=True, hover=True, bordered=True, size="sm",
+                    className="mb-0"),
+            ], className="trec-card p-3 mb-3")
 
     # --- Left column ---
     left_col = dbc.Col([identity, env_table, collection_table,
