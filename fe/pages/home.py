@@ -44,8 +44,11 @@ def _hero():
                 ),
                 html.Div(
                     [
-                        dcc.Link("Explore the data →", href="/data",
-                                 className="btn trec-btn-primary me-2"),
+                        dcc.Link(
+                            [html.Span("Explore the data"),
+                             html.Span(" →", **{"aria-hidden": "true"})],
+                            href="/data",
+                            className="btn trec-btn-primary me-2"),
                         dcc.Link("About TREC", href="/about",
                                  className="btn trec-btn-ghost"),
                     ],

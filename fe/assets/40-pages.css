@@ -20,7 +20,7 @@
 /* ===== Home stat strip ===== */
 .home-stats { background: var(--trec-green-dark); }
 .home-stat { padding: var(--sp-5); border-right: 1px solid rgba(255,255,255,.08); }
-.home-stat:last-child { border-right: none; }
+.home-stats .col:last-child .home-stat { border-right: none; }
 .home-stat .n { font-family: var(--font-mono); font-size: 1.9rem; font-weight: 600; color: #fff; line-height: 1; }
 .home-stat .l { font-size: .72rem; letter-spacing: .12em; text-transform: uppercase; color: #9fd3c0; margin-top: var(--sp-2); }
 
