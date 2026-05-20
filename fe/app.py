@@ -47,7 +47,8 @@ def _site_header():
             [
                 dcc.Link(
                     [
-                        html.Span(className="trec-logo-mark"),
+                        html.Span(className="trec-logo-mark",
+                                  **{"aria-hidden": "true"}),
                         html.Span("TREC"),
                     ],
                     href="/",
