@@ -11,13 +11,14 @@ layout = dbc.Container(
     dbc.Row(
         [
             dbc.Col([
-                html.H3("A scientific voyage to address environmental challenges"),
+                html.H1("A scientific voyage to address environmental challenges"),
                 html.P("With TREC, we embark on a journey through European coastlines "
                        "to explore the biodiversity and molecular adaptability of "
                        "microbial communities as well as key selected organisms. We "
                        "focus on coastal habitats as they are the richest in species "
                        "biodiversity and they also often present the highest levels of "
-                       "pollution. "),
+                       "pollution. ",
+                       className="lead text-muted"),
                 html.P("By combining the expertise and infrastructure of EMBL and our "
                        "multiple European partners, TREC aims to initiate a new era of "
                        "coastal ecosystems exploration. The goal is timely and "
@@ -42,5 +43,6 @@ layout = dbc.Container(
             ),
         ],
         className="mt-4 mb-3",
-    )
+    ),
+    className="trec-page",
 )
