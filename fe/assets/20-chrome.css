@@ -50,9 +50,5 @@
 @media (min-width: 768px) {
   .trec-footer-row { flex-direction: row; justify-content: space-between; text-align: left; }
 }
-.trec-footer-brand {
-  font-family: var(--font-display);
-  color: var(--trec-green); font-weight: 700; letter-spacing: .04em;
-}
 .trec-footer-link { color: var(--trec-muted); text-decoration: none; }
 .trec-footer-link:hover { color: var(--trec-green); text-decoration: underline; }

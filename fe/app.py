@@ -81,7 +81,6 @@ def _site_footer():
     return html.Footer(
         html.Div(
             [
-                html.Span("TREC", className="trec-footer-brand"),
                 html.Span(
                     [
                         "Traversing European Coastlines · ",
