@@ -14,7 +14,7 @@ def iframe_layout():
         title="TREC API Documentation",
         style={
             "display": "block",
-            "height": "100vh",
+            "height": "calc(100vh - 220px)",
             "width": "100%",
             "border": "none",
             "overflow": "auto",
@@ -23,12 +23,16 @@ def iframe_layout():
 
 
 layout = dbc.Container(
-    dbc.Row(
-        dbc.Col(
-            iframe_layout(),
-            md=12,
+    [
+        html.Div(
+            [
+                html.H2("API"),
+                html.P("Programmatic access to TREC data via our REST API.",
+                       className="text-muted mb-3"),
+            ],
+            className="trec-page pb-0",
         ),
-    ),
+        iframe_layout(),
+    ],
     fluid=True,
-    className="bg-white",
 )

@@ -1,0 +1,41 @@
+:root {
+  /* Brand */
+  --trec-green: #0E4D3C;
+  --trec-green-deep: #15614b;
+  --trec-green-dark: #0a3a2d;
+  --trec-coral: #D9714E;
+  --trec-coral-dark: #c15c3b;
+
+  /* Neutrals */
+  --trec-canvas: #F7F4EC;     /* cream — header/footer chrome + hero text */
+  --trec-bg: #E5E2D8;         /* page body background (warm grey) */
+  --trec-paper: #FFFDF9;      /* cards / surfaces (warm off-white) */
+  --trec-paper-2: #FBF9F3;    /* sunken surfaces (sidebars, table head) */
+  --trec-ink: #1A2420;        /* primary text */
+  --trec-muted: #6f7a72;      /* secondary text */
+  --trec-faint: #8a7f6c;      /* labels on cream */
+  --trec-border: #e6e0d3;     /* hairline on cream */
+  --trec-border-2: #f1ece1;   /* row dividers */
+
+  /* Type */
+  --font-display: "Fraunces", Georgia, serif;
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  /* Spacing (4px base; doubles above --sp-4) */
+  --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px; --sp-4: 16px;
+  --sp-5: 24px; --sp-6: 32px; --sp-7: 48px; --sp-8: 64px;
+
+  /* Radius */
+  --r-sm: 8px;  --r-md: 14px; --r-pill: 999px;
+
+  /* Shadow */
+  --shadow-1: 0 6px 18px rgba(20,40,32,.06);
+  --shadow-2: 0 18px 40px rgba(20,40,32,.10);
+
+  /* Re-point Bootstrap's "success" semantic to brand green so existing
+     text-success / bg-success utilities match the palette. (Button variants
+     need their own --bs-btn-* overrides — see .btn-success in components.) */
+  --bs-success: #0E4D3C;
+  --bs-success-rgb: 14, 77, 60;
+}

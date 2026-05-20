@@ -43,7 +43,10 @@ def make_breadcrumb(sample, station_name, parent_id):
     items = []
     if station_name:
         items.append(html.Li(
-            html.A(f"📍 {station_name}", href="/data",
+            html.A([html.I(className="bi bi-geo-alt-fill me-1",
+                           style={"color": "#D9714E"}),
+                    station_name],
+                   href="/data-portal",
                    className="text-decoration-none"),
             className="breadcrumb-item"))
     if parent_id:
@@ -59,7 +62,7 @@ def make_breadcrumb(sample, station_name, parent_id):
 
 
 def make_metadata_table(label, rows):
-    """Build a labeled metadata table."""
+    """Build a labeled metadata table inside a card."""
     return html.Div([
         html.H6(label, className="text-muted mb-2"),
         dbc.Table([
@@ -71,8 +74,9 @@ def make_metadata_table(label, rows):
                 ])
                 for k, v in rows if v
             ])
-        ], borderless=True, size="sm"),
-    ], className="mb-3")
+        ], borderless=True, size="sm", className="mb-0",
+            style={"--bs-table-bg": "transparent"}),
+    ], className="trec-card p-3 mb-3")
 
 
 def get_field(custom_fields, name):
@@ -121,8 +125,8 @@ def build_detail_page(sample_id):
     # --- Sample identity ---
     badges = []
     if sample.get("analysis_type"):
-        badges.append(dbc.Badge(sample["analysis_type"], color="success",
-                                className="me-1"))
+        badges.append(html.Span(sample["analysis_type"],
+                                className="trec-badge trec-badge-available me-1"))
     protocol = get_field(cf, "protocol label")
     if protocol:
         badges.append(dbc.Badge(f"{protocol} protocol", color="info",
@@ -218,8 +222,8 @@ def build_detail_page(sample_id):
                 for d in derived_results
             ]
             derived_section = html.Div([
-                html.H6(f"Derived Samples ({len(derived_results)})",
-                        className="text-muted mb-2"),
+                html.H5(f"Derived Samples ({len(derived_results)})",
+                        className="fs-6 fw-semibold text-muted mb-2"),
                 dbc.Table([
                     html.Thead(html.Tr([
                         html.Th("BioSample ID", className="small"),
@@ -227,8 +231,9 @@ def build_detail_page(sample_id):
                         html.Th("Organism", className="small"),
                     ])),
                     html.Tbody(derived_rows),
-                ], striped=True, hover=True, bordered=True, size="sm"),
-            ], className="mb-3")
+                ], striped=True, hover=True, bordered=True, size="sm",
+                    className="mb-0"),
+            ], className="trec-card p-3 mb-3")
 
     # --- Left column ---
     left_col = dbc.Col([identity, env_table, collection_table,
@@ -251,7 +256,7 @@ def build_detail_page(sample_id):
     # BioSamples link
     linked_cards.append(dbc.Card(dbc.CardBody(dbc.Row([
         dbc.Col([
-            html.H6("BioSamples", className="mb-0"),
+            html.H5("BioSamples", className="mb-0 fs-6"),
             html.Small("Original record at EBI", className="text-muted"),
         ]),
         dbc.Col(
@@ -261,7 +266,7 @@ def build_detail_page(sample_id):
                        external_link=True, target="_blank"),
             width="auto", className="d-flex align-items-center",
         ),
-    ])), className="mb-2"))
+    ])), className="trec-card mb-2"))
 
     # BioImage Archive
     zarr_url = None
@@ -281,7 +286,7 @@ def build_detail_page(sample_id):
         linked_cards.append(dbc.Card(dbc.CardBody([
             dbc.Row([
                 dbc.Col([
-                    html.H6("BioImage Archive", className="mb-0"),
+                    html.H5("BioImage Archive", className="mb-0 fs-6"),
                     html.Small("Microscopy images available", className="text-muted"),
                 ]),
                 dbc.Col(
@@ -290,28 +295,34 @@ def build_detail_page(sample_id):
                     width="auto", className="d-flex align-items-center",
                 ),
             ]),
-            html.Iframe(
-                src=viewer_url,
-                title="Sample imaging viewer",
-                className="mt-2",
-                style={"width": "100%", "height": "160px", "border": "none",
-                       "borderRadius": "4px", "background": "#1a1a2e"},
+            html.Div(
+                [
+                    html.Div("Imaging", className="text-uppercase small fw-bold text-muted mb-2"),
+                    html.Iframe(
+                        src=viewer_url,
+                        title="Sample imaging viewer",
+                        className="mt-2",
+                        style={"width": "100%", "height": "160px", "border": "none",
+                               "borderRadius": "4px", "background": "#1a1a2e"},
+                    ),
+                ],
+                className="trec-card p-3 mb-3 mt-2",
             ),
-        ]), className="mb-2 bg-warning bg-opacity-10"))
+        ]), className="trec-card mb-2"))
     elif sample.get("has_images") == "Yes":
         linked_cards.append(dbc.Card(dbc.CardBody(dbc.Row([
             dbc.Col([
-                html.H6("BioImage Archive", className="mb-0"),
+                html.H5("BioImage Archive", className="mb-0 fs-6"),
                 html.Small("Images available", className="text-muted"),
             ]),
-        ])), className="mb-2"))
+        ])), className="trec-card mb-2"))
 
     # ENA
     ena_accession = sample.get("ena_accession")
     if sample.get("has_ena_data") and ena_accession:
         linked_cards.append(dbc.Card(dbc.CardBody(dbc.Row([
             dbc.Col([
-                html.H6("ENA", className="mb-0"),
+                html.H5("ENA", className="mb-0 fs-6"),
                 html.Small("Sequence data", className="text-muted"),
             ]),
             dbc.Col(
@@ -321,19 +332,19 @@ def build_detail_page(sample_id):
                            external_link=True, target="_blank"),
                 width="auto", className="d-flex align-items-center",
             ),
-        ])), className="mb-2"))
+        ])), className="trec-card mb-2"))
     else:
         linked_cards.append(dbc.Card(dbc.CardBody(dbc.Row([
             dbc.Col([
-                html.H6("ENA", className="mb-0"),
+                html.H5("ENA", className="mb-0 fs-6"),
                 html.Small("Sequence data (coming soon)",
                            className="text-muted"),
             ]),
             dbc.Col(
-                dbc.Badge("Pending", color="secondary"),
+                html.Span("Pending", className="trec-badge trec-badge-count"),
                 width="auto", className="d-flex align-items-center",
             ),
-        ])), className="mb-2"))
+        ])), className="trec-card mb-2"))
 
     # QC control relationship
     control_id = sample.get("control_sample_id")
@@ -355,13 +366,13 @@ def build_detail_page(sample_id):
                   for cid in controlled_ids],
             ]))
         linked_cards.append(dbc.Card(dbc.CardBody([
-            html.H6("Quality Control", className="mb-1"),
+            html.H5("Quality Control", className="mb-1 fs-6"),
             *qc_content,
-        ]), className="mb-2"))
+        ]), className="trec-card mb-2"))
 
     right_col = dbc.Col([
         html.Div([
-            html.H6("Linked Data", className="text-muted mb-2"),
+            html.H5("Linked Data", className="text-muted mb-2 fs-6"),
             map_section,
             *linked_cards,
         ]),

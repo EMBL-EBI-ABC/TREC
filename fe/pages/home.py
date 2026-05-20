@@ -1,7 +1,7 @@
 import dash
 import dash_bootstrap_components as dbc
 import requests
-from dash import html
+from dash import html, dcc
 
 from api_config import API_BASE_URL
 
@@ -11,9 +11,6 @@ dash.register_page(
     path="/"
 )
 
-BACKGROUND_URL = (
-    "https://www.embl.org/about/info/trec/wp-content/uploads/2022/02/"
-    "TREC-web-banner.jpg")
 
 def _fetch_stats():
     try:
@@ -32,119 +29,77 @@ def _fmt(val):
 
 
 def _hero():
-    card = dbc.Card(
-        dbc.CardBody(
+    return html.Div(
+        [
+        html.Div(
             [
-                html.H1(
-                    "TREC Data Portal",
-                    className="display-4 fw-bold mb-2",
-                    style={"color": "#1d3a2e"},
-                ),
+                html.Span(className="orb orb-1"),
+                html.Span(className="orb orb-2"),
+                html.Span(className="orb orb-3"),
+                html.Span(className="orb orb-4"),
+                html.Span(className="orb orb-5"),
+            ],
+            className="home-hero-decor",
+            **{"aria-hidden": "true"},
+        ),
+        html.Div(
+            [
+                html.Div("Traversing European Coastlines", className="eyebrow"),
+                html.H1("The molecular pulse of Europe's coastlines."),
                 html.P(
-                    "Traversing European Coastlines",
-                    className="lead mb-2",
+                    "Explore biodiversity and molecular adaptation across "
+                    "European coastal ecosystems — from molecules to whole "
+                    "communities.",
+                    className="lead",
                 ),
-                html.P(
-                    "Exploring coastal ecosystem biodiversity from "
-                    "molecules to communities.",
-                    className="text-muted mb-0 small",
+                html.Div(
+                    [
+                        dcc.Link(
+                            [html.Span("Explore the data"),
+                             html.Span(" →", **{"aria-hidden": "true"})],
+                            href="/data-portal",
+                            className="btn trec-btn-primary me-2"),
+                        dcc.Link("About TREC", href="/about",
+                                 className="btn trec-btn-ghost"),
+                    ],
+                    className="mt-4",
                 ),
             ],
-            className="p-4 p-md-5 text-center",
+            className="home-hero-inner",
         ),
-        className="shadow rounded border-0",
-        style={"backgroundColor": "rgba(255,255,255,0.95)"},
-    )
-    return html.Div(
-        dbc.Container(
-            dbc.Row(
-                dbc.Col(card, xs=12, md=8, lg=6),
-                className="justify-content-center w-100 g-0",
-            ),
-        ),
-        style={
-            "backgroundImage": f"url({BACKGROUND_URL})",
-            "backgroundPosition": "center",
-            "backgroundRepeat": "no-repeat",
-            "backgroundSize": "cover",
-            "height": "min(18em, 35vh)",
-            "width": "100%",
-            "display": "flex",
-            "alignItems": "center",
-            "justifyContent": "center",
-        },
-    )
-
-
-def _stat_card(label, value, icon):
-    return dbc.Col(
-        dbc.Card(
-            dbc.CardBody(
-                [
-                    html.I(
-                        className=(
-                            f"bi {icon} text-success fs-4 d-block mb-1"
-                        ),
-                    ),
-                    html.Div(
-                        _fmt(value),
-                        className="lh-1 mb-1",
-                        style={
-                            "fontSize": "1.75rem",
-                            "fontWeight": 700,
-                            "whiteSpace": "nowrap",
-                        },
-                    ),
-                    html.Div(
-                        label,
-                        className=(
-                            "text-uppercase text-muted small fw-semibold"
-                        ),
-                        style={"whiteSpace": "nowrap"},
-                    ),
-                ],
-                className="py-2 px-3",
-            ),
-            className=(
-                "shadow-sm border-0 border-start border-3 border-success"
-            ),
-            style={"height": "110px"},
-        ),
-        xs=6, md=4, lg=2,
+        ],
+        className="home-hero",
     )
 
 
 def _stats_section():
     stats_data = _fetch_stats()
     items = [
-        ("Stations", stats_data.get("total_stations"), "bi-geo-alt-fill"),
-        ("Countries", stats_data.get("total_countries"),
-         "bi-globe-europe-africa"),
-        ("Source Samples", stats_data.get("total_source_samples"),
-         "bi-droplet-fill"),
-        ("Total Samples", stats_data.get("total_samples"),
-         "bi-collection-fill"),
-        ("With Imaging", stats_data.get("total_with_images"),
-         "bi-camera-fill"),
-        ("With ENA Data", stats_data.get("total_with_ena"), "bi-dna"),
+        ("Stations", stats_data.get("total_stations")),
+        ("Countries", stats_data.get("total_countries")),
+        ("Source Samples", stats_data.get("total_source_samples")),
+        ("Total Samples", stats_data.get("total_samples")),
+        ("With Imaging", stats_data.get("total_with_images")),
+        ("With ENA Data", stats_data.get("total_with_ena")),
     ]
-    return dbc.Container(
-        [
-            html.Div(
-                [
-                    html.H3(
-                        "The scale of the TREC dataset",
-                        className="text-center fw-bold mb-2",
+    return html.Div(
+        dbc.Row(
+            [
+                dbc.Col(
+                    html.Div(
+                        [
+                            html.Div(_fmt(val), className="n"),
+                            html.Div(label, className="l"),
+                        ],
+                        className="home-stat",
                     ),
-                ],
-                className="mt-4",
-            ),
-            dbc.Row(
-                [_stat_card(label, val, icon)
-                 for label, val, icon in items],
-                className="g-3 mb-4",
-            ),
-        ],
+                    xs=6, md=4, lg=2,
+                )
+                for label, val in items
+            ],
+            className="g-0",
+        ),
+        className="home-stats",
     )
 
 
@@ -154,18 +109,13 @@ def _nav_card(icon, title, description, href):
             dbc.Card(
                 dbc.CardBody(
                     [
-                        html.I(
-                            className=(
-                                f"bi {icon} text-success fs-1 d-block mb-3"
-                            ),
-                        ),
+                        html.I(className=f"bi {icon} ico d-block"),
                         html.H4(title, className="card-title"),
                         html.P(description, className="card-text text-muted"),
                     ],
                     className="p-4",
                 ),
-                className="shadow-sm h-100 border-0",
-                style={"cursor": "pointer"},
+                className="home-navcard",
             ),
             href=href,
             className="text-decoration-none text-reset",
@@ -176,39 +126,43 @@ def _nav_card(icon, title, description, href):
 
 def _nav_section():
     return dbc.Container(
-        dbc.Row(
-            [
-                _nav_card(
-                    "bi-map",
-                    "Data Portal",
-                    "Explore TREC sampling stations on an interactive map; "
-                    "search and filter samples by environment, organism, "
-                    "and analysis type.",
-                    "/data",
-                ),
-                _nav_card(
-                    "bi-grid-3x3",
-                    "Data Availability",
-                    "See which data types are available at each station — "
-                    "metagenomics, metabolomics, imaging, and more.",
-                    "/availability",
-                ),
-                _nav_card(
-                    "bi-code-slash",
-                    "API Documentation",
-                    "Access TREC data programmatically through our REST API.",
-                    "/api",
-                ),
-                _nav_card(
-                    "bi-info-circle",
-                    "About",
-                    "Learn about the TREC expedition and its mission to "
-                    "explore coastal ecosystems across Europe.",
-                    "/about",
-                ),
-            ],
-            className="g-4 mb-5",
-        ),
+        [
+            html.H2("Explore the portal", className="mb-4"),
+            dbc.Row(
+                [
+                    _nav_card(
+                        "bi-map",
+                        "Data Portal",
+                        "Explore TREC sampling stations on an interactive map; "
+                        "search and filter samples by environment, organism, "
+                        "and analysis type.",
+                        "/data-portal",
+                    ),
+                    _nav_card(
+                        "bi-grid-3x3",
+                        "Data Availability",
+                        "See which data types are available at each station — "
+                        "metagenomics, metabolomics, imaging, and more.",
+                        "/availability",
+                    ),
+                    _nav_card(
+                        "bi-code-slash",
+                        "API Documentation",
+                        "Access TREC data programmatically through our REST API.",
+                        "/api",
+                    ),
+                    _nav_card(
+                        "bi-info-circle",
+                        "About",
+                        "Learn about the TREC expedition and its mission to "
+                        "explore coastal ecosystems across Europe.",
+                        "/about",
+                    ),
+                ],
+                className="g-4 mb-5",
+            ),
+        ],
+        className="trec-page",
     )
 
 

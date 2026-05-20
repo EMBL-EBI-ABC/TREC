@@ -12,7 +12,7 @@ from api_config import API_BASE_URL
 
 dash.register_page(
     __name__,
-    path="/data",
+    path="/data-portal",
     title="Data Portal",
 )
 
@@ -31,6 +31,26 @@ def _badge_count(n):
     if not n:
         return _muted_dash()
     return f"<span class='trec-badge trec-badge-count'>{n}</span>"
+
+
+# Distinct colour per analysis type (harmonised with the map legend palette).
+ANALYSIS_COLORS = {
+    "Genomics": "#2f7fa6",      # blue
+    "Metagenomics": "#0E4D3C",  # brand green
+    "Metabolomics": "#D9714E",  # coral
+    "Imaging": "#c08a3e",       # amber
+    "Ions": "#3a8f7d",          # teal
+}
+
+
+def _analysis_badge(t):
+    """A soft pill tinted with the analysis type's own colour."""
+    c = ANALYSIS_COLORS.get(t, "#6f7a72")
+    return html.Span(
+        t, className="trec-badge me-1",
+        style={"backgroundColor": f"{c}1f", "color": c,
+               "border": f"1px solid {c}3d"},
+    )
 
 
 def make_stats_banner():
@@ -109,7 +129,7 @@ def make_filters_sidebar():
             n_clicks=0,
         ),
         dbc.Collapse(filter_content, id="filters-collapse", is_open=True),
-    ], className="p-3 border-end h-100")
+    ], className="portal-sidebar")
 
 
 layout = dbc.Container([
@@ -120,8 +140,8 @@ layout = dbc.Container([
         # Left: filters sidebar
         dbc.Col(
             make_filters_sidebar(),
-            xs=12, md=2,
-            className="pe-0",
+            xs=12, md=3,
+            className="pe-3",
         ),
         # Right: search + map + station detail
         dbc.Col([
@@ -187,9 +207,9 @@ layout = dbc.Container([
                 className="justify-content-end mt-2",
                 style={"display": "none"},
             ),
-        ], xs=12, md=10),
+        ], xs=12, md=9),
     ], className="mt-2"),
-])
+], className="trec-page")
 
 
 # --- Callbacks ---
@@ -205,23 +225,20 @@ def load_stats(_):
     except Exception:
         return []
     stats = [
-        ("Stations", resp.get("total_stations", 0), "bi-geo-alt-fill"),
-        ("Countries", resp.get("total_countries", 0), "bi-globe-europe-africa"),
-        ("Source Samples", resp.get("total_source_samples", 0), "bi-droplet-fill"),
-        ("Total Samples", resp.get("total_samples", 0), "bi-collection-fill"),
+        ("Stations", resp.get("total_stations", 0), "bi-geo-alt"),
+        ("Countries", resp.get("total_countries", 0), "bi-globe2"),
+        ("Source Samples", resp.get("total_source_samples", 0), "bi-droplet"),
+        ("Total Samples", resp.get("total_samples", 0), "bi-layers"),
     ]
     return [
         dbc.Col(
             dbc.Card(
                 dbc.CardBody([
-                    html.I(className=f"bi {icon} text-success fs-5 d-block stat-icon"),
+                    html.I(className=f"bi {icon} fs-5 d-block stat-icon"),
                     html.Div(f"{val:,}", className="stat-number"),
                     html.Div(label, className="text-uppercase text-muted small fw-semibold stat-label"),
                 ], className="py-2 px-3"),
-                className=(
-                    "stat-card shadow-sm h-100 border-0 border-start "
-                    "border-3 border-success"
-                ),
+                className="stat-card h-100",
             ),
             xs=6, md=3,
         )
@@ -447,33 +464,32 @@ def load_map_and_filters(_, colour_by, env_type, organism, analysis_type,
 
     # Colour logic
     COLOUR_MAPS = {
-        "environment_type": {"marine": "#3498db", "soil": "#e67e22",
-                              "aerosol": "#9b59b6"},
-        "analysis_type": {"Metagenomics": "#2ecc71", "Metabolomics": "#e74c3c",
-                          "Imaging": "#f39c12", "Ions": "#1abc9c"},
+        "environment_type": {"marine": "#2f7fa6", "soil": "#c08a3e",
+                              "aerosol": "#7a6f9b"},
+        "analysis_type": {"Metagenomics": "#0E4D3C", "Metabolomics": "#D9714E",
+                          "Imaging": "#c08a3e", "Ions": "#3a8f7d"},
     }
-
     LABELS = {
-        "none": {"#2c7a5c": "Stations", "#cccccc": "No matching samples"},
-        "has_images": {"#f39c12": "Has images", "#95a5a6": "No images",
-                       "#cccccc": "No matching samples"},
-        "environment_type": {"#3498db": "Marine", "#e67e22": "Soil",
-                             "#9b59b6": "Aerosol", "#95a5a6": "Unknown",
-                             "#cccccc": "No matching samples"},
-        "analysis_type": {"#2ecc71": "Metagenomics", "#e74c3c": "Metabolomics",
-                          "#f39c12": "Imaging", "#1abc9c": "Ions",
-                          "#95a5a6": "Unknown", "#cccccc": "No matching samples"},
+        "none": {"#0E4D3C": "Stations", "#cfc6b4": "No matching samples"},
+        "has_images": {"#D9714E": "Has images", "#9aa89f": "No images",
+                       "#cfc6b4": "No matching samples"},
+        "environment_type": {"#2f7fa6": "Marine", "#c08a3e": "Soil",
+                             "#7a6f9b": "Aerosol", "#9aa89f": "Unknown",
+                             "#cfc6b4": "No matching samples"},
+        "analysis_type": {"#0E4D3C": "Metagenomics", "#D9714E": "Metabolomics",
+                          "#c08a3e": "Imaging", "#3a8f7d": "Ions",
+                          "#9aa89f": "Unknown", "#cfc6b4": "No matching samples"},
     }
 
     def get_colour(station):
         # Grey out stations with no matching samples when filters are active
         if active_station_names is not None:
             if station["station_name"] not in active_station_names:
-                return "#cccccc"
+                return "#cfc6b4"
         if colour_by == "none":
-            return "#2c7a5c"
+            return "#0E4D3C"
         if colour_by == "has_images":
-            return "#f39c12" if station.get("has_images") else "#95a5a6"
+            return "#D9714E" if station.get("has_images") else "#9aa89f"
         if colour_by in COLOUR_MAPS:
             counts = station.get(
                 "analysis_type_counts" if colour_by == "analysis_type"
@@ -481,8 +497,8 @@ def load_map_and_filters(_, colour_by, env_type, organism, analysis_type,
             )
             if counts:
                 dominant = max(counts, key=counts.get)
-                return COLOUR_MAPS[colour_by].get(dominant, "#95a5a6")
-        return "#95a5a6"
+                return COLOUR_MAPS[colour_by].get(dominant, "#9aa89f")
+        return "#9aa89f"
 
     lats = [s["lat"] for s in stations]
     lons = [s["lon"] for s in stations]
@@ -542,7 +558,7 @@ def load_map_and_filters(_, colour_by, env_type, organism, analysis_type,
                 lat=[sel["lat"]],
                 lon=[sel["lon"]],
                 mode="markers",
-                marker=dict(size=22, color="#FFD700", opacity=1.0),
+                marker=dict(size=24, color="#0E4D3C", opacity=1.0),
                 text=[sel["station_name"]],
                 hovertext=[
                     f"{sel['station_name']}<br>"
@@ -555,17 +571,21 @@ def load_map_and_filters(_, colour_by, env_type, organism, analysis_type,
             ))
 
     fig.update_layout(
-        map=dict(style="open-street-map",
+        map=dict(style="carto-positron",
                  center=dict(lat=43, lon=10), zoom=3.5),
-        margin=dict(l=0, r=0, t=0, b=70),
+        margin=dict(l=0, r=0, t=0, b=0),
+        paper_bgcolor="#E5E2D8",
+        plot_bgcolor="#E5E2D8",
         showlegend=colour_by != "none" or bool(selected_station),
+        # Overlay the legend inside the map (bottom-centre) so there's no
+        # empty reserved band below the map when the legend is hidden.
         legend=dict(
-            bgcolor="rgba(255,255,255,0.8)",
-            bordercolor="#ccc",
+            bgcolor="rgba(247,244,236,0.9)",
+            bordercolor="#e6e0d3",
             borderwidth=1,
             orientation="h",
-            yanchor="top",
-            y=-0.05,
+            yanchor="bottom",
+            y=0.02,
             xanchor="center",
             x=0.5,
         ),
@@ -643,21 +663,25 @@ def initialize_from_url(search):
                 None, 1, 1, hide_pagination)
     summary = dbc.Card(
         dbc.CardBody([
-            html.H5(f"📍 {detail['station_name']}", className="mb-0"),
+            html.H5([
+                html.I(className="bi bi-geo-alt-fill me-2",
+                       style={"color": "#D9714E"}),
+                detail["station_name"],
+            ], className="mb-0"),
             html.Small(detail.get("country") or "", className="text-muted"),
             html.Div([
                 html.Span(str(detail["source_sample_count"]),
-                          className="fw-bold text-success"),
+                          className="count"),
                 html.Small(" source", className="text-muted"),
                 html.Span(" / ", className="text-muted mx-1"),
                 html.Span(str(detail["sample_count"]),
-                          className="fw-bold text-success"),
+                          className="count"),
                 html.Small(" total samples", className="text-muted me-3"),
-                *[dbc.Badge(t, color="success", className="me-1")
+                *[_analysis_badge(t)
                   for t in detail.get("analysis_types", [])],
             ], className="mt-2"),
         ]),
-        className="mt-3 mb-2 bg-success bg-opacity-10",
+        className="station-panel-card mt-3 mb-2 p-1",
     )
     max_pages = max(1, (detail["source_sample_count"] + 9) // 10)
     return (summary, station_name, max_pages, 1,
@@ -699,24 +723,28 @@ def show_station_panel(click_data):
     # --- Summary ---
     summary = dbc.Card(
         dbc.CardBody([
-            html.H5(f"📍 {detail['station_name']}", className="mb-0"),
+            html.H5([
+                html.I(className="bi bi-geo-alt-fill me-2",
+                       style={"color": "#D9714E"}),
+                detail["station_name"],
+            ], className="mb-0"),
             html.Small(
                 detail.get("country") or "",
                 className="text-muted",
             ),
             html.Div([
                 html.Span(str(detail["source_sample_count"]),
-                          className="fw-bold text-success"),
+                          className="count"),
                 html.Small(" source", className="text-muted"),
                 html.Span(" / ", className="text-muted mx-1"),
                 html.Span(str(detail["sample_count"]),
-                          className="fw-bold text-success"),
+                          className="count"),
                 html.Small(" total samples", className="text-muted me-3"),
-                *[dbc.Badge(t, color="success", className="me-1")
+                *[_analysis_badge(t)
                   for t in detail.get("analysis_types", [])],
             ], className="mt-2"),
         ]),
-        className="mt-3 mb-2 bg-success bg-opacity-10",
+        className="station-panel-card mt-3 mb-2 p-1",
     )
 
     max_pages = max(1, (detail["source_sample_count"] + 9) // 10)
@@ -861,27 +889,34 @@ def load_samples_page(page, station_name, protocol, env_type, organism,
                 "padding": "10px 14px",
                 "fontFamily": "inherit",
                 "border": "none",
-                "borderBottom": "1px solid #eef2f0",
+                "borderBottom": "1px solid #f1ece1",
+                "overflow": "visible",
+                "textOverflow": "clip",
             },
+            style_cell_conditional=[
+                {"if": {"column_id": "biosampleId"},
+                 "minWidth": "160px", "width": "160px"},
+                {"if": {"column_id": "organism"}, "minWidth": "240px"},
+            ],
             style_header={
                 "fontWeight": "600",
                 "fontSize": "12px",
                 "textTransform": "uppercase",
                 "letterSpacing": "0.04em",
-                "color": "#1d3a2e",
-                "backgroundColor": "rgba(29, 94, 74, 0.06)",
-                "borderBottom": "1px solid #d6e3df",
+                "color": "#0E4D3C",
+                "backgroundColor": "#FBF9F3",
+                "borderBottom": "1px solid #e6e0d3",
                 "padding": "10px 14px 10px 18px",
             },
             style_data_conditional=[
                 {"if": {"row_index": "odd"},
-                 "backgroundColor": "rgba(29, 94, 74, 0.025)"},
+                 "backgroundColor": "rgba(14, 77, 60, 0.025)"},
                 {"if": {"state": "active"},
-                 "backgroundColor": "rgba(29, 94, 74, 0.10)",
-                 "border": "1px solid rgba(29, 94, 74, 0.20)"},
+                 "backgroundColor": "rgba(14, 77, 60, 0.10)",
+                 "border": "1px solid rgba(14, 77, 60, 0.20)"},
                 {"if": {"state": "selected"},
-                 "backgroundColor": "rgba(29, 94, 74, 0.10)",
-                 "border": "1px solid rgba(29, 94, 74, 0.20)"},
+                 "backgroundColor": "rgba(14, 77, 60, 0.10)",
+                 "border": "1px solid rgba(14, 77, 60, 0.20)"},
                 {"if": {"column_id": ["has_images", "has_ena"]},
                  "textAlign": "center"},
             ],
@@ -895,13 +930,17 @@ def load_samples_page(page, station_name, protocol, env_type, organism,
                 {"selector": ".dash-cell p", "rule": "margin: 0;"},
                 {"selector": ".dash-header p", "rule": "margin: 0;"},
                 {"selector": ".dash-cell a",
-                 "rule": "text-decoration: none; color: #1d5e4a; "
-                         "border-bottom: 1px solid transparent; "
-                         "transition: color .15s, border-color .15s;"},
+                 "rule": "color: #0E4D3C; font-weight: 600; "
+                         "text-decoration: underline; "
+                         "text-decoration-color: rgba(14,77,60,0.45); "
+                         "text-underline-offset: 2px; "
+                         "transition: color .15s, "
+                         "text-decoration-color .15s;"},
                 {"selector": ".dash-cell a:hover",
-                 "rule": "color: #14463a; border-bottom-color: #1d5e4a;"},
+                 "rule": "color: #0a3a2d; "
+                         "text-decoration-color: #D9714E;"},
                 {"selector": ".dash-spreadsheet-inner tr:hover td.dash-cell",
-                 "rule": "background-color: rgba(29, 94, 74, 0.08) "
+                 "rule": "background-color: rgba(14, 77, 60, 0.08) "
                          "!important;"},
                 {"selector": ".dash-header .column-header-name",
                  "rule": "vertical-align: middle; "
@@ -966,10 +1005,11 @@ def build_active_filters_bar(env_type, organism, analysis_type, country,
     if selected_station:
         badges.append(
             dbc.Badge(
-                [f"📍 {selected_station} ✕"],
+                [html.I(className="bi bi-geo-alt-fill me-1"),
+                 f"{selected_station} ✕"],
                 id={"type": "filter-badge", "filter": "selected-station",
                     "value": selected_station},
-                color="primary",
+                color="success",
                 className="me-1 mb-1 small",
                 style={"cursor": "pointer"},
             )

@@ -16,14 +16,17 @@ PAGE_SIZE = 10
 
 def available_cell():
     return html.Td(
-        dbc.Badge("✓", color="success", className="small"),
+        html.Span(
+            html.Span("✓", className="trec-badge-glyph"),
+            className="trec-badge trec-badge-available",
+        ),
         className="text-center",
     )
 
 
 def unavailable_cell():
     return html.Td(
-        html.Span("—", className="text-muted small"),
+        html.Span("—", className="text-muted small trec-muted-dash"),
         className="text-center",
     )
 
@@ -77,7 +80,10 @@ layout = dbc.Container([
     dbc.Row([
         dbc.Col([
             html.Div([
-                dbc.Badge("✓", color="success", className="small"),
+                html.Span(
+                    html.Span("✓", className="trec-badge-glyph"),
+                    className="trec-badge trec-badge-available",
+                ),
                 html.Span("Available", className="small text-muted"),
             ], className="d-flex align-items-center",
                 style={"gap": "0.45rem"}),
@@ -100,7 +106,7 @@ layout = dbc.Container([
             ),
         ),
     ], className="mt-2 mb-3"),
-])
+], className="trec-page")
 
 
 @callback(
@@ -183,7 +189,7 @@ def build_matrix(search_value, page, sort_state):
         cells = [
             html.Td(
                 html.A(station["station_name"],
-                       href=f"/data?station={quote(station['station_name'])}"),
+                       href=f"/data-portal?station={quote(station['station_name'])}"),
                 className="small",
             ),
             html.Td(station.get("country") or "", className="small"),

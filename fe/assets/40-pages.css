@@ -1,0 +1,109 @@
+/* ===== Home hero ===== */
+.home-hero {
+  position: relative; overflow: hidden;
+  background: radial-gradient(120% 140% at 80% -20%, var(--trec-green-deep) 0%, var(--trec-green) 55%, var(--trec-green-dark) 100%);
+  color: var(--trec-canvas);
+  padding: var(--sp-8) var(--sp-5);
+}
+.home-hero .eyebrow {
+  font-size: .75rem; letter-spacing: .28em; text-transform: uppercase;
+  color: #9fd3c0; margin-bottom: var(--sp-4);
+}
+.home-hero h1 { color: var(--trec-canvas); font-size: clamp(2.2rem, 5vw, 3.4rem); line-height: 1.04; max-width: 18ch; margin-bottom: var(--sp-4); }
+.home-hero p.lead { color: #cfe3da; max-width: 46ch; font-size: 1.05rem; }
+.home-hero-inner { position: relative; z-index: 1; }
+
+/* ===== Decorative floating orbs ===== */
+.home-hero-decor {
+  position: absolute; inset: 0; overflow: hidden;
+  pointer-events: none; z-index: 0;
+}
+.home-hero .orb { position: absolute; border-radius: 50%; will-change: transform; }
+/* large coral teardrop, bottom-right (the original accent) */
+.home-hero .orb-1 {
+  width: 360px; height: 360px; right: -70px; bottom: -130px;
+  background: rgba(217,113,78,.18); border-radius: 50% 50% 50% 0;
+  animation: orb-drift-1 6s ease-in-out infinite;
+}
+.home-hero .orb-2 {
+  width: 230px; height: 230px; right: 15%; top: -90px;
+  background: rgba(159,211,192,.16);
+  animation: orb-drift-2 7s ease-in-out infinite;
+}
+.home-hero .orb-3 {
+  width: 150px; height: 150px; left: 7%; bottom: -55px;
+  background: rgba(217,113,78,.13);
+  animation: orb-drift-3 4.5s ease-in-out infinite;
+}
+.home-hero .orb-4 {
+  width: 90px; height: 90px; right: 40%; bottom: 26%;
+  background: rgba(255,255,255,.10);
+  animation: orb-drift-4 6s ease-in-out infinite;
+}
+.home-hero .orb-5 {
+  width: 56px; height: 56px; left: 30%; top: 18%;
+  background: rgba(159,211,192,.12);
+  animation: orb-drift-5 5s ease-in-out infinite;
+}
+
+@keyframes orb-drift-1 {
+  0%, 100% { transform: rotate(-30deg) translate(0, 0); }
+  50%      { transform: rotate(-30deg) translate(-28px, -22px); }
+}
+@keyframes orb-drift-2 {
+  0%, 100% { transform: translate(0, 0); }
+  50%      { transform: translate(26px, 30px); }
+}
+@keyframes orb-drift-3 {
+  0%, 100% { transform: translate(0, 0); }
+  50%      { transform: translate(20px, -24px); }
+}
+@keyframes orb-drift-4 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50%      { transform: translate(-16px, 18px) scale(1.18); }
+}
+@keyframes orb-drift-5 {
+  0%, 100% { transform: translate(0, 0); }
+  50%      { transform: translate(14px, 22px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-hero .orb { animation: none; }
+}
+
+/* ===== Home stat strip ===== */
+.home-stats { background: var(--trec-green-dark); }
+.home-stat { padding: var(--sp-5); border-right: 1px solid rgba(255,255,255,.08); }
+.home-stats .g-0 > [class*="col"]:last-child .home-stat { border-right: none; }
+.home-stat .n { font-family: var(--font-mono); font-size: 1.9rem; font-weight: 600; color: #fff; line-height: 1; }
+.home-stat .l { font-size: .72rem; letter-spacing: .12em; text-transform: uppercase; color: #9fd3c0; margin-top: var(--sp-2); }
+
+/* ===== Home nav cards ===== */
+.home-navcard {
+  background: var(--trec-paper); border: 1px solid var(--trec-border);
+  border-radius: var(--r-md); box-shadow: var(--shadow-1); height: 100%;
+  transition: transform .15s, box-shadow .15s;
+}
+.home-navcard:hover { transform: translateY(-3px); box-shadow: var(--shadow-2); }
+.home-navcard .ico { color: var(--trec-coral); font-size: 1.6rem; margin-bottom: var(--sp-3); }
+.home-navcard h4 { font-size: 1.15rem; margin-bottom: var(--sp-2); }
+
+/* ===== Data portal stat banner ===== */
+.stat-card { background: var(--trec-paper); border: 1px solid var(--trec-border) !important; border-radius: var(--r-md); box-shadow: var(--shadow-1); }
+.stat-card .stat-icon { color: var(--trec-coral); margin-bottom: .25rem; line-height: 1; }
+.stat-card .stat-number { font-family: var(--font-mono); font-size: 1.8rem; font-weight: 600; line-height: 1.1; }
+.stat-card .stat-label { margin-top: .125rem; letter-spacing: .03em; }
+
+/* ===== Filters sidebar ===== */
+.portal-sidebar { background: var(--trec-paper-2); border: 1px solid var(--trec-border); border-radius: var(--r-md); padding: var(--sp-5); }
+.portal-sidebar h6 { font-family: var(--font-display); }
+.portal-sidebar .form-label, .portal-sidebar label.fw-bold {
+  font-size: .72rem !important; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--trec-faint); font-weight: 600;
+}
+.portal-sidebar .form-check-label { text-transform: none; letter-spacing: 0; color: var(--trec-ink); font-weight: 400; font-size: .85rem; }
+.portal-sidebar .form-check-input:checked { background-color: var(--trec-green); border-color: var(--trec-green); }
+
+/* ===== Station summary panel ===== */
+.station-panel-card { background: var(--trec-paper); border: 1px solid var(--trec-border); border-left: 4px solid var(--trec-coral); border-radius: var(--r-md); }
+.station-panel-card .count { font-family: var(--font-mono); color: var(--trec-green); font-weight: 600; }
