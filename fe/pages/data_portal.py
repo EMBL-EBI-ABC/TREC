@@ -3,12 +3,11 @@ import requests
 import dash_bootstrap_components as dbc
 from dash import callback, Output, Input, State, html, dcc, dash_table, ALL, ctx
 from urllib.parse import parse_qs, unquote
-# from api_config import API_BASE_URL
+from api_config import API_BASE_URL
 
 # from dotenv import load_dotenv
 # import os
 # load_dotenv()
-API_BASE_URL = "https://trec-be-test-868757013548.europe-west2.run.app"
 # API_BASE_URL = "http://0.0.0.0:8080"
 
 dash.register_page(

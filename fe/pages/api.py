@@ -10,7 +10,7 @@ dash.register_page(
 
 def iframe_layout():
     return html.Iframe(
-        src="https://trec-be-test-868757013548.europe-west2.run.app/redoc",
+        src="https://trec-be-868757013548.europe-west2.run.app/redoc",
         title="TREC API Documentation",
         style={
             "display": "block",
