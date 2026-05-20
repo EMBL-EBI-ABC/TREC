@@ -558,8 +558,15 @@ def load_map_and_filters(_, colour_by, env_type, organism, analysis_type,
                 lat=[sel["lat"]],
                 lon=[sel["lon"]],
                 mode="markers",
-                marker=dict(size=24, color="#0E4D3C", opacity=1.0),
-                text=[sel["station_name"]],
+                marker=dict(size=23, color="white", opacity=1.0),
+                hoverinfo="skip",
+                showlegend=False,
+            ))
+            fig.add_trace(go.Scattermap(
+                lat=[sel["lat"]],
+                lon=[sel["lon"]],
+                mode="markers",
+                marker=dict(size=19, color="#D32F2F", opacity=0.60),
                 hovertext=[
                     f"{sel['station_name']}<br>"
                     f"{sel['sample_count']} samples, "
