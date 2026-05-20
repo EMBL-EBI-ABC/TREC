@@ -4,7 +4,7 @@ import plotly.express as px
 import pandas as pd
 import dash_bootstrap_components as dbc
 from dash import callback, html, Output, Input, dcc
-# from api_config import API_BASE_URL
+from api_config import API_BASE_URL
 
 dash.register_page(
     __name__,
@@ -12,10 +12,9 @@ dash.register_page(
     title="Sample Details",
 )
 
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 import os
-load_dotenv()
-API_BASE_URL = "https://trec-be-test-868757013548.europe-west2.run.app"
+# load_dotenv()
 # API_BASE_URL = "http://0.0.0.0:8080"
 
 BIONGFF_VIEWER_URL = "https://biongff-viewer-868757013548.europe-west2.run.app/"
