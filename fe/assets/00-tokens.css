@@ -16,18 +16,12 @@
   --trec-border: #e6e0d3;     /* hairline on cream */
   --trec-border-2: #f1ece1;   /* row dividers */
 
-  /* Semantic */
-  --surface: var(--trec-paper);
-  --border: var(--trec-border);
-  --link: var(--trec-green);
-  --accent: var(--trec-coral);
-
   /* Type */
   --font-display: "Fraunces", Georgia, serif;
   --font-sans: "Inter", system-ui, -apple-system, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, monospace;
 
-  /* Spacing (8px scale) */
+  /* Spacing (4px base; doubles above --sp-4) */
   --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px; --sp-4: 16px;
   --sp-5: 24px; --sp-6: 32px; --sp-7: 48px; --sp-8: 64px;
 
