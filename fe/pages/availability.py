@@ -80,7 +80,10 @@ layout = dbc.Container([
     dbc.Row([
         dbc.Col([
             html.Div([
-                dbc.Badge("✓", color="success", className="small"),
+                html.Span(
+                    html.Span("✓", className="trec-badge-glyph"),
+                    className="trec-badge trec-badge-available",
+                ),
                 html.Span("Available", className="small text-muted"),
             ], className="d-flex align-items-center",
                 style={"gap": "0.45rem"}),
