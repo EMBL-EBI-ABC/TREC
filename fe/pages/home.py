@@ -30,6 +30,8 @@ def _fmt(val):
 
 def _hero():
     return html.Div(
+        [
+        html.Div(className="blob", **{"aria-hidden": "true"}),
         html.Div(
             [
                 html.Div("Traversing European Coastlines", className="eyebrow"),
@@ -52,6 +54,7 @@ def _hero():
             ],
             className="home-hero-inner",
         ),
+        ],
         className="home-hero",
     )
 
