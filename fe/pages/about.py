@@ -28,15 +28,19 @@ layout = dbc.Container(
                     "You can read more about it ",
                     html.A("here",
                            href="https://www.embl.org/about/info/trec/",
-                           style={"textDecoration": "none"}),
+                           className="text-decoration-none"),
                 ])
             ], md=8),
-            dbc.Col(html.Img(
-                src="https://www.embl.org/about/info/trec/wp-content/uploads/2023/02/"
-                    "20230126_TREC_Tag_RGB-s.jpg",
-                style={"width": "50%"}),
-                md=4)
+            dbc.Col(
+                html.Img(
+                    src="https://www.embl.org/about/info/trec/wp-content/uploads/2023/02/"
+                        "20230126_TREC_Tag_RGB-s.jpg",
+                    className="img-fluid",
+                    alt="TREC expedition logo",
+                ),
+                md=4,
+            ),
         ],
-        style={"marginTop": "35px", "marginBottom": "15px"},
+        className="mt-4 mb-3",
     )
 )
