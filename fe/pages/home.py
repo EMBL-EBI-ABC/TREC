@@ -31,7 +31,17 @@ def _fmt(val):
 def _hero():
     return html.Div(
         [
-        html.Div(className="blob", **{"aria-hidden": "true"}),
+        html.Div(
+            [
+                html.Span(className="orb orb-1"),
+                html.Span(className="orb orb-2"),
+                html.Span(className="orb orb-3"),
+                html.Span(className="orb orb-4"),
+                html.Span(className="orb orb-5"),
+            ],
+            className="home-hero-decor",
+            **{"aria-hidden": "true"},
+        ),
         html.Div(
             [
                 html.Div("Traversing European Coastlines", className="eyebrow"),
