@@ -960,6 +960,23 @@ def load_samples_page(page, station_name, protocol, env_type, organism,
     return table, max_pages, page, pagination_style
 
 
+@callback(
+    Output("selected-station", "data", allow_duplicate=True),
+    Output("url", "search", allow_duplicate=True),
+    Input("protocol-filter", "value"),
+    Input("env-type-filter", "value"),
+    Input("organism-filter", "value"),
+    Input("analysis-type-filter", "value"),
+    Input("country-filter", "value"),
+    Input("source-filter", "value"),
+    Input("linked-data-filter", "value"),
+    prevent_initial_call=True,
+)
+def clear_station_when_filters_change(*_):
+    """Treat sidebar filters as global searches, not station drill-downs."""
+    return None, ""
+
+
 _NON_SORTABLE_COLUMNS = {"has_ena"}
 
 

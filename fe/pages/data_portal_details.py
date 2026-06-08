@@ -1,4 +1,5 @@
 import requests
+from urllib.parse import quote
 import dash
 import plotly.express as px
 import pandas as pd
@@ -19,7 +20,7 @@ import os
 
 BIONGFF_VIEWER_URL = "https://biongff-viewer-868757013548.europe-west2.run.app/"
 S3_BASE = "https://s3.embl.de/live-confocal-trec-super-plankton/"
-PROXY_BASE = f"https://trec-be-test-868757013548.europe-west2.run.app/zarr-proxy"
+PROXY_BASE = "https://trec-be-868757013548.europe-west2.run.app/zarr-proxy"
 
 def build_zarr_proxy_url(file_entry: dict) -> str:
     location = file_entry["acquisition_location"]
@@ -282,7 +283,7 @@ def build_detail_page(sample_id):
             zarr_url = build_zarr_proxy_url(tiles[0])
 
     if sample.get("has_images") == "Yes" and zarr_url:
-        viewer_url = f"{BIONGFF_VIEWER_URL}?source={zarr_url}"
+        viewer_url = f"{BIONGFF_VIEWER_URL}?source={quote(zarr_url, safe=':/')}"
         linked_cards.append(dbc.Card(dbc.CardBody([
             dbc.Row([
                 dbc.Col([

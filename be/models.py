@@ -189,7 +189,7 @@ trec = DataSource(
         FieldDefinition(name="station_name", type=str | None,
                         filterable=True),
         FieldDefinition(name="is_source_sample", type=bool | None),
-        FieldDefinition(name="parent_sample_id", type=str | None),
+        FieldDefinition(name="parent_sample_id", type=str | list[str] | None),
         FieldDefinition(name="derived_sample_ids", type=list[str] | None),
         FieldDefinition(name="control_sample_id", type=str | None),
         FieldDefinition(name="controlled_sample_ids", type=list[str] | None),

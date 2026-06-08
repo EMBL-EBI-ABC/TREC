@@ -300,7 +300,7 @@ def main():
         verify_certs=True,
     )
 
-    index_name = os.getenv("ES_INDEX", "data_portal_development_4")
+    index_name = os.getenv("ES_INDEX", "data_portal_development_5")
 
     print(f"Enriching samples in '{index_name}' index...")
     scroll_resp = es.search(
