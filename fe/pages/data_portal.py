@@ -1,3 +1,6 @@
+import math
+import time
+
 import dash
 import requests
 import dash_bootstrap_components as dbc
@@ -72,6 +75,41 @@ def _bounds_from_coordinates(coordinates):
         "top_left_lon": min(lons),
         "bottom_right_lat": min(lats),
         "bottom_right_lon": max(lons),
+    }
+
+
+def _bounds_from_geotile_key(tile_key):
+    try:
+        z, x, y = [int(part) for part in str(tile_key).split("/")]
+    except ValueError:
+        return None
+
+    n = 2 ** z
+
+    def tile_to_lon(tx):
+        return tx / n * 360.0 - 180.0
+
+    def tile_to_lat(ty):
+        lat_rad = math.atan(math.sinh(math.pi * (1 - 2 * ty / n)))
+        return math.degrees(lat_rad)
+
+    top_left_lat = tile_to_lat(y)
+    bottom_right_lat = tile_to_lat(y + 1)
+    top_left_lon = tile_to_lon(x)
+    bottom_right_lon = tile_to_lon(x + 1)
+    return {
+        "key": tile_key,
+        "zoom": z,
+        "center": {
+            "lat": (top_left_lat + bottom_right_lat) / 2,
+            "lon": (top_left_lon + bottom_right_lon) / 2,
+        },
+        "bounds": {
+            "top_left_lat": top_left_lat,
+            "top_left_lon": top_left_lon,
+            "bottom_right_lat": bottom_right_lat,
+            "bottom_right_lon": bottom_right_lon,
+        },
     }
 
 
@@ -277,6 +315,7 @@ layout = dbc.Container([
             ),
             # Samples table (always in DOM, hidden until station selected)
             dcc.Store(id="selected-station"),
+            dcc.Store(id="map-focus"),
             dcc.Store(id="table-sort-by", data=[]),
             dcc.Store(id="suggestions-data"),
             dcc.Location(id="url", refresh=False),
@@ -491,6 +530,7 @@ def apply_predictive_search(picked, country, organism, env_type,
     Output("protocol-all-options", "data"),
     Input("predictive-search", "id"),
     Input("station-map", "relayoutData"),
+    Input("map-focus", "data"),
     Input("colour-by", "value"),
     Input("env-type-filter", "value"),
     Input("organism-filter", "value"),
@@ -501,12 +541,18 @@ def apply_predictive_search(picked, country, organism, env_type,
     Input("linked-data-filter", "value"),
     Input("selected-station", "data"),
 )
-def load_map_and_filters(_, relayout_data, colour_by, env_type, organism, analysis_type,
+def load_map_and_filters(_, relayout_data, map_focus, colour_by, env_type, organism, analysis_type,
                          country, protocol, source_filter, linked_data, selected_station):
     import plotly.graph_objects as go
     from collections import defaultdict
 
     center, zoom, bounds = _map_view_from_relayout(relayout_data)
+    triggered_props = {trigger["prop_id"].split(".")[0] for trigger in ctx.triggered}
+    applying_map_focus = "map-focus" in triggered_props and bool(map_focus)
+    if applying_map_focus:
+        center = map_focus.get("center") or center
+        zoom = map_focus.get("zoom") or zoom
+        bounds = map_focus.get("bounds") or bounds
     active_filters = _active_filter_params(
         env_type,
         organism,
@@ -613,7 +659,18 @@ def load_map_and_filters(_, relayout_data, colour_by, env_type, organism, analys
     names = [cluster_label(c) for c in clusters]
     colours = [get_colour(c) for c in clusters]
     hover_texts = [hover_text(c) for c in clusters]
-    customdata = [c.get("station_name") or "" for c in clusters]
+    customdata = [
+        {
+            "type": "station" if c.get("station_name") else "cluster",
+            "station_name": c.get("station_name"),
+            "station_count": c.get("station_count", 0),
+            "sample_count": c.get("sample_count", 0),
+            "lat": c.get("lat"),
+            "lon": c.get("lon"),
+            "key": c.get("key"),
+        }
+        for c in clusters
+    ]
     sizes = [
         max(10, min(30, 8 + (max(c.get("station_count", 1), 1) ** 0.5) * 4))
         for c in clusters
@@ -641,6 +698,13 @@ def load_map_and_filters(_, relayout_data, colour_by, env_type, organism, analys
         ))
 
     if not clusters:
+        fig.add_trace(go.Scattermap(
+            lat=[],
+            lon=[],
+            mode="markers",
+            hoverinfo="skip",
+            showlegend=False,
+        ))
         fig.add_annotation(
             text=cluster_error or "No stations match the current filters",
             xref="paper",
@@ -682,7 +746,7 @@ def load_map_and_filters(_, relayout_data, colour_by, env_type, organism, analys
                     f"Types: {', '.join(sel['analysis_types'][:3])}"
                 ],
                 hoverinfo="text",
-                customdata=[selected_station],
+                customdata=[{"type": "station", "station_name": selected_station}],
                 name="Selected",
             ))
 
@@ -693,7 +757,10 @@ def load_map_and_filters(_, relayout_data, colour_by, env_type, organism, analys
         paper_bgcolor="#E5E2D8",
         plot_bgcolor="#E5E2D8",
         showlegend=colour_by != "none" or bool(selected_station),
-        uirevision="station-map",
+        uirevision=(
+            f"focus-{map_focus.get('key')}-{map_focus.get('nonce')}"
+            if applying_map_focus else "station-map"
+        ),
         # Overlay the legend inside the map (bottom-centre) so there's no
         # empty reserved band below the map when the legend is hidden.
         legend=dict(
@@ -811,6 +878,7 @@ def initialize_from_url(search):
     Output("samples-pagination", "max_value"),
     Output("samples-pagination", "active_page"),
     Output("samples-pagination", "style"),
+    Output("map-focus", "data"),
     Input("station-map", "clickData"),
     prevent_initial_call=True,
 )
@@ -819,11 +887,52 @@ def show_station_panel(click_data):
     hide_pagination = {"display": "none"}
 
     if not click_data or "points" not in click_data:
-        return None, None, 1, 1, hide_pagination
+        return None, None, 1, 1, hide_pagination, dash.no_update
 
-    station_name = click_data["points"][0].get("customdata")
-    if isinstance(station_name, list):
-        station_name = station_name[0] if station_name else None
+    point = click_data["points"][0]
+    payload = point.get("customdata")
+    if isinstance(payload, list):
+        payload = payload[0] if payload else None
+    point_text = point.get("text") or ""
+    if not isinstance(payload, dict) and point_text.endswith("stations"):
+        try:
+            station_count = int(point_text.split()[0])
+        except (TypeError, ValueError):
+            station_count = 0
+        payload = {
+            "type": "cluster",
+            "station_count": station_count,
+            "sample_count": 0,
+            "lat": point.get("lat"),
+            "lon": point.get("lon"),
+        }
+
+    if isinstance(payload, dict) and payload.get("type") == "cluster":
+        focus = _bounds_from_geotile_key(payload.get("key"))
+        if not focus and payload.get("lat") is not None and payload.get("lon") is not None:
+            focus = {
+                "center": {"lat": payload["lat"], "lon": payload["lon"]},
+                "zoom": DEFAULT_MAP_ZOOM + 3,
+                "bounds": {},
+            }
+        if not focus:
+            raise dash.exceptions.PreventUpdate
+        focus["zoom"] = min(focus.get("zoom", DEFAULT_MAP_ZOOM) + 2, 12)
+        focus["nonce"] = time.time()
+        station_count = payload.get("station_count", 0)
+        sample_count = payload.get("sample_count", 0)
+        station_word = "station" if station_count == 1 else "stations"
+        summary = html.P(
+            f"Showing {station_count} {station_word} in this area "
+            f"({sample_count} samples). Click a station dot to view its samples.",
+            className="text-muted text-center py-3",
+        )
+        return summary, None, 1, 1, hide_pagination, focus
+
+    if isinstance(payload, dict):
+        station_name = payload.get("station_name")
+    else:
+        station_name = payload
     if not station_name:
         raise dash.exceptions.PreventUpdate
 
@@ -833,7 +942,7 @@ def show_station_panel(click_data):
     except Exception as e:
         return (dbc.Alert(f"Error loading station: {e}",
                           color="danger", className="mt-3"),
-                None, 1, 1, hide_pagination)
+                None, 1, 1, hide_pagination, dash.no_update)
 
     # --- Summary ---
     summary = dbc.Card(
@@ -864,8 +973,14 @@ def show_station_panel(click_data):
 
     max_pages = max(1, (detail["source_sample_count"] + 9) // 10)
 
-    return (summary, station_name, max_pages, 1,
-            {"display": "flex", "justifyContent": "end", "marginTop": "8px"})
+    return (
+        summary,
+        station_name,
+        max_pages,
+        1,
+        {"display": "flex", "justifyContent": "end", "marginTop": "8px"},
+        dash.no_update,
+    )
 
 
 @callback(
