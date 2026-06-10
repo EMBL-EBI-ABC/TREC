@@ -542,9 +542,11 @@ def apply_predictive_search(picked, country, organism, env_type,
     Input("source-filter", "value"),
     Input("linked-data-filter", "value"),
     Input("selected-station", "data"),
+    Input("selected-geo-bounds", "data"),
 )
 def load_map_and_filters(_, relayout_data, map_focus, colour_by, env_type, organism, analysis_type,
-                         country, protocol, source_filter, linked_data, selected_station):
+                         country, protocol, source_filter, linked_data, selected_station,
+                         selected_geo_bounds):
     import plotly.graph_objects as go
     from collections import defaultdict
 
@@ -789,6 +791,18 @@ def load_map_and_filters(_, relayout_data, map_focus, colour_by, env_type, organ
         agg_params = {"size": 0, **active_filters}
         if selected_station:
             agg_params["station_name"] = selected_station
+            if (
+                selected_geo_bounds
+                and selected_geo_bounds.get("station_name") == selected_station
+            ):
+                for key in (
+                    "top_left_lat",
+                    "top_left_lon",
+                    "bottom_right_lat",
+                    "bottom_right_lon",
+                ):
+                    if selected_geo_bounds.get(key) is not None:
+                        agg_params[key] = selected_geo_bounds[key]
         agg_resp = requests.get(f"{API_BASE_URL}/data_portal",
                                 params=agg_params).json()
         aggs = agg_resp.get("aggregations", {})
