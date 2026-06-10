@@ -315,6 +315,7 @@ layout = dbc.Container([
             ),
             # Samples table (always in DOM, hidden until station selected)
             dcc.Store(id="selected-station"),
+            dcc.Store(id="selected-geo-bounds"),
             dcc.Store(id="map-focus"),
             dcc.Store(id="table-sort-by", data=[]),
             dcc.Store(id="suggestions-data"),
@@ -478,6 +479,7 @@ def filter_options(search_value, suggestions):
     Output("analysis-type-filter", "value", allow_duplicate=True),
     Output("protocol-filter", "value", allow_duplicate=True),
     Output("selected-station", "data", allow_duplicate=True),
+    Output("selected-geo-bounds", "data", allow_duplicate=True),
     Output("predictive-search", "value"),
     Input("predictive-search", "value"),
     State("country-filter", "value"),
@@ -506,17 +508,17 @@ def apply_predictive_search(picked, country, organism, env_type,
         return lst if val in lst else lst + [val]
 
     if kind == "country":
-        return _add(country, name), NU, NU, NU, NU, NU, None
+        return _add(country, name), NU, NU, NU, NU, NU, None, None
     if kind == "organism":
-        return NU, _add(organism, name), NU, NU, NU, NU, None
+        return NU, _add(organism, name), NU, NU, NU, NU, None, None
     if kind == "environment":
-        return NU, NU, _add(env_type, name), NU, NU, NU, None
+        return NU, NU, _add(env_type, name), NU, NU, NU, None, None
     if kind == "analysis":
-        return NU, NU, NU, _add(analysis_type, name), NU, NU, None
+        return NU, NU, NU, _add(analysis_type, name), NU, NU, None, None
     if kind == "protocol":
-        return NU, NU, NU, NU, _add(protocol, name), NU, None
+        return NU, NU, NU, NU, _add(protocol, name), NU, None, None
     if kind == "station":
-        return NU, NU, NU, NU, NU, name, None
+        return NU, NU, NU, NU, NU, name, None, None
 
     raise dash.exceptions.PreventUpdate
 
@@ -665,8 +667,15 @@ def load_map_and_filters(_, relayout_data, map_focus, colour_by, env_type, organ
             "station_name": c.get("station_name"),
             "station_count": c.get("station_count", 0),
             "sample_count": c.get("sample_count", 0),
+            "source_sample_count": c.get("source_sample_count", 0),
+            "country": c.get("country"),
+            "analysis_types": c.get("analysis_types", []),
             "lat": c.get("lat"),
             "lon": c.get("lon"),
+            "focus_station_name": c.get("focus_station_name"),
+            "focus_station_sample_count": c.get("focus_station_sample_count"),
+            "focus_lat": c.get("focus_lat"),
+            "focus_lon": c.get("focus_lon"),
             "key": c.get("key"),
         }
         for c in clusters
@@ -824,6 +833,7 @@ def clear_station_panel(selected_station):
 @callback(
     Output("station-panel", "children", allow_duplicate=True),
     Output("selected-station", "data", allow_duplicate=True),
+    Output("selected-geo-bounds", "data", allow_duplicate=True),
     Output("samples-pagination", "max_value", allow_duplicate=True),
     Output("samples-pagination", "active_page", allow_duplicate=True),
     Output("samples-pagination", "style", allow_duplicate=True),
@@ -844,7 +854,7 @@ def initialize_from_url(search):
     except Exception as e:
         return (dbc.Alert(f"Error loading station: {e}", color="danger",
                           className="mt-3"),
-                None, 1, 1, hide_pagination)
+                None, None, 1, 1, hide_pagination)
     summary = dbc.Card(
         dbc.CardBody([
             html.H5([
@@ -868,13 +878,14 @@ def initialize_from_url(search):
         className="station-panel-card mt-3 mb-2 p-1",
     )
     max_pages = max(1, (detail["source_sample_count"] + 9) // 10)
-    return (summary, station_name, max_pages, 1,
+    return (summary, station_name, None, max_pages, 1,
             {"display": "flex", "justifyContent": "end", "marginTop": "8px"})
 
 
 @callback(
     Output("station-panel", "children"),
     Output("selected-station", "data"),
+    Output("selected-geo-bounds", "data"),
     Output("samples-pagination", "max_value"),
     Output("samples-pagination", "active_page"),
     Output("samples-pagination", "style"),
@@ -887,7 +898,7 @@ def show_station_panel(click_data):
     hide_pagination = {"display": "none"}
 
     if not click_data or "points" not in click_data:
-        return None, None, 1, 1, hide_pagination, dash.no_update
+        return None, None, None, 1, 1, hide_pagination, dash.no_update
 
     point = click_data["points"][0]
     payload = point.get("customdata")
@@ -905,13 +916,32 @@ def show_station_panel(click_data):
             "sample_count": 0,
             "lat": point.get("lat"),
             "lon": point.get("lon"),
+            "focus_lat": point.get("lat"),
+            "focus_lon": point.get("lon"),
         }
 
     if isinstance(payload, dict) and payload.get("type") == "cluster":
         focus = _bounds_from_geotile_key(payload.get("key"))
+        if (
+            focus
+            and payload.get("focus_lat") is not None
+            and payload.get("focus_lon") is not None
+        ):
+            focus["center"] = {
+                "lat": payload["focus_lat"],
+                "lon": payload["focus_lon"],
+            }
         if not focus and payload.get("lat") is not None and payload.get("lon") is not None:
+            fallback_lat = (
+                payload["focus_lat"]
+                if payload.get("focus_lat") is not None else payload["lat"]
+            )
+            fallback_lon = (
+                payload["focus_lon"]
+                if payload.get("focus_lon") is not None else payload["lon"]
+            )
             focus = {
-                "center": {"lat": payload["lat"], "lon": payload["lon"]},
+                "center": {"lat": fallback_lat, "lon": fallback_lon},
                 "zoom": DEFAULT_MAP_ZOOM + 3,
                 "bounds": {},
             }
@@ -921,16 +951,31 @@ def show_station_panel(click_data):
         focus["nonce"] = time.time()
         station_count = payload.get("station_count", 0)
         sample_count = payload.get("sample_count", 0)
+        focus_station_name = payload.get("focus_station_name")
+        focus_count = payload.get("focus_station_sample_count")
         station_word = "station" if station_count == 1 else "stations"
+        focus_count_text = f" ({focus_count} samples)" if focus_count else ""
+        focus_text = (
+            f" Centered on {focus_station_name}{focus_count_text}."
+            if focus_station_name else ""
+        )
         summary = html.P(
             f"Showing {station_count} {station_word} in this area "
-            f"({sample_count} samples). Click a station dot to view its samples.",
+            f"({sample_count} samples).{focus_text} "
+            "Click a station dot to view its samples.",
             className="text-muted text-center py-3",
         )
-        return summary, None, 1, 1, hide_pagination, focus
+        return summary, None, None, 1, 1, hide_pagination, focus
 
+    selected_geo_bounds = None
     if isinstance(payload, dict):
         station_name = payload.get("station_name")
+        focus = _bounds_from_geotile_key(payload.get("key"))
+        if focus:
+            selected_geo_bounds = {
+                "station_name": station_name,
+                **focus["bounds"],
+            }
     else:
         station_name = payload
     if not station_name:
@@ -942,9 +987,20 @@ def show_station_panel(click_data):
     except Exception as e:
         return (dbc.Alert(f"Error loading station: {e}",
                           color="danger", className="mt-3"),
-                None, 1, 1, hide_pagination, dash.no_update)
+                None, None, 1, 1, hide_pagination, dash.no_update)
 
-    # --- Summary ---
+    if selected_geo_bounds and isinstance(payload, dict):
+        sample_count = payload.get("sample_count", 0)
+        source_sample_count = payload.get("source_sample_count", 0)
+        analysis_types = payload.get("analysis_types") or []
+        summary_country = payload.get("country") or detail.get("country")
+    else:
+        sample_count = detail["sample_count"]
+        source_sample_count = detail["source_sample_count"]
+        analysis_types = detail.get("analysis_types", [])
+        summary_country = detail.get("country")
+    sample_label = " samples" if selected_geo_bounds else " total samples"
+
     summary = dbc.Card(
         dbc.CardBody([
             html.H5([
@@ -953,29 +1009,27 @@ def show_station_panel(click_data):
                 detail["station_name"],
             ], className="mb-0"),
             html.Small(
-                detail.get("country") or "",
+                summary_country or "",
                 className="text-muted",
             ),
             html.Div([
-                html.Span(str(detail["source_sample_count"]),
-                          className="count"),
+                html.Span(str(source_sample_count), className="count"),
                 html.Small(" source", className="text-muted"),
                 html.Span(" / ", className="text-muted mx-1"),
-                html.Span(str(detail["sample_count"]),
-                          className="count"),
-                html.Small(" total samples", className="text-muted me-3"),
-                *[_analysis_badge(t)
-                  for t in detail.get("analysis_types", [])],
+                html.Span(str(sample_count), className="count"),
+                html.Small(sample_label, className="text-muted me-3"),
+                *[_analysis_badge(t) for t in analysis_types],
             ], className="mt-2"),
         ]),
         className="station-panel-card mt-3 mb-2 p-1",
     )
 
-    max_pages = max(1, (detail["source_sample_count"] + 9) // 10)
+    max_pages = max(1, (sample_count + 9) // 10)
 
     return (
         summary,
         station_name,
+        selected_geo_bounds,
         max_pages,
         1,
         {"display": "flex", "justifyContent": "end", "marginTop": "8px"},
@@ -990,6 +1044,7 @@ def show_station_panel(click_data):
     Output("samples-pagination", "style", allow_duplicate=True),
     Input("samples-pagination", "active_page"),
     Input("selected-station", "data"),
+    Input("selected-geo-bounds", "data"),
     Input("protocol-filter", "value"),
     Input("env-type-filter", "value"),
     Input("organism-filter", "value"),
@@ -1000,7 +1055,7 @@ def show_station_panel(click_data):
     Input("table-sort-by", "data"),
     prevent_initial_call=True,
 )
-def load_samples_page(page, station_name, protocol, env_type, organism,
+def load_samples_page(page, station_name, selected_geo_bounds, protocol, env_type, organism,
                       analysis_type, country, source_filter, linked_data, sort_by):
 
     hide_pagination = {"display": "none"}
@@ -1059,6 +1114,18 @@ def load_samples_page(page, station_name, protocol, env_type, organism,
 
     if station_name:
         params["station_name"] = station_name
+        if (
+            selected_geo_bounds
+            and selected_geo_bounds.get("station_name") == station_name
+        ):
+            for key in (
+                "top_left_lat",
+                "top_left_lon",
+                "bottom_right_lat",
+                "bottom_right_lon",
+            ):
+                if selected_geo_bounds.get(key) is not None:
+                    params[key] = selected_geo_bounds[key]
 
     if source_filter == "source":
         params["is_source_sample"] = True

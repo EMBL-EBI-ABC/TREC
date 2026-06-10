@@ -72,6 +72,21 @@ class SearchParams(BaseModel):
     parent_sample_id: str | None = Field(None, description="Filter by parent sample ID")
     has_images: str | None = Field(None, description="Filter by has_images")
     has_ena_data: bool | None = Field(None, description="Filter by has_ena_data")
+    top_left_lat: float | None = Field(None, description="Bounding box top-left latitude")
+    top_left_lon: float | None = Field(None, description="Bounding box top-left longitude")
+    bottom_right_lat: float | None = Field(None, description="Bounding box bottom-right latitude")
+    bottom_right_lon: float | None = Field(None, description="Bounding box bottom-right longitude")
+
+    def has_bounds(self) -> bool:
+        return all(
+            v is not None
+            for v in [
+                self.top_left_lat,
+                self.top_left_lon,
+                self.bottom_right_lat,
+                self.bottom_right_lon,
+            ]
+        )
 
 
 # Datasource definition.
@@ -215,21 +230,6 @@ TREC_NESTED_CONFIGS = {
 
 class StationGeoAggregationParams(TRECSearchParams):
     zoom: float = Field(3.5, ge=0, le=20, description="Map zoom level")
-    top_left_lat: float | None = Field(None, description="Bounding box top-left latitude")
-    top_left_lon: float | None = Field(None, description="Bounding box top-left longitude")
-    bottom_right_lat: float | None = Field(None, description="Bounding box bottom-right latitude")
-    bottom_right_lon: float | None = Field(None, description="Bounding box bottom-right longitude")
-
-    def has_bounds(self) -> bool:
-        return all(
-            v is not None
-            for v in [
-                self.top_left_lat,
-                self.top_left_lon,
-                self.bottom_right_lat,
-                self.bottom_right_lon,
-            ]
-        )
 
 
 class StationGeoCluster(BaseModel):
@@ -240,6 +240,10 @@ class StationGeoCluster(BaseModel):
     sample_count: int
     source_sample_count: int
     station_name: str | None = None
+    focus_station_name: str | None = None
+    focus_station_sample_count: int | None = None
+    focus_lat: float | None = None
+    focus_lon: float | None = None
     country: str | None = None
     analysis_types: list[str] = Field(default_factory=list)
     environment_types: list[str] = Field(default_factory=list)

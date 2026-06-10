@@ -200,6 +200,25 @@ def _split_filter_values(value) -> list[str]:
     return [v.strip() for v in str(value).split("|") if v.strip()]
 
 
+def _geo_bounds_filter(params) -> dict | None:
+    if not params.has_bounds():
+        return None
+    return {
+        "geo_bounding_box": {
+            "geo_location": {
+                "top_left": {
+                    "lat": params.top_left_lat,
+                    "lon": params.top_left_lon,
+                },
+                "bottom_right": {
+                    "lat": params.bottom_right_lat,
+                    "lon": params.bottom_right_lon,
+                },
+            }
+        }
+    }
+
+
 def _build_trec_filter_query(params) -> dict:
     filters = [{"exists": {"field": "geo_location"}}]
     must = []
@@ -246,21 +265,9 @@ def _build_trec_filter_query(params) -> dict:
         filters.append({"term": {"has_images": params.has_images}})
     if params.has_ena_data is not None:
         filters.append({"term": {"has_ena_data": params.has_ena_data}})
-    if params.has_bounds():
-        filters.append({
-            "geo_bounding_box": {
-                "geo_location": {
-                    "top_left": {
-                        "lat": params.top_left_lat,
-                        "lon": params.top_left_lon,
-                    },
-                    "bottom_right": {
-                        "lat": params.bottom_right_lat,
-                        "lon": params.bottom_right_lon,
-                    },
-                }
-            }
-        })
+    bounds_filter = _geo_bounds_filter(params)
+    if bounds_filter:
+        filters.append(bounds_filter)
 
     bool_query = {"filter": filters}
     if must:
@@ -288,6 +295,9 @@ async def trec_search(
     if params.has_ena_data is not None:
         extra_filters.append(
             {"term": {"has_ena_data": params.has_ena_data}})
+    bounds_filter = _geo_bounds_filter(params)
+    if bounds_filter:
+        extra_filters.append(bounds_filter)
     return await elastic_search(
         index_name=ES_INDEX,
         params=params,
@@ -425,7 +435,11 @@ async def station_geo_aggregation(
                     "centroid": {"geo_centroid": {"field": "geo_location"}},
                     "station_count": {"cardinality": {"field": "station_name"}},
                     "station_names": {
-                        "terms": {"field": "station_name", "size": 2}
+                        "terms": {"field": "station_name", "size": 2},
+                        "aggs": {
+                            "lat": {"avg": {"field": "lat"}},
+                            "lon": {"avg": {"field": "lon"}},
+                        },
                     },
                     "source_count": {
                         "filter": {"term": {"is_source_sample": True}},
@@ -461,6 +475,16 @@ async def station_geo_aggregation(
             station_count = bucket["station_count"]["value"]
             station_buckets = bucket["station_names"]["buckets"]
             station_name = None
+            focus_station_name = None
+            focus_station_sample_count = None
+            focus_lat = None
+            focus_lon = None
+            if station_buckets:
+                focus_bucket = station_buckets[0]
+                focus_station_name = focus_bucket["key"]
+                focus_station_sample_count = focus_bucket["doc_count"]
+                focus_lat = focus_bucket["lat"]["value"]
+                focus_lon = focus_bucket["lon"]["value"]
             if station_count == 1 and station_buckets:
                 station_name = station_buckets[0]["key"]
 
@@ -483,6 +507,10 @@ async def station_geo_aggregation(
                 sample_count=bucket["doc_count"],
                 source_sample_count=bucket["source_count"]["doc_count"],
                 station_name=station_name,
+                focus_station_name=focus_station_name,
+                focus_station_sample_count=focus_station_sample_count,
+                focus_lat=focus_lat,
+                focus_lon=focus_lon,
                 country=country,
                 analysis_types=list(analysis_counts),
                 environment_types=list(environment_counts),
