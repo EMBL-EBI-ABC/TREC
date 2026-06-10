@@ -171,6 +171,9 @@ def enrich_sample(source):
     country = parse_country(source.get("location"))
     station_name = build_station_name(
         country, locality, source.get("lat"), source.get("lon"))
+    geo_location = None
+    if source.get("lat") is not None and source.get("lon") is not None:
+        geo_location = {"lat": source.get("lat"), "lon": source.get("lon")}
 
     parent_sample_id = None
     control_sample_id = None
@@ -198,6 +201,7 @@ def enrich_sample(source):
         "size_fraction_lower": parse_size_fraction(size_lower),
         "size_fraction_upper": parse_size_fraction(size_upper),
         "station_name": station_name,
+        "geo_location": geo_location,
         "is_source_sample": is_source_sample,
         "parent_sample_id": parent_sample_id,
         "control_sample_id": control_sample_id,

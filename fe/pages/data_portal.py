@@ -41,6 +41,8 @@ ANALYSIS_COLORS = {
     "Imaging": "#c08a3e",       # amber
     "Ions": "#3a8f7d",          # teal
 }
+DEFAULT_MAP_CENTER = {"lat": 43, "lon": 10}
+DEFAULT_MAP_ZOOM = 3.5
 
 
 def _analysis_badge(t):
@@ -51,6 +53,90 @@ def _analysis_badge(t):
         style={"backgroundColor": f"{c}1f", "color": c,
                "border": f"1px solid {c}3d"},
     )
+
+
+def _bounds_from_coordinates(coordinates):
+    lats = []
+    lons = []
+    for point in coordinates or []:
+        if not isinstance(point, (list, tuple)) or len(point) < 2:
+            continue
+        lon, lat = point[:2]
+        if lat is not None and lon is not None:
+            lats.append(lat)
+            lons.append(lon)
+    if not lats or not lons:
+        return {}
+    return {
+        "top_left_lat": max(lats),
+        "top_left_lon": min(lons),
+        "bottom_right_lat": min(lats),
+        "bottom_right_lon": max(lons),
+    }
+
+
+def _map_view_from_relayout(relayout_data):
+    center = dict(DEFAULT_MAP_CENTER)
+    zoom = DEFAULT_MAP_ZOOM
+    bounds = {}
+
+    if not isinstance(relayout_data, dict):
+        return center, zoom, bounds
+
+    for prefix in ("map", "mapbox"):
+        nested = relayout_data.get(prefix)
+        if isinstance(nested, dict):
+            nested_center = nested.get("center")
+            if isinstance(nested_center, dict):
+                center["lat"] = nested_center.get("lat", center["lat"])
+                center["lon"] = nested_center.get("lon", center["lon"])
+            if nested.get("zoom") is not None:
+                zoom = nested["zoom"]
+
+        center_value = relayout_data.get(f"{prefix}.center")
+        if isinstance(center_value, dict):
+            center["lat"] = center_value.get("lat", center["lat"])
+            center["lon"] = center_value.get("lon", center["lon"])
+
+        lat = relayout_data.get(f"{prefix}.center.lat")
+        lon = relayout_data.get(f"{prefix}.center.lon")
+        if lat is not None:
+            center["lat"] = lat
+        if lon is not None:
+            center["lon"] = lon
+
+        zoom_value = relayout_data.get(f"{prefix}.zoom")
+        if zoom_value is not None:
+            zoom = zoom_value
+
+        derived = relayout_data.get(f"{prefix}._derived")
+        if isinstance(derived, dict):
+            bounds = _bounds_from_coordinates(derived.get("coordinates"))
+
+    return center, zoom, bounds
+
+
+def _active_filter_params(env_type, organism, analysis_type, country,
+                          protocol, source_filter, linked_data):
+    active_filters = {}
+    if env_type:
+        active_filters["environment_type"] = "|".join(env_type)
+    if organism:
+        active_filters["organism"] = "|".join(organism)
+    if analysis_type:
+        active_filters["analysis_type"] = "|".join(analysis_type)
+    if country:
+        active_filters["country"] = "|".join(country)
+    if protocol:
+        active_filters["protocol"] = "|".join(protocol)
+    if source_filter == "source":
+        active_filters["is_source_sample"] = True
+    if linked_data:
+        if "images" in linked_data:
+            active_filters["has_images"] = "Yes"
+        if "ena" in linked_data:
+            active_filters["has_ena_data"] = True
+    return active_filters
 
 
 def make_stats_banner():
@@ -404,6 +490,7 @@ def apply_predictive_search(picked, country, organism, env_type,
     Output("country-filter", "options"),
     Output("protocol-all-options", "data"),
     Input("predictive-search", "id"),
+    Input("station-map", "relayoutData"),
     Input("colour-by", "value"),
     Input("env-type-filter", "value"),
     Input("organism-filter", "value"),
@@ -414,84 +501,69 @@ def apply_predictive_search(picked, country, organism, env_type,
     Input("linked-data-filter", "value"),
     Input("selected-station", "data"),
 )
-def load_map_and_filters(_, colour_by, env_type, organism, analysis_type,
+def load_map_and_filters(_, relayout_data, colour_by, env_type, organism, analysis_type,
                          country, protocol, source_filter, linked_data, selected_station):
     import plotly.graph_objects as go
     from collections import defaultdict
 
+    center, zoom, bounds = _map_view_from_relayout(relayout_data)
+    active_filters = _active_filter_params(
+        env_type,
+        organism,
+        analysis_type,
+        country,
+        protocol,
+        source_filter,
+        linked_data,
+    )
+
+    cluster_error = None
     try:
-        stations_resp = requests.get(f"{API_BASE_URL}/stations").json()
+        cluster_params = {"zoom": zoom, **active_filters, **bounds}
+        cluster_response = requests.get(
+            f"{API_BASE_URL}/stations/geo_aggregation",
+            params=cluster_params,
+            timeout=30,
+        )
+        clusters_resp = cluster_response.json()
+        if cluster_response.status_code >= 400:
+            cluster_error = "Station clusters unavailable. Check geo_location mapping."
     except Exception:
-        stations_resp = {"stations": []}
-    stations = stations_resp.get("stations", [])
-
-    # find which stations have matching samples when filters are applied
-    active_filters = {}
-    if env_type:
-        active_filters["environment_type"] = "|".join(env_type)
-    if organism:
-        active_filters["organism"] = "|".join(organism)
-    if analysis_type:
-        active_filters["analysis_type"] = "|".join(analysis_type)
-    if country:
-        active_filters["country"] = "|".join(country)
-    if protocol:
-        active_filters["protocol"] = "|".join(protocol)
-    if source_filter == "source":
-        active_filters["is_source_sample"] = True
-    if linked_data:
-        if "images" in linked_data:
-            active_filters["has_images"] = "Yes"
-        if "ena" in linked_data:
-            active_filters["has_ena_data"] = "true"
-
-    active_station_names = None
-    if active_filters:
-        try:
-            # Fetch all matching samples to find which stations are represented
-            filter_resp = requests.get(
-                f"{API_BASE_URL}/data_portal",
-                params={**active_filters, "size": 0}
-            ).json()
-            aggregations = filter_resp.get("aggregations")
-            if aggregations:
-                agg_stations = aggregations.get(
-                    "station_name", {}).get("buckets", [])
-                active_station_names = {b["key"] for b in agg_stations}
-        except Exception:
-            active_station_names = None
-
+        clusters_resp = {"clusters": []}
+        cluster_error = "Station clusters unavailable"
+    if not isinstance(clusters_resp, dict):
+        clusters_resp = {"clusters": []}
+        cluster_error = "Station clusters unavailable"
+    if clusters_resp.get("detail"):
+        cluster_error = "Station clusters unavailable. Check geo_location mapping."
+    clusters = clusters_resp.get("clusters", [])
 
     # Colour logic
     COLOUR_MAPS = {
         "environment_type": {"marine": "#2f7fa6", "soil": "#c08a3e",
                               "aerosol": "#7a6f9b"},
         "analysis_type": {"Metagenomics": "#0E4D3C", "Metabolomics": "#D9714E",
-                          "Imaging": "#c08a3e", "Ions": "#3a8f7d"},
+                              "Imaging": "#c08a3e", "Ions": "#3a8f7d"},
     }
     LABELS = {
-        "none": {"#0E4D3C": "Stations", "#cfc6b4": "No matching samples"},
+        "none": {"#0E4D3C": "Stations"},
         "has_images": {"#D9714E": "Has images", "#9aa89f": "No images",
-                       "#cfc6b4": "No matching samples"},
+                       },
         "environment_type": {"#2f7fa6": "Marine", "#c08a3e": "Soil",
                              "#7a6f9b": "Aerosol", "#9aa89f": "Unknown",
-                             "#cfc6b4": "No matching samples"},
+                             },
         "analysis_type": {"#0E4D3C": "Metagenomics", "#D9714E": "Metabolomics",
                           "#c08a3e": "Imaging", "#3a8f7d": "Ions",
-                          "#9aa89f": "Unknown", "#cfc6b4": "No matching samples"},
+                          "#9aa89f": "Unknown"},
     }
 
-    def get_colour(station):
-        # Grey out stations with no matching samples when filters are active
-        if active_station_names is not None:
-            if station["station_name"] not in active_station_names:
-                return "#cfc6b4"
+    def get_colour(cluster):
         if colour_by == "none":
             return "#0E4D3C"
         if colour_by == "has_images":
-            return "#D9714E" if station.get("has_images") else "#9aa89f"
+            return "#D9714E" if cluster.get("has_images") else "#9aa89f"
         if colour_by in COLOUR_MAPS:
-            counts = station.get(
+            counts = cluster.get(
                 "analysis_type_counts" if colour_by == "analysis_type"
                 else "environment_type_counts", {}
             )
@@ -500,15 +572,10 @@ def load_map_and_filters(_, colour_by, env_type, organism, analysis_type,
                 return COLOUR_MAPS[colour_by].get(dominant, "#9aa89f")
         return "#9aa89f"
 
-    lats = [s["lat"] for s in stations]
-    lons = [s["lon"] for s in stations]
-    names = [s["station_name"] for s in stations]
-    colours = [get_colour(s) for s in stations]
-
-    def get_dominant_label(station):
+    def get_dominant_label(cluster):
         if colour_by == "none" or colour_by == "has_images":
             return ""
-        counts = station.get(
+        counts = cluster.get(
             "analysis_type_counts" if colour_by == "analysis_type"
             else "environment_type_counts", {}
         )
@@ -518,19 +585,43 @@ def load_map_and_filters(_, colour_by, env_type, organism, analysis_type,
         pct = int(counts[dominant] / sum(counts.values()) * 100)
         return f"<br><b>Dominant: {dominant} ({pct}%)</b>"
 
-    hover_texts = [
-        f"{s['station_name']}<br>"
-        f"{s['sample_count']} samples, {s['source_sample_count']} source<br>"
-        f"Types: {', '.join(s['analysis_types'][:3])}"
-        f"{get_dominant_label(s)}"
-        for s in stations
-    ]
+    def cluster_label(cluster):
+        station_name = cluster.get("station_name")
+        if station_name:
+            return station_name
+        station_count = cluster.get("station_count", 0)
+        suffix = "station" if station_count == 1 else "stations"
+        return f"{station_count} {suffix}"
 
-    sizes = [max(8, min(20, s["sample_count"] // 10)) for s in stations]
+    def hover_text(cluster):
+        types = ", ".join(cluster.get("analysis_types", [])[:3]) or "None"
+        station_count = cluster.get("station_count", 0)
+        station_suffix = "station" if station_count == 1 else "stations"
+        zoom_hint = "" if cluster.get("station_name") else "<br><b>Zoom in to select a station</b>"
+        return (
+            f"{cluster_label(cluster)}<br>"
+            f"{station_count} {station_suffix}<br>"
+            f"{cluster.get('sample_count', 0)} samples, "
+            f"{cluster.get('source_sample_count', 0)} source<br>"
+            f"Types: {types}"
+            f"{get_dominant_label(cluster)}"
+            f"{zoom_hint}"
+        )
+
+    lats = [c["lat"] for c in clusters]
+    lons = [c["lon"] for c in clusters]
+    names = [cluster_label(c) for c in clusters]
+    colours = [get_colour(c) for c in clusters]
+    hover_texts = [hover_text(c) for c in clusters]
+    customdata = [c.get("station_name") or "" for c in clusters]
+    sizes = [
+        max(10, min(30, 8 + (max(c.get("station_count", 1), 1) ** 0.5) * 4))
+        for c in clusters
+    ]
 
     # Group stations by colour label for legend
     groups = defaultdict(list)
-    for i, s in enumerate(stations):
+    for i, _cluster in enumerate(clusters):
         groups[colours[i]].append(i)
 
     fig = go.Figure()
@@ -545,14 +636,31 @@ def load_map_and_filters(_, colour_by, env_type, organism, analysis_type,
             text=[names[i] for i in indices],
             hovertext=[hover_texts[i] for i in indices],
             hoverinfo="text",
-            customdata=[names[i] for i in indices],
+            customdata=[customdata[i] for i in indices],
             name=label,
         ))
 
+    if not clusters:
+        fig.add_annotation(
+            text=cluster_error or "No stations match the current filters",
+            xref="paper",
+            yref="paper",
+            x=0.5,
+            y=0.5,
+            showarrow=False,
+            font=dict(color="#6f7a72", size=14),
+        )
+
     # highlight selected station
     if selected_station:
-        sel = next((s for s in stations
-                    if s["station_name"] == selected_station), None)
+        sel = None
+        try:
+            sel = requests.get(
+                f"{API_BASE_URL}/stations/{selected_station}",
+                timeout=15,
+            ).json()
+        except Exception:
+            sel = None
         if sel:
             fig.add_trace(go.Scattermap(
                 lat=[sel["lat"]],
@@ -574,16 +682,18 @@ def load_map_and_filters(_, colour_by, env_type, organism, analysis_type,
                     f"Types: {', '.join(sel['analysis_types'][:3])}"
                 ],
                 hoverinfo="text",
+                customdata=[selected_station],
                 name="Selected",
             ))
 
     fig.update_layout(
         map=dict(style="carto-positron",
-                 center=dict(lat=43, lon=10), zoom=3.5),
+                 center=center, zoom=zoom),
         margin=dict(l=0, r=0, t=0, b=0),
         paper_bgcolor="#E5E2D8",
         plot_bgcolor="#E5E2D8",
         showlegend=colour_by != "none" or bool(selected_station),
+        uirevision="station-map",
         # Overlay the legend inside the map (bottom-centre) so there's no
         # empty reserved band below the map when the legend is hidden.
         legend=dict(
@@ -712,12 +822,10 @@ def show_station_panel(click_data):
         return None, None, 1, 1, hide_pagination
 
     station_name = click_data["points"][0].get("customdata")
+    if isinstance(station_name, list):
+        station_name = station_name[0] if station_name else None
     if not station_name:
-        station_name = click_data["points"][0].get("text", "")
-    if not station_name:
-        return (dbc.Alert("Could not identify station",
-                          color="warning", className="mt-3"),
-                None, 1, 1, hide_pagination)
+        raise dash.exceptions.PreventUpdate
 
     try:
         detail = requests.get(
@@ -958,23 +1066,6 @@ def load_samples_page(page, station_name, protocol, env_type, organism,
 
     pagination_style = show_pagination if total > 10 else hide_pagination
     return table, max_pages, page, pagination_style
-
-
-@callback(
-    Output("selected-station", "data", allow_duplicate=True),
-    Output("url", "search", allow_duplicate=True),
-    Input("protocol-filter", "value"),
-    Input("env-type-filter", "value"),
-    Input("organism-filter", "value"),
-    Input("analysis-type-filter", "value"),
-    Input("country-filter", "value"),
-    Input("source-filter", "value"),
-    Input("linked-data-filter", "value"),
-    prevent_initial_call=True,
-)
-def clear_station_when_filters_change(*_):
-    """Treat sidebar filters as global searches, not station drill-downs."""
-    return None, ""
 
 
 _NON_SORTABLE_COLUMNS = {"has_ena"}
