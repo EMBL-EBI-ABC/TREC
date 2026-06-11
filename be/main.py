@@ -1,4 +1,6 @@
 import os
+import logging
+import posixpath
 import threading
 import urllib.parse
 from contextlib import asynccontextmanager
@@ -6,6 +8,8 @@ import json
 import httpx
 from cachetools import TTLCache
 from fastapi.responses import Response
+
+log = logging.getLogger("trec")
 
 from pathlib import Path as FilePath
 from dotenv import load_dotenv
@@ -177,8 +181,9 @@ async def elastic_search(index_name, params, data_class, aggregation_class,
             aggregations=aggregations,
         )
 
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Search error: {str(e)}")
+    except Exception:
+        log.exception("search failed")
+        raise HTTPException(status_code=500, detail="Internal search error")
 
 async def elastic_details(index_name, record_id, data_class):
     try:
@@ -191,9 +196,10 @@ async def elastic_details(index_name, record_id, data_class):
         )
         hits = [r["_source"] for r in response["hits"]["hits"]]
         return ElasticDetailsResponse[data_class](results=hits)
-    except Exception as e:
+    except Exception:
         # Handle Elasticsearch errors.
-        raise HTTPException(status_code=500, detail=f"Search error: {str(e)}")
+        log.exception("details lookup failed")
+        raise HTTPException(status_code=500, detail="Internal search error")
 
 
 def _split_filter_values(value) -> list[str]:
@@ -410,8 +416,9 @@ async def list_stations() -> StationListResponse:
         with _stations_lock:
             _stations_cache[_CACHE_KEY] = result
         return result
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Station list error: {str(e)}")
+    except Exception:
+        log.exception("station list failed")
+        raise HTTPException(status_code=500, detail="Internal search error")
 
 
 @app.get("/stations/geo_aggregation")
@@ -635,9 +642,10 @@ async def station_detail(
             organism_counts=organism_counts,
             source_samples=source_samples,
         )
-    except Exception as e:
+    except Exception:
+        log.exception("station detail failed")
         raise HTTPException(
-            status_code=500, detail=f"Station detail error: {str(e)}")
+            status_code=500, detail="Internal search error")
 
 
 @app.get("/stats")
@@ -677,17 +685,29 @@ async def global_stats() -> GlobalStats:
             total_with_images=aggs["with_images"]["doc_count"],
             total_with_ena=aggs["with_ena"]["doc_count"],
         )
-    except Exception as e:
+    except Exception:
+        log.exception("stats failed")
         raise HTTPException(
-            status_code=500, detail=f"Stats error: {str(e)}")
+            status_code=500, detail="Internal search error")
 
 
+
+
+_ZARR_BUCKET = "live-confocal-trec-super-plankton"
+_ZARR_TIMEOUT = httpx.Timeout(10.0, connect=5.0)
 
 
 @app.get("/zarr-proxy/{path:path}")
 async def zarr_proxy(path: str):
-    url = f"https://s3.embl.de/live-confocal-trec-super-plankton/{path}"
-    async with httpx.AsyncClient() as client:
+    # Normalise and confine to the bucket prefix so `../` can't be used to
+    # relay arbitrary objects elsewhere on s3.embl.de through this proxy.
+    full = posixpath.normpath(f"{_ZARR_BUCKET}/{path}")
+    if full != _ZARR_BUCKET and not full.startswith(f"{_ZARR_BUCKET}/"):
+        raise HTTPException(status_code=400, detail="Invalid path")
+
+    url = f"https://s3.embl.de/{full}"
+    # Explicit timeout so a slow or huge upstream object can't pin a worker.
+    async with httpx.AsyncClient(timeout=_ZARR_TIMEOUT) as client:
         r = await client.get(url)
     return Response(
         content=r.content,

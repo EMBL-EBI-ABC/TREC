@@ -20,7 +20,7 @@ import os
 
 BIONGFF_VIEWER_URL = "https://biongff-viewer-868757013548.europe-west2.run.app/"
 S3_BASE = "https://s3.embl.de/live-confocal-trec-super-plankton/"
-PROXY_BASE = "https://trec-be-868757013548.europe-west2.run.app/zarr-proxy"
+PROXY_BASE = f"{API_BASE_URL}/zarr-proxy"
 
 def build_zarr_proxy_url(file_entry: dict) -> str:
     location = file_entry["acquisition_location"]
