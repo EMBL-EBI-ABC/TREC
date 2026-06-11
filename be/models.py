@@ -72,6 +72,21 @@ class SearchParams(BaseModel):
     parent_sample_id: str | None = Field(None, description="Filter by parent sample ID")
     has_images: str | None = Field(None, description="Filter by has_images")
     has_ena_data: bool | None = Field(None, description="Filter by has_ena_data")
+    top_left_lat: float | None = Field(None, description="Bounding box top-left latitude")
+    top_left_lon: float | None = Field(None, description="Bounding box top-left longitude")
+    bottom_right_lat: float | None = Field(None, description="Bounding box bottom-right latitude")
+    bottom_right_lon: float | None = Field(None, description="Bounding box bottom-right longitude")
+
+    def has_bounds(self) -> bool:
+        return all(
+            v is not None
+            for v in [
+                self.top_left_lat,
+                self.top_left_lon,
+                self.bottom_right_lat,
+                self.bottom_right_lon,
+            ]
+        )
 
 
 # Datasource definition.
@@ -153,6 +168,7 @@ trec = DataSource(
         FieldDefinition(name="location", type=str, filterable=False),
         FieldDefinition(name="lat", type=float | None),
         FieldDefinition(name="lon", type=float | None),
+        FieldDefinition(name="geo_location", type=dict[str, float] | None),
         FieldDefinition(name="organism", type=str, filterable=True),
         FieldDefinition(name="biosampleId", type=str),
         FieldDefinition(name="customFields", type=list[CustomField] | None),
@@ -189,7 +205,7 @@ trec = DataSource(
         FieldDefinition(name="station_name", type=str | None,
                         filterable=True),
         FieldDefinition(name="is_source_sample", type=bool | None),
-        FieldDefinition(name="parent_sample_id", type=str | None),
+        FieldDefinition(name="parent_sample_id", type=str | list[str] | None),
         FieldDefinition(name="derived_sample_ids", type=list[str] | None),
         FieldDefinition(name="control_sample_id", type=str | None),
         FieldDefinition(name="controlled_sample_ids", type=list[str] | None),
@@ -211,6 +227,35 @@ TREC_NESTED_CONFIGS = {
 
 
 # Station response models.
+
+class StationGeoAggregationParams(TRECSearchParams):
+    zoom: float = Field(3.5, ge=0, le=20, description="Map zoom level")
+
+
+class StationGeoCluster(BaseModel):
+    key: str
+    lat: float
+    lon: float
+    station_count: int
+    sample_count: int
+    source_sample_count: int
+    station_name: str | None = None
+    focus_station_name: str | None = None
+    focus_station_sample_count: int | None = None
+    focus_lat: float | None = None
+    focus_lon: float | None = None
+    country: str | None = None
+    analysis_types: list[str] = Field(default_factory=list)
+    environment_types: list[str] = Field(default_factory=list)
+    analysis_type_counts: dict[str, int] = Field(default_factory=dict)
+    environment_type_counts: dict[str, int] = Field(default_factory=dict)
+    has_images: bool = False
+    has_ena_data: bool = False
+
+
+class StationGeoAggregationResponse(BaseModel):
+    clusters: list[StationGeoCluster]
+
 
 class StationSummary(BaseModel):
     station_name: str

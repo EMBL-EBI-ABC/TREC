@@ -19,7 +19,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-ES_INDEX = os.getenv("ES_INDEX", "data_portal_development_4")
+ES_INDEX = os.getenv("ES_INDEX", "data_portal_development_5")
 
 from fastapi import FastAPI, HTTPException, Query, Path
 from elasticsearch import AsyncElasticsearch
@@ -34,6 +34,9 @@ from models import (
     TRECData,
     TRECSearchParams,
     TRECAggregationResponse,
+    StationGeoAggregationParams,
+    StationGeoAggregationResponse,
+    StationGeoCluster,
     StationSummary,
     StationListResponse,
     SourceSampleSummary,
@@ -199,6 +202,85 @@ async def elastic_details(index_name, record_id, data_class):
         raise HTTPException(status_code=500, detail="Internal search error")
 
 
+def _split_filter_values(value) -> list[str]:
+    return [v.strip() for v in str(value).split("|") if v.strip()]
+
+
+def _geo_bounds_filter(params) -> dict | None:
+    if not params.has_bounds():
+        return None
+    return {
+        "geo_bounding_box": {
+            "geo_location": {
+                "top_left": {
+                    "lat": params.top_left_lat,
+                    "lon": params.top_left_lon,
+                },
+                "bottom_right": {
+                    "lat": params.bottom_right_lat,
+                    "lon": params.bottom_right_lon,
+                },
+            }
+        }
+    }
+
+
+def _build_trec_filter_query(params) -> dict:
+    filters = [{"exists": {"field": "geo_location"}}]
+    must = []
+
+    if params.q:
+        must.append({
+            "multi_match": {
+                "query": params.q,
+                "fields": ["*"],
+                "operator": "and",
+                "fuzziness": "AUTO",
+            }
+        })
+
+    for aggregation_field in get_list_of_aggregations(TRECAggregationResponse):
+        filter_value = getattr(params, aggregation_field, None)
+        if not filter_value:
+            continue
+
+        values = _split_filter_values(filter_value)
+        nested_cfg = TREC_NESTED_CONFIGS.get(aggregation_field)
+        if nested_cfg:
+            filters.append({
+                "nested": {
+                    "path": nested_cfg["path"],
+                    "query": {
+                        "bool": {
+                            "must": [
+                                {"term": {nested_cfg["name_field"]: nested_cfg["name_value"]}},
+                                {"terms": {nested_cfg["value_field"]: values}},
+                            ]
+                        }
+                    },
+                }
+            })
+        else:
+            filters.append({"terms": {aggregation_field: values}})
+
+    if params.is_source_sample is not None:
+        filters.append({"term": {"is_source_sample": params.is_source_sample}})
+    if params.parent_sample_id is not None:
+        filters.append({"term": {"parent_sample_id": params.parent_sample_id}})
+    if params.has_images is not None:
+        filters.append({"term": {"has_images": params.has_images}})
+    if params.has_ena_data is not None:
+        filters.append({"term": {"has_ena_data": params.has_ena_data}})
+    bounds_filter = _geo_bounds_filter(params)
+    if bounds_filter:
+        filters.append(bounds_filter)
+
+    bool_query = {"filter": filters}
+    if must:
+        bool_query["must"] = must
+    return {"bool": bool_query}
+
+
 # MaveDB.
 
 
@@ -219,6 +301,9 @@ async def trec_search(
     if params.has_ena_data is not None:
         extra_filters.append(
             {"term": {"has_ena_data": params.has_ena_data}})
+    bounds_filter = _geo_bounds_filter(params)
+    if bounds_filter:
+        extra_filters.append(bounds_filter)
     return await elastic_search(
         index_name=ES_INDEX,
         params=params,
@@ -334,6 +419,118 @@ async def list_stations() -> StationListResponse:
     except Exception:
         log.exception("station list failed")
         raise HTTPException(status_code=500, detail="Internal search error")
+
+
+@app.get("/stations/geo_aggregation")
+async def station_geo_aggregation(
+        params: Annotated[StationGeoAggregationParams, Query()],
+) -> StationGeoAggregationResponse:
+    """Aggregate stations into zoom-dependent map clusters."""
+    precision = min(max(int(params.zoom) + 2, 4), 12)
+    search_body = {
+        "size": 0,
+        "track_total_hits": True,
+        "query": _build_trec_filter_query(params),
+        "aggs": {
+            "grid": {
+                "geotile_grid": {
+                    "field": "geo_location",
+                    "precision": precision,
+                    "size": 10000,
+                },
+                "aggs": {
+                    "centroid": {"geo_centroid": {"field": "geo_location"}},
+                    "station_count": {"cardinality": {"field": "station_name"}},
+                    "station_names": {
+                        "terms": {"field": "station_name", "size": 2},
+                        "aggs": {
+                            "lat": {"avg": {"field": "lat"}},
+                            "lon": {"avg": {"field": "lon"}},
+                        },
+                    },
+                    "source_count": {
+                        "filter": {"term": {"is_source_sample": True}},
+                    },
+                    "analysis_types": {
+                        "terms": {"field": "analysis_type", "size": 20},
+                    },
+                    "environment_types": {
+                        "terms": {"field": "environment_type", "size": 10},
+                    },
+                    "countries": {
+                        "terms": {"field": "country", "size": 3},
+                    },
+                    "has_any_images": {
+                        "filter": {"term": {"has_images": "Yes"}},
+                    },
+                    "has_any_ena": {
+                        "filter": {"term": {"has_ena_data": True}},
+                    },
+                },
+            }
+        },
+    }
+
+    try:
+        response = await app.state.es_client.search(index=ES_INDEX, body=search_body)
+        clusters = []
+        for bucket in response["aggregations"]["grid"]["buckets"]:
+            centroid = bucket.get("centroid", {}).get("location")
+            if not centroid:
+                continue
+
+            station_count = bucket["station_count"]["value"]
+            station_buckets = bucket["station_names"]["buckets"]
+            station_name = None
+            focus_station_name = None
+            focus_station_sample_count = None
+            focus_lat = None
+            focus_lon = None
+            if station_buckets:
+                focus_bucket = station_buckets[0]
+                focus_station_name = focus_bucket["key"]
+                focus_station_sample_count = focus_bucket["doc_count"]
+                focus_lat = focus_bucket["lat"]["value"]
+                focus_lon = focus_bucket["lon"]["value"]
+            if station_count == 1 and station_buckets:
+                station_name = station_buckets[0]["key"]
+
+            country_buckets = bucket["countries"]["buckets"]
+            country = country_buckets[0]["key"] if country_buckets else None
+            analysis_counts = {
+                b["key"]: b["doc_count"]
+                for b in bucket["analysis_types"]["buckets"]
+            }
+            environment_counts = {
+                b["key"]: b["doc_count"]
+                for b in bucket["environment_types"]["buckets"]
+            }
+
+            clusters.append(StationGeoCluster(
+                key=bucket["key"],
+                lat=centroid["lat"],
+                lon=centroid["lon"],
+                station_count=station_count,
+                sample_count=bucket["doc_count"],
+                source_sample_count=bucket["source_count"]["doc_count"],
+                station_name=station_name,
+                focus_station_name=focus_station_name,
+                focus_station_sample_count=focus_station_sample_count,
+                focus_lat=focus_lat,
+                focus_lon=focus_lon,
+                country=country,
+                analysis_types=list(analysis_counts),
+                environment_types=list(environment_counts),
+                analysis_type_counts=analysis_counts,
+                environment_type_counts=environment_counts,
+                has_images=bucket["has_any_images"]["doc_count"] > 0,
+                has_ena_data=bucket["has_any_ena"]["doc_count"] > 0,
+            ))
+
+        return StationGeoAggregationResponse(clusters=clusters)
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Station geo aggregation error: {str(e)}")
 
 
 @app.get("/stations/{station_name}")
