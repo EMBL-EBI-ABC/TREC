@@ -18,19 +18,10 @@ import os
 # load_dotenv()
 # API_BASE_URL = "http://0.0.0.0:8080"
 
-BIONGFF_VIEWER_URL = "https://biongff-viewer-868757013548.europe-west2.run.app/"
-S3_BASE = "https://s3.embl.de/live-confocal-trec-super-plankton/"
-PROXY_BASE = "https://trec-be-868757013548.europe-west2.run.app/zarr-proxy"
 
-def build_zarr_proxy_url(file_entry: dict) -> str:
-    location = file_entry["acquisition_location"]
-    date = file_entry["acquisition_date"]
-    name = file_entry["name"]
-    tile = file_entry["tile"]
-    folder = f"LSM900_{date}"
-    ome_zarr = f"{name}_{tile}.ome.zarr"
-    inner_zarr = f"{name}.zarr"
-    return f"{PROXY_BASE}/{location}/{folder}/{ome_zarr}/{inner_zarr}"
+VIEWER_BASE = ("https://livingobjects.ebi.ac.uk/bioimaging-01-pub/"
+               "bia-zarr-test/vizarr/index.html")
+BIA_IMAGE_PAGE = "https://beta.bioimagearchive.org/bioimage-archive/image"
 
 def layout(sample_id=None, **kwargs):
     return dbc.Container([
@@ -270,29 +261,33 @@ def build_detail_page(sample_id):
     ])), className="trec-card mb-2"))
 
     # BioImage Archive
-    zarr_url = None
-    if sample.get("image_zarr_url"):
-        # Use enriched field if available
-        raw = sample["image_zarr_url"]
-        zarr_path = raw[len(S3_BASE):] if raw.startswith(S3_BASE) else raw
-        zarr_url = f"{PROXY_BASE}/{zarr_path}"
-    elif sample.get("images"):
-        # Fall back to building from the images tile list
-        tiles = sorted(sample["images"], key=lambda x: int(x.get("tile", 0)))
-        if tiles:
-            zarr_url = build_zarr_proxy_url(tiles[0])
+    first_image = None
+    if sample.get("images"):
+        tiles = sorted(sample["images"], key=lambda x: int(x.get("tile") or 0))
+        first_image = next((t for t in tiles if t.get("ome_zarr_uri")), None)
 
-    if sample.get("has_images") == "Yes" and zarr_url:
-        viewer_url = f"{BIONGFF_VIEWER_URL}?source={quote(zarr_url, safe=':/')}"
+    if sample.get("has_images") == "Yes" and first_image:
+        viewer_url = f"{VIEWER_BASE}?source={quote(first_image['ome_zarr_uri'], safe=':/')}"
+        bia_page = (f"{BIA_IMAGE_PAGE}/{first_image['uuid']}"
+                    if first_image.get("uuid") else None)
+        viewer_buttons = [
+            dbc.Button("Open viewer →", color="success", size="sm",
+                       href=viewer_url, external_link=True, target="_blank"),
+        ]
+        if bia_page:
+            viewer_buttons.append(
+                dbc.Button("View on BioImage Archive →", color="link", size="sm",
+                           href=bia_page, external_link=True, target="_blank",
+                           className="ms-1"))
         linked_cards.append(dbc.Card(dbc.CardBody([
             dbc.Row([
                 dbc.Col([
                     html.H5("BioImage Archive", className="mb-0 fs-6"),
-                    html.Small("Microscopy images available", className="text-muted"),
+                    html.Small(f"{len(sample['images'])} microscopy image(s) available",
+                               className="text-muted"),
                 ]),
                 dbc.Col(
-                    dbc.Button("Open viewer →", color="success", size="sm",
-                               href=viewer_url, external_link=True, target="_blank"),
+                    viewer_buttons,
                     width="auto", className="d-flex align-items-center",
                 ),
             ]),
@@ -303,7 +298,7 @@ def build_detail_page(sample_id):
                         src=viewer_url,
                         title="Sample imaging viewer",
                         className="mt-2",
-                        style={"width": "100%", "height": "160px", "border": "none",
+                        style={"width": "100%", "height": "250px", "border": "none",
                                "borderRadius": "4px", "background": "#1a1a2e"},
                     ),
                 ],
