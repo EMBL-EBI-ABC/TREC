@@ -1,6 +1,3 @@
-import math
-import time
-
 import dash
 import requests
 import dash_bootstrap_components as dbc
@@ -44,8 +41,6 @@ ANALYSIS_COLORS = {
     "Imaging": "#c08a3e",       # amber
     "Ions": "#3a8f7d",          # teal
 }
-DEFAULT_MAP_CENTER = {"lat": 43, "lon": 10}
-DEFAULT_MAP_ZOOM = 3.5
 
 
 def _analysis_badge(t):
@@ -56,125 +51,6 @@ def _analysis_badge(t):
         style={"backgroundColor": f"{c}1f", "color": c,
                "border": f"1px solid {c}3d"},
     )
-
-
-def _bounds_from_coordinates(coordinates):
-    lats = []
-    lons = []
-    for point in coordinates or []:
-        if not isinstance(point, (list, tuple)) or len(point) < 2:
-            continue
-        lon, lat = point[:2]
-        if lat is not None and lon is not None:
-            lats.append(lat)
-            lons.append(lon)
-    if not lats or not lons:
-        return {}
-    return {
-        "top_left_lat": max(lats),
-        "top_left_lon": min(lons),
-        "bottom_right_lat": min(lats),
-        "bottom_right_lon": max(lons),
-    }
-
-
-def _bounds_from_geotile_key(tile_key):
-    try:
-        z, x, y = [int(part) for part in str(tile_key).split("/")]
-    except ValueError:
-        return None
-
-    n = 2 ** z
-
-    def tile_to_lon(tx):
-        return tx / n * 360.0 - 180.0
-
-    def tile_to_lat(ty):
-        lat_rad = math.atan(math.sinh(math.pi * (1 - 2 * ty / n)))
-        return math.degrees(lat_rad)
-
-    top_left_lat = tile_to_lat(y)
-    bottom_right_lat = tile_to_lat(y + 1)
-    top_left_lon = tile_to_lon(x)
-    bottom_right_lon = tile_to_lon(x + 1)
-    return {
-        "key": tile_key,
-        "zoom": z,
-        "center": {
-            "lat": (top_left_lat + bottom_right_lat) / 2,
-            "lon": (top_left_lon + bottom_right_lon) / 2,
-        },
-        "bounds": {
-            "top_left_lat": top_left_lat,
-            "top_left_lon": top_left_lon,
-            "bottom_right_lat": bottom_right_lat,
-            "bottom_right_lon": bottom_right_lon,
-        },
-    }
-
-
-def _map_view_from_relayout(relayout_data):
-    center = dict(DEFAULT_MAP_CENTER)
-    zoom = DEFAULT_MAP_ZOOM
-    bounds = {}
-
-    if not isinstance(relayout_data, dict):
-        return center, zoom, bounds
-
-    for prefix in ("map", "mapbox"):
-        nested = relayout_data.get(prefix)
-        if isinstance(nested, dict):
-            nested_center = nested.get("center")
-            if isinstance(nested_center, dict):
-                center["lat"] = nested_center.get("lat", center["lat"])
-                center["lon"] = nested_center.get("lon", center["lon"])
-            if nested.get("zoom") is not None:
-                zoom = nested["zoom"]
-
-        center_value = relayout_data.get(f"{prefix}.center")
-        if isinstance(center_value, dict):
-            center["lat"] = center_value.get("lat", center["lat"])
-            center["lon"] = center_value.get("lon", center["lon"])
-
-        lat = relayout_data.get(f"{prefix}.center.lat")
-        lon = relayout_data.get(f"{prefix}.center.lon")
-        if lat is not None:
-            center["lat"] = lat
-        if lon is not None:
-            center["lon"] = lon
-
-        zoom_value = relayout_data.get(f"{prefix}.zoom")
-        if zoom_value is not None:
-            zoom = zoom_value
-
-        derived = relayout_data.get(f"{prefix}._derived")
-        if isinstance(derived, dict):
-            bounds = _bounds_from_coordinates(derived.get("coordinates"))
-
-    return center, zoom, bounds
-
-
-def _active_filter_params(env_type, organism, analysis_type, country,
-                          protocol, source_filter, linked_data):
-    active_filters = {}
-    if env_type:
-        active_filters["environment_type"] = "|".join(env_type)
-    if organism:
-        active_filters["organism"] = "|".join(organism)
-    if analysis_type:
-        active_filters["analysis_type"] = "|".join(analysis_type)
-    if country:
-        active_filters["country"] = "|".join(country)
-    if protocol:
-        active_filters["protocol"] = "|".join(protocol)
-    if source_filter == "source":
-        active_filters["is_source_sample"] = True
-    if linked_data:
-        if "images" in linked_data:
-            active_filters["has_images"] = "Yes"
-        if "ena" in linked_data:
-            active_filters["has_ena_data"] = True
-    return active_filters
 
 
 def make_stats_banner():
@@ -315,8 +191,6 @@ layout = dbc.Container([
             ),
             # Samples table (always in DOM, hidden until station selected)
             dcc.Store(id="selected-station"),
-            dcc.Store(id="selected-geo-bounds"),
-            dcc.Store(id="map-focus"),
             dcc.Store(id="table-sort-by", data=[]),
             dcc.Store(id="suggestions-data"),
             dcc.Location(id="url", refresh=False),
@@ -479,7 +353,6 @@ def filter_options(search_value, suggestions):
     Output("analysis-type-filter", "value", allow_duplicate=True),
     Output("protocol-filter", "value", allow_duplicate=True),
     Output("selected-station", "data", allow_duplicate=True),
-    Output("selected-geo-bounds", "data", allow_duplicate=True),
     Output("predictive-search", "value"),
     Input("predictive-search", "value"),
     State("country-filter", "value"),
@@ -508,17 +381,17 @@ def apply_predictive_search(picked, country, organism, env_type,
         return lst if val in lst else lst + [val]
 
     if kind == "country":
-        return _add(country, name), NU, NU, NU, NU, NU, None, None
+        return _add(country, name), NU, NU, NU, NU, NU, None
     if kind == "organism":
-        return NU, _add(organism, name), NU, NU, NU, NU, None, None
+        return NU, _add(organism, name), NU, NU, NU, NU, None
     if kind == "environment":
-        return NU, NU, _add(env_type, name), NU, NU, NU, None, None
+        return NU, NU, _add(env_type, name), NU, NU, NU, None
     if kind == "analysis":
-        return NU, NU, NU, _add(analysis_type, name), NU, NU, None, None
+        return NU, NU, NU, _add(analysis_type, name), NU, NU, None
     if kind == "protocol":
-        return NU, NU, NU, NU, _add(protocol, name), NU, None, None
+        return NU, NU, NU, NU, _add(protocol, name), NU, None
     if kind == "station":
-        return NU, NU, NU, NU, NU, name, None, None
+        return NU, NU, NU, NU, NU, name, None
 
     raise dash.exceptions.PreventUpdate
 
@@ -531,8 +404,6 @@ def apply_predictive_search(picked, country, organism, env_type,
     Output("country-filter", "options"),
     Output("protocol-all-options", "data"),
     Input("predictive-search", "id"),
-    Input("station-map", "relayoutData"),
-    Input("map-focus", "data"),
     Input("colour-by", "value"),
     Input("env-type-filter", "value"),
     Input("organism-filter", "value"),
@@ -542,78 +413,85 @@ def apply_predictive_search(picked, country, organism, env_type,
     Input("source-filter", "value"),
     Input("linked-data-filter", "value"),
     Input("selected-station", "data"),
-    Input("selected-geo-bounds", "data"),
 )
-def load_map_and_filters(_, relayout_data, map_focus, colour_by, env_type, organism, analysis_type,
-                         country, protocol, source_filter, linked_data, selected_station,
-                         selected_geo_bounds):
+def load_map_and_filters(_, colour_by, env_type, organism, analysis_type,
+                         country, protocol, source_filter, linked_data, selected_station):
     import plotly.graph_objects as go
     from collections import defaultdict
 
-    center, zoom, bounds = _map_view_from_relayout(relayout_data)
-    triggered_props = {trigger["prop_id"].split(".")[0] for trigger in ctx.triggered}
-    applying_map_focus = "map-focus" in triggered_props and bool(map_focus)
-    if applying_map_focus:
-        center = map_focus.get("center") or center
-        zoom = map_focus.get("zoom") or zoom
-        bounds = map_focus.get("bounds") or bounds
-    active_filters = _active_filter_params(
-        env_type,
-        organism,
-        analysis_type,
-        country,
-        protocol,
-        source_filter,
-        linked_data,
-    )
-
-    cluster_error = None
     try:
-        cluster_params = {"zoom": zoom, **active_filters, **bounds}
-        cluster_response = requests.get(
-            f"{API_BASE_URL}/stations/geo_aggregation",
-            params=cluster_params,
-            timeout=30,
-        )
-        clusters_resp = cluster_response.json()
-        if cluster_response.status_code >= 400:
-            cluster_error = "Station clusters unavailable. Check geo_location mapping."
+        stations_resp = requests.get(f"{API_BASE_URL}/stations").json()
     except Exception:
-        clusters_resp = {"clusters": []}
-        cluster_error = "Station clusters unavailable"
-    if not isinstance(clusters_resp, dict):
-        clusters_resp = {"clusters": []}
-        cluster_error = "Station clusters unavailable"
-    if clusters_resp.get("detail"):
-        cluster_error = "Station clusters unavailable. Check geo_location mapping."
-    clusters = clusters_resp.get("clusters", [])
+        stations_resp = {"stations": []}
+    stations = stations_resp.get("stations", [])
+
+    # find which stations have matching samples when filters are applied
+    active_filters = {}
+    if env_type:
+        active_filters["environment_type"] = "|".join(env_type)
+    if organism:
+        active_filters["organism"] = "|".join(organism)
+    if analysis_type:
+        active_filters["analysis_type"] = "|".join(analysis_type)
+    if country:
+        active_filters["country"] = "|".join(country)
+    if protocol:
+        active_filters["protocol"] = "|".join(protocol)
+    if source_filter == "source":
+        active_filters["is_source_sample"] = True
+    if linked_data:
+        if "images" in linked_data:
+            active_filters["has_images"] = "Yes"
+        if "ena" in linked_data:
+            active_filters["has_ena_data"] = "true"
+
+    active_station_names = None
+    if active_filters:
+        try:
+            # Fetch all matching samples to find which stations are represented
+            filter_resp = requests.get(
+                f"{API_BASE_URL}/data_portal",
+                params={**active_filters, "size": 0}
+            ).json()
+            aggregations = filter_resp.get("aggregations")
+            if aggregations:
+                agg_stations = aggregations.get(
+                    "station_name", {}).get("buckets", [])
+                active_station_names = {b["key"] for b in agg_stations}
+        except Exception:
+            active_station_names = None
+
 
     # Colour logic
     COLOUR_MAPS = {
         "environment_type": {"marine": "#2f7fa6", "soil": "#c08a3e",
                               "aerosol": "#7a6f9b"},
         "analysis_type": {"Metagenomics": "#0E4D3C", "Metabolomics": "#D9714E",
-                              "Imaging": "#c08a3e", "Ions": "#3a8f7d"},
+                          "Imaging": "#c08a3e", "Ions": "#3a8f7d"},
     }
     LABELS = {
-        "none": {"#0E4D3C": "Stations"},
+        "none": {"#0E4D3C": "Stations", "#cfc6b4": "No matching samples"},
         "has_images": {"#D9714E": "Has images", "#9aa89f": "No images",
-                       },
+                       "#cfc6b4": "No matching samples"},
         "environment_type": {"#2f7fa6": "Marine", "#c08a3e": "Soil",
                              "#7a6f9b": "Aerosol", "#9aa89f": "Unknown",
-                             },
+                             "#cfc6b4": "No matching samples"},
         "analysis_type": {"#0E4D3C": "Metagenomics", "#D9714E": "Metabolomics",
                           "#c08a3e": "Imaging", "#3a8f7d": "Ions",
-                          "#9aa89f": "Unknown"},
+                          "#9aa89f": "Unknown", "#cfc6b4": "No matching samples"},
     }
 
-    def get_colour(cluster):
+    def get_colour(station):
+        # Grey out stations with no matching samples when filters are active
+        if active_station_names is not None:
+            if station["station_name"] not in active_station_names:
+                return "#cfc6b4"
         if colour_by == "none":
             return "#0E4D3C"
         if colour_by == "has_images":
-            return "#D9714E" if cluster.get("has_images") else "#9aa89f"
+            return "#D9714E" if station.get("has_images") else "#9aa89f"
         if colour_by in COLOUR_MAPS:
-            counts = cluster.get(
+            counts = station.get(
                 "analysis_type_counts" if colour_by == "analysis_type"
                 else "environment_type_counts", {}
             )
@@ -622,10 +500,15 @@ def load_map_and_filters(_, relayout_data, map_focus, colour_by, env_type, organ
                 return COLOUR_MAPS[colour_by].get(dominant, "#9aa89f")
         return "#9aa89f"
 
-    def get_dominant_label(cluster):
+    lats = [s["lat"] for s in stations]
+    lons = [s["lon"] for s in stations]
+    names = [s["station_name"] for s in stations]
+    colours = [get_colour(s) for s in stations]
+
+    def get_dominant_label(station):
         if colour_by == "none" or colour_by == "has_images":
             return ""
-        counts = cluster.get(
+        counts = station.get(
             "analysis_type_counts" if colour_by == "analysis_type"
             else "environment_type_counts", {}
         )
@@ -635,61 +518,19 @@ def load_map_and_filters(_, relayout_data, map_focus, colour_by, env_type, organ
         pct = int(counts[dominant] / sum(counts.values()) * 100)
         return f"<br><b>Dominant: {dominant} ({pct}%)</b>"
 
-    def cluster_label(cluster):
-        station_name = cluster.get("station_name")
-        if station_name:
-            return station_name
-        station_count = cluster.get("station_count", 0)
-        suffix = "station" if station_count == 1 else "stations"
-        return f"{station_count} {suffix}"
-
-    def hover_text(cluster):
-        types = ", ".join(cluster.get("analysis_types", [])[:3]) or "None"
-        station_count = cluster.get("station_count", 0)
-        station_suffix = "station" if station_count == 1 else "stations"
-        zoom_hint = "" if cluster.get("station_name") else "<br><b>Zoom in to select a station</b>"
-        return (
-            f"{cluster_label(cluster)}<br>"
-            f"{station_count} {station_suffix}<br>"
-            f"{cluster.get('sample_count', 0)} samples, "
-            f"{cluster.get('source_sample_count', 0)} source<br>"
-            f"Types: {types}"
-            f"{get_dominant_label(cluster)}"
-            f"{zoom_hint}"
-        )
-
-    lats = [c["lat"] for c in clusters]
-    lons = [c["lon"] for c in clusters]
-    names = [cluster_label(c) for c in clusters]
-    colours = [get_colour(c) for c in clusters]
-    hover_texts = [hover_text(c) for c in clusters]
-    customdata = [
-        {
-            "type": "station" if c.get("station_name") else "cluster",
-            "station_name": c.get("station_name"),
-            "station_count": c.get("station_count", 0),
-            "sample_count": c.get("sample_count", 0),
-            "source_sample_count": c.get("source_sample_count", 0),
-            "country": c.get("country"),
-            "analysis_types": c.get("analysis_types", []),
-            "lat": c.get("lat"),
-            "lon": c.get("lon"),
-            "focus_station_name": c.get("focus_station_name"),
-            "focus_station_sample_count": c.get("focus_station_sample_count"),
-            "focus_lat": c.get("focus_lat"),
-            "focus_lon": c.get("focus_lon"),
-            "key": c.get("key"),
-        }
-        for c in clusters
+    hover_texts = [
+        f"{s['station_name']}<br>"
+        f"{s['sample_count']} samples, {s['source_sample_count']} source<br>"
+        f"Types: {', '.join(s['analysis_types'][:3])}"
+        f"{get_dominant_label(s)}"
+        for s in stations
     ]
-    sizes = [
-        max(10, min(30, 8 + (max(c.get("station_count", 1), 1) ** 0.5) * 4))
-        for c in clusters
-    ]
+
+    sizes = [max(8, min(20, s["sample_count"] // 10)) for s in stations]
 
     # Group stations by colour label for legend
     groups = defaultdict(list)
-    for i, _cluster in enumerate(clusters):
+    for i, s in enumerate(stations):
         groups[colours[i]].append(i)
 
     fig = go.Figure()
@@ -704,38 +545,14 @@ def load_map_and_filters(_, relayout_data, map_focus, colour_by, env_type, organ
             text=[names[i] for i in indices],
             hovertext=[hover_texts[i] for i in indices],
             hoverinfo="text",
-            customdata=[customdata[i] for i in indices],
+            customdata=[names[i] for i in indices],
             name=label,
         ))
 
-    if not clusters:
-        fig.add_trace(go.Scattermap(
-            lat=[],
-            lon=[],
-            mode="markers",
-            hoverinfo="skip",
-            showlegend=False,
-        ))
-        fig.add_annotation(
-            text=cluster_error or "No stations match the current filters",
-            xref="paper",
-            yref="paper",
-            x=0.5,
-            y=0.5,
-            showarrow=False,
-            font=dict(color="#6f7a72", size=14),
-        )
-
     # highlight selected station
     if selected_station:
-        sel = None
-        try:
-            sel = requests.get(
-                f"{API_BASE_URL}/stations/{selected_station}",
-                timeout=15,
-            ).json()
-        except Exception:
-            sel = None
+        sel = next((s for s in stations
+                    if s["station_name"] == selected_station), None)
         if sel:
             fig.add_trace(go.Scattermap(
                 lat=[sel["lat"]],
@@ -757,21 +574,16 @@ def load_map_and_filters(_, relayout_data, map_focus, colour_by, env_type, organ
                     f"Types: {', '.join(sel['analysis_types'][:3])}"
                 ],
                 hoverinfo="text",
-                customdata=[{"type": "station", "station_name": selected_station}],
                 name="Selected",
             ))
 
     fig.update_layout(
         map=dict(style="carto-positron",
-                 center=center, zoom=zoom),
+                 center=dict(lat=43, lon=10), zoom=3.5),
         margin=dict(l=0, r=0, t=0, b=0),
         paper_bgcolor="#E5E2D8",
         plot_bgcolor="#E5E2D8",
         showlegend=colour_by != "none" or bool(selected_station),
-        uirevision=(
-            f"focus-{map_focus.get('key')}-{map_focus.get('nonce')}"
-            if applying_map_focus else "station-map"
-        ),
         # Overlay the legend inside the map (bottom-centre) so there's no
         # empty reserved band below the map when the legend is hidden.
         legend=dict(
@@ -791,18 +603,6 @@ def load_map_and_filters(_, relayout_data, map_focus, colour_by, env_type, organ
         agg_params = {"size": 0, **active_filters}
         if selected_station:
             agg_params["station_name"] = selected_station
-            if (
-                selected_geo_bounds
-                and selected_geo_bounds.get("station_name") == selected_station
-            ):
-                for key in (
-                    "top_left_lat",
-                    "top_left_lon",
-                    "bottom_right_lat",
-                    "bottom_right_lon",
-                ):
-                    if selected_geo_bounds.get(key) is not None:
-                        agg_params[key] = selected_geo_bounds[key]
         agg_resp = requests.get(f"{API_BASE_URL}/data_portal",
                                 params=agg_params).json()
         aggs = agg_resp.get("aggregations", {})
@@ -847,7 +647,6 @@ def clear_station_panel(selected_station):
 @callback(
     Output("station-panel", "children", allow_duplicate=True),
     Output("selected-station", "data", allow_duplicate=True),
-    Output("selected-geo-bounds", "data", allow_duplicate=True),
     Output("samples-pagination", "max_value", allow_duplicate=True),
     Output("samples-pagination", "active_page", allow_duplicate=True),
     Output("samples-pagination", "style", allow_duplicate=True),
@@ -868,7 +667,7 @@ def initialize_from_url(search):
     except Exception as e:
         return (dbc.Alert(f"Error loading station: {e}", color="danger",
                           className="mt-3"),
-                None, None, 1, 1, hide_pagination)
+                None, 1, 1, hide_pagination)
     summary = dbc.Card(
         dbc.CardBody([
             html.H5([
@@ -892,18 +691,16 @@ def initialize_from_url(search):
         className="station-panel-card mt-3 mb-2 p-1",
     )
     max_pages = max(1, (detail["source_sample_count"] + 9) // 10)
-    return (summary, station_name, None, max_pages, 1,
+    return (summary, station_name, max_pages, 1,
             {"display": "flex", "justifyContent": "end", "marginTop": "8px"})
 
 
 @callback(
     Output("station-panel", "children"),
     Output("selected-station", "data"),
-    Output("selected-geo-bounds", "data"),
     Output("samples-pagination", "max_value"),
     Output("samples-pagination", "active_page"),
     Output("samples-pagination", "style"),
-    Output("map-focus", "data"),
     Input("station-map", "clickData"),
     prevent_initial_call=True,
 )
@@ -912,88 +709,15 @@ def show_station_panel(click_data):
     hide_pagination = {"display": "none"}
 
     if not click_data or "points" not in click_data:
-        return None, None, None, 1, 1, hide_pagination, dash.no_update
+        return None, None, 1, 1, hide_pagination
 
-    point = click_data["points"][0]
-    payload = point.get("customdata")
-    if isinstance(payload, list):
-        payload = payload[0] if payload else None
-    point_text = point.get("text") or ""
-    if not isinstance(payload, dict) and point_text.endswith("stations"):
-        try:
-            station_count = int(point_text.split()[0])
-        except (TypeError, ValueError):
-            station_count = 0
-        payload = {
-            "type": "cluster",
-            "station_count": station_count,
-            "sample_count": 0,
-            "lat": point.get("lat"),
-            "lon": point.get("lon"),
-            "focus_lat": point.get("lat"),
-            "focus_lon": point.get("lon"),
-        }
-
-    if isinstance(payload, dict) and payload.get("type") == "cluster":
-        focus = _bounds_from_geotile_key(payload.get("key"))
-        if (
-            focus
-            and payload.get("focus_lat") is not None
-            and payload.get("focus_lon") is not None
-        ):
-            focus["center"] = {
-                "lat": payload["focus_lat"],
-                "lon": payload["focus_lon"],
-            }
-        if not focus and payload.get("lat") is not None and payload.get("lon") is not None:
-            fallback_lat = (
-                payload["focus_lat"]
-                if payload.get("focus_lat") is not None else payload["lat"]
-            )
-            fallback_lon = (
-                payload["focus_lon"]
-                if payload.get("focus_lon") is not None else payload["lon"]
-            )
-            focus = {
-                "center": {"lat": fallback_lat, "lon": fallback_lon},
-                "zoom": DEFAULT_MAP_ZOOM + 3,
-                "bounds": {},
-            }
-        if not focus:
-            raise dash.exceptions.PreventUpdate
-        focus["zoom"] = min(focus.get("zoom", DEFAULT_MAP_ZOOM) + 2, 12)
-        focus["nonce"] = time.time()
-        station_count = payload.get("station_count", 0)
-        sample_count = payload.get("sample_count", 0)
-        focus_station_name = payload.get("focus_station_name")
-        focus_count = payload.get("focus_station_sample_count")
-        station_word = "station" if station_count == 1 else "stations"
-        focus_count_text = f" ({focus_count} samples)" if focus_count else ""
-        focus_text = (
-            f" Centered on {focus_station_name}{focus_count_text}."
-            if focus_station_name else ""
-        )
-        summary = html.P(
-            f"Showing {station_count} {station_word} in this area "
-            f"({sample_count} samples).{focus_text} "
-            "Click a station dot to view its samples.",
-            className="text-muted text-center py-3",
-        )
-        return summary, None, None, 1, 1, hide_pagination, focus
-
-    selected_geo_bounds = None
-    if isinstance(payload, dict):
-        station_name = payload.get("station_name")
-        focus = _bounds_from_geotile_key(payload.get("key"))
-        if focus:
-            selected_geo_bounds = {
-                "station_name": station_name,
-                **focus["bounds"],
-            }
-    else:
-        station_name = payload
+    station_name = click_data["points"][0].get("customdata")
     if not station_name:
-        raise dash.exceptions.PreventUpdate
+        station_name = click_data["points"][0].get("text", "")
+    if not station_name:
+        return (dbc.Alert("Could not identify station",
+                          color="warning", className="mt-3"),
+                None, 1, 1, hide_pagination)
 
     try:
         detail = requests.get(
@@ -1001,20 +725,9 @@ def show_station_panel(click_data):
     except Exception as e:
         return (dbc.Alert(f"Error loading station: {e}",
                           color="danger", className="mt-3"),
-                None, None, 1, 1, hide_pagination, dash.no_update)
+                None, 1, 1, hide_pagination)
 
-    if selected_geo_bounds and isinstance(payload, dict):
-        sample_count = payload.get("sample_count", 0)
-        source_sample_count = payload.get("source_sample_count", 0)
-        analysis_types = payload.get("analysis_types") or []
-        summary_country = payload.get("country") or detail.get("country")
-    else:
-        sample_count = detail["sample_count"]
-        source_sample_count = detail["source_sample_count"]
-        analysis_types = detail.get("analysis_types", [])
-        summary_country = detail.get("country")
-    sample_label = " samples" if selected_geo_bounds else " total samples"
-
+    # --- Summary ---
     summary = dbc.Card(
         dbc.CardBody([
             html.H5([
@@ -1023,32 +736,28 @@ def show_station_panel(click_data):
                 detail["station_name"],
             ], className="mb-0"),
             html.Small(
-                summary_country or "",
+                detail.get("country") or "",
                 className="text-muted",
             ),
             html.Div([
-                html.Span(str(source_sample_count), className="count"),
+                html.Span(str(detail["source_sample_count"]),
+                          className="count"),
                 html.Small(" source", className="text-muted"),
                 html.Span(" / ", className="text-muted mx-1"),
-                html.Span(str(sample_count), className="count"),
-                html.Small(sample_label, className="text-muted me-3"),
-                *[_analysis_badge(t) for t in analysis_types],
+                html.Span(str(detail["sample_count"]),
+                          className="count"),
+                html.Small(" total samples", className="text-muted me-3"),
+                *[_analysis_badge(t)
+                  for t in detail.get("analysis_types", [])],
             ], className="mt-2"),
         ]),
         className="station-panel-card mt-3 mb-2 p-1",
     )
 
-    max_pages = max(1, (sample_count + 9) // 10)
+    max_pages = max(1, (detail["source_sample_count"] + 9) // 10)
 
-    return (
-        summary,
-        station_name,
-        selected_geo_bounds,
-        max_pages,
-        1,
-        {"display": "flex", "justifyContent": "end", "marginTop": "8px"},
-        dash.no_update,
-    )
+    return (summary, station_name, max_pages, 1,
+            {"display": "flex", "justifyContent": "end", "marginTop": "8px"})
 
 
 @callback(
@@ -1058,7 +767,6 @@ def show_station_panel(click_data):
     Output("samples-pagination", "style", allow_duplicate=True),
     Input("samples-pagination", "active_page"),
     Input("selected-station", "data"),
-    Input("selected-geo-bounds", "data"),
     Input("protocol-filter", "value"),
     Input("env-type-filter", "value"),
     Input("organism-filter", "value"),
@@ -1069,7 +777,7 @@ def show_station_panel(click_data):
     Input("table-sort-by", "data"),
     prevent_initial_call=True,
 )
-def load_samples_page(page, station_name, selected_geo_bounds, protocol, env_type, organism,
+def load_samples_page(page, station_name, protocol, env_type, organism,
                       analysis_type, country, source_filter, linked_data, sort_by):
 
     hide_pagination = {"display": "none"}
@@ -1128,18 +836,6 @@ def load_samples_page(page, station_name, selected_geo_bounds, protocol, env_typ
 
     if station_name:
         params["station_name"] = station_name
-        if (
-            selected_geo_bounds
-            and selected_geo_bounds.get("station_name") == station_name
-        ):
-            for key in (
-                "top_left_lat",
-                "top_left_lon",
-                "bottom_right_lat",
-                "bottom_right_lon",
-            ):
-                if selected_geo_bounds.get(key) is not None:
-                    params[key] = selected_geo_bounds[key]
 
     if source_filter == "source":
         params["is_source_sample"] = True
@@ -1262,6 +958,23 @@ def load_samples_page(page, station_name, selected_geo_bounds, protocol, env_typ
 
     pagination_style = show_pagination if total > 10 else hide_pagination
     return table, max_pages, page, pagination_style
+
+
+@callback(
+    Output("selected-station", "data", allow_duplicate=True),
+    Output("url", "search", allow_duplicate=True),
+    Input("protocol-filter", "value"),
+    Input("env-type-filter", "value"),
+    Input("organism-filter", "value"),
+    Input("analysis-type-filter", "value"),
+    Input("country-filter", "value"),
+    Input("source-filter", "value"),
+    Input("linked-data-filter", "value"),
+    prevent_initial_call=True,
+)
+def clear_station_when_filters_change(*_):
+    """Treat sidebar filters as global searches, not station drill-downs."""
+    return None, ""
 
 
 _NON_SORTABLE_COLUMNS = {"has_ena"}

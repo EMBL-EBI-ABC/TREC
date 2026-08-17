@@ -5,9 +5,7 @@ import threading
 import urllib.parse
 from contextlib import asynccontextmanager
 import json
-import httpx
 from cachetools import TTLCache
-from fastapi.responses import Response
 
 log = logging.getLogger("trec")
 
@@ -691,27 +689,3 @@ async def global_stats() -> GlobalStats:
             status_code=500, detail="Internal search error")
 
 
-
-
-_ZARR_BUCKET = "live-confocal-trec-super-plankton"
-_ZARR_TIMEOUT = httpx.Timeout(10.0, connect=5.0)
-
-
-@app.get("/zarr-proxy/{path:path}")
-async def zarr_proxy(path: str):
-    # Normalise and confine to the bucket prefix so `../` can't be used to
-    # relay arbitrary objects elsewhere on s3.embl.de through this proxy.
-    full = posixpath.normpath(f"{_ZARR_BUCKET}/{path}")
-    if full != _ZARR_BUCKET and not full.startswith(f"{_ZARR_BUCKET}/"):
-        raise HTTPException(status_code=400, detail="Invalid path")
-
-    url = f"https://s3.embl.de/{full}"
-    # Explicit timeout so a slow or huge upstream object can't pin a worker.
-    async with httpx.AsyncClient(timeout=_ZARR_TIMEOUT) as client:
-        r = await client.get(url)
-    return Response(
-        content=r.content,
-        status_code=r.status_code,
-        media_type=r.headers.get("content-type", "application/octet-stream"),
-        headers={"Access-Control-Allow-Origin": "*"}
-    )
