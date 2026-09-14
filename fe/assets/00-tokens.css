@@ -6,16 +6,16 @@
   --trec-coral: #D9714E;
   --trec-coral-dark: #c15c3b;
 
-  /* Neutrals */
-  --trec-canvas: #F7F4EC;     /* cream — header/footer chrome + hero text */
-  --trec-bg: #E5E2D8;         /* page body background (warm grey) */
-  --trec-paper: #FFFDF9;      /* cards / surfaces (warm off-white) */
-  --trec-paper-2: #FBF9F3;    /* sunken surfaces (sidebars, table head) */
-  --trec-ink: #1A2420;        /* primary text */
-  --trec-muted: #6f7a72;      /* secondary text */
-  --trec-faint: #8a7f6c;      /* labels on cream */
-  --trec-border: #e6e0d3;     /* hairline on cream */
-  --trec-border-2: #f1ece1;   /* row dividers */
+  /* Neutrals: aligned to Visual Framework surface banding */
+  --trec-canvas: #ffffff;     /* header/footer chrome + hero text */
+  --trec-bg: #ffffff;         /* page body background */
+  --trec-paper: #ffffff;      /* cards / primary surfaces */
+  --trec-paper-2: #f3f3f3;    /* alternate bands, sidebars, table heads */
+  --trec-ink: #1a1c1a;        /* primary text */
+  --trec-muted: #54585a;      /* secondary text */
+  --trec-faint: #54585a;      /* labels */
+  --trec-border: #d0d0ce;     /* standard VF border */
+  --trec-border-2: #d8d8d6;   /* row dividers */
 
   /* Type */
   --font-display: "Fraunces", Georgia, serif;
@@ -26,12 +26,13 @@
   --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px; --sp-4: 16px;
   --sp-5: 24px; --sp-6: 32px; --sp-7: 48px; --sp-8: 64px;
 
-  /* Radius */
-  --r-sm: 8px;  --r-md: 14px; --r-pill: 999px;
+   /* Radius + shadow: VF uses square, low-decoration surfaces */
+  --r-sm: 0;
+  --r-md: 0;
+  --r-pill: 999px;
 
-  /* Shadow */
-  --shadow-1: 0 6px 18px rgba(20,40,32,.06);
-  --shadow-2: 0 18px 40px rgba(20,40,32,.10);
+  --shadow-1: none;
+  --shadow-2: none;
 
   /* Re-point Bootstrap's "success" semantic to brand green so existing
      text-success / bg-success utilities match the palette. (Button variants
