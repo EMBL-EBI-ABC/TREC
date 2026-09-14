@@ -108,7 +108,7 @@
   background: rgba(14,77,60,.06) !important; --bs-table-hover-bg: rgba(14,77,60,.06); color: inherit;
 }
 .trec-table tbody td a { text-decoration: none; color: var(--trec-green); border-bottom: 1px solid transparent; }
-.trec-table tbody td a:hover { color: var(--trec-green-dark); border-bottom-color: var(--trec-coral); }
+.trec-table tbody td a:hover { color: var(--trec-green-dark); border-bottom-color: var(--trec-green); }
 .trec-table td.trec-num, .trec-table .trec-num { font-family: var(--font-mono); }
 /* Sort indicators for dbc.Table headers — visually
    mirrors Dash DataTable's bundled fa-sort icons used on
@@ -150,7 +150,7 @@
 }
 .trec-table .trec-sort-caret.active {
     opacity: 1;
-    color: var(--trec-coral);
+    color: var(--trec-green);
 }
 /* Samples table (Dash DataTable) sort indicator.
    DataTable bundles a Font Awesome fa-sort SVG (both
