@@ -1,7 +1,7 @@
 /* ===== Home hero ===== */
 .home-hero {
   position: relative; overflow: hidden;
-  background: radial-gradient(120% 140% at 80% -20%, var(--trec-green-deep) 0%, var(--trec-green) 55%, var(--trec-green-dark) 100%);
+  background: var(--trec-green-dark);
   color: var(--trec-canvas);
   padding: var(--sp-8) var(--sp-5);
 }
@@ -15,10 +15,8 @@
 
 /* ===== Decorative floating orbs ===== */
 .home-hero-decor {
-  position: absolute; inset: 0; overflow: hidden;
-  pointer-events: none; z-index: 0;
+  display: none;
 }
-.home-hero .orb { position: absolute; border-radius: 50%; will-change: transform; }
 /* large coral teardrop, bottom-right (the original accent) */
 .home-hero .orb-1 {
   width: 360px; height: 360px; right: -70px; bottom: -130px;
@@ -72,12 +70,35 @@
 }
 
 /* ===== Home stat strip ===== */
-.home-stats { background: var(--trec-green-dark); }
-.home-stat { padding: var(--sp-5); border-right: 1px solid rgba(255,255,255,.08); }
-.home-stats .g-0 > [class*="col"]:last-child .home-stat { border-right: none; }
-.home-stat .n { font-family: var(--font-mono); font-size: 1.9rem; font-weight: 600; color: #fff; line-height: 1; }
-.home-stat .l { font-size: .72rem; letter-spacing: .12em; text-transform: uppercase; color: #9fd3c0; margin-top: var(--sp-2); }
+.home-stats {
+  background: var(--trec-paper-2);
+  border-bottom: 1px solid var(--trec-border);
+}
 
+.home-stat {
+  padding: var(--sp-5);
+  border-right: 1px solid var(--trec-border);
+}
+
+.home-stats .g-0 > [class*="col"]:last-child .home-stat {
+  border-right: none;
+}
+
+.home-stat .n {
+  font-family: var(--font-mono);
+  font-size: 1.9rem;
+  font-weight: 600;
+  color: var(--trec-ink);
+  line-height: 1;
+}
+
+.home-stat .l {
+  font-size: .72rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--trec-muted);
+  margin-top: var(--sp-2);
+}
 /* ===== Home nav cards ===== */
 .home-navcard {
   background: var(--trec-paper); border: 1px solid var(--trec-border);
