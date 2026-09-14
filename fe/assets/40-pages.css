@@ -100,7 +100,7 @@
   margin-top: var(--sp-2);
 }
 /* ===== Home nav cards ===== */
-..home-navcard {
+.home-navcard {
   background: var(--trec-paper);
   border: 1px solid var(--trec-border);
   border-top: 4px solid var(--trec-green);
@@ -126,8 +126,18 @@
 }
 
 /* ===== Data portal stat banner ===== */
-.stat-card { background: var(--trec-paper); border: 1px solid var(--trec-border) !important; border-radius: var(--r-md); box-shadow: var(--shadow-1); }
-.stat-card .stat-icon { color: var(--trec-coral); margin-bottom: .25rem; line-height: 1; }
+.stat-card {
+  background: var(--trec-paper);
+  border: 1px solid var(--trec-border) !important;
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-1);
+}
+
+.stat-card .stat-icon {
+  color: var(--trec-muted);
+  margin-bottom: .25rem;
+  line-height: 1;
+}
 .stat-card .stat-number { font-family: var(--font-mono); font-size: 1.8rem; font-weight: 600; line-height: 1.1; }
 .stat-card .stat-label { margin-top: .125rem; letter-spacing: .03em; }
 
