@@ -142,8 +142,17 @@
 .stat-card .stat-label { margin-top: .125rem; letter-spacing: .03em; }
 
 /* ===== Filters sidebar ===== */
-.portal-sidebar { background: var(--trec-paper-2); border: 1px solid var(--trec-border); border-radius: var(--r-md); padding: var(--sp-5); }
-.portal-sidebar h6 { font-family: var(--font-display); }
+.portal-sidebar {
+  background: var(--trec-paper);
+  border: 1px solid var(--trec-border);
+  border-radius: var(--r-md);
+  padding: var(--sp-5);
+}
+
+.portal-sidebar h6 {
+  font-family: var(--font-sans);
+  font-weight: 700;
+}
 .portal-sidebar .form-label, .portal-sidebar label.fw-bold {
   font-size: .72rem !important; letter-spacing: .12em; text-transform: uppercase;
   color: var(--trec-faint); font-weight: 600;
