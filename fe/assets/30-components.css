@@ -202,7 +202,7 @@
 .dash-header .column-header--sort:has(
     svg[data-icon="sort-down"])::after {
     opacity: 1;
-    color: var(--trec-coral);
+    color: var(--trec-green);
 }
 /* ENA column on the samples table is non-sortable: the
    backend has no `has_ena` ES field (it's `has_ena_data`),
