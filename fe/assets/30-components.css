@@ -222,10 +222,19 @@
 
 /* ===== Buttons ===== */
 .btn.trec-btn-primary {
-  background: var(--trec-coral); border-color: var(--trec-coral);
-  color: #fff; font-weight: 600; border-radius: var(--r-sm); padding: .6rem 1.4rem;
+  background: var(--trec-green);
+  border-color: var(--trec-green);
+  color: #fff;
+  font-weight: 700;
+  border-radius: var(--r-sm);
+  padding: .6rem 1.4rem;
 }
-.btn.trec-btn-primary:hover { background: var(--trec-coral-dark); border-color: var(--trec-coral-dark); color:#fff; }
+
+.btn.trec-btn-primary:hover {
+  background: var(--trec-green-dark);
+  border-color: var(--trec-green-dark);
+  color: #fff;
+}
 .btn.trec-btn-ghost {
   background: transparent;
   border: 1px solid color-mix(in srgb, var(--trec-canvas) 50%, transparent);
