@@ -161,5 +161,10 @@
 .portal-sidebar .form-check-input:checked { background-color: var(--trec-green); border-color: var(--trec-green); }
 
 /* ===== Station summary panel ===== */
-.station-panel-card { background: var(--trec-paper); border: 1px solid var(--trec-border); border-left: 4px solid var(--trec-coral); border-radius: var(--r-md); }
+.station-panel-card {
+  background: var(--trec-paper);
+  border: 1px solid var(--trec-border);
+  border-left: 4px solid var(--trec-green);
+  border-radius: var(--r-md);
+}
 .station-panel-card .count { font-family: var(--font-mono); color: var(--trec-green); font-weight: 600; }
