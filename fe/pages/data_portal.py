@@ -945,7 +945,7 @@ def load_samples_page(page, station_name, protocol, env_type, organism,
                          "text-decoration-color .15s;"},
                 {"selector": ".dash-cell a:hover",
                  "rule": "color: #0a3a2d; "
-                         "text-decoration-color: #D9714E;"},
+                         "text-decoration-color: #0E4D3C;"},
                 {"selector": ".dash-spreadsheet-inner tr:hover td.dash-cell",
                  "rule": "background-color: rgba(14, 77, 60, 0.08) "
                          "!important;"},
