@@ -33,17 +33,6 @@ def _hero():
         [
         html.Div(
             [
-                html.Span(className="orb orb-1"),
-                html.Span(className="orb orb-2"),
-                html.Span(className="orb orb-3"),
-                html.Span(className="orb orb-4"),
-                html.Span(className="orb orb-5"),
-            ],
-            className="home-hero-decor",
-            **{"aria-hidden": "true"},
-        ),
-        html.Div(
-            [
                 html.Div("Traversing European Coastlines", className="eyebrow"),
                 html.H1("The molecular pulse of Europe's coastlines."),
                 html.P(
