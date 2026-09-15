@@ -671,8 +671,7 @@ def initialize_from_url(search):
     summary = dbc.Card(
         dbc.CardBody([
             html.H5([
-                html.I(className="bi bi-geo-alt-fill me-2",
-                       style={"color": "#0E4D3C"}),
+                html.I(className="bi bi-geo-alt-fill me-2 station-icon"),
                 detail["station_name"],
             ], className="mb-0"),
             html.Small(detail.get("country") or "", className="text-muted"),
@@ -731,8 +730,7 @@ def show_station_panel(click_data):
     summary = dbc.Card(
         dbc.CardBody([
             html.H5([
-                html.I(className="bi bi-geo-alt-fill me-2",
-                       style={"color": "#0E4D3C"}),
+                html.I(className="bi bi-geo-alt-fill me-2 station-icon"),
                 detail["station_name"],
             ], className="mb-0"),
             html.Small(

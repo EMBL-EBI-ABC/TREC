@@ -35,8 +35,7 @@ def make_breadcrumb(sample, station_name, parent_id):
     items = []
     if station_name:
         items.append(html.Li(
-            html.A([html.I(className="bi bi-geo-alt-fill me-1",
-                           style={"color": "#0E4D3C"}),
+            html.A([html.I(className="bi bi-geo-alt-fill me-1 station-icon"),
                     station_name],
                    href="/data-portal",
                    className="text-decoration-none"),
