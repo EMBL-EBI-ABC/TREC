@@ -235,12 +235,20 @@
   border-color: var(--trec-green-dark);
   color: #fff;
 }
+
 .btn.trec-btn-ghost {
   background: transparent;
-  border: 1px solid color-mix(in srgb, var(--trec-canvas) 50%, transparent);
-  color: var(--trec-canvas); font-weight: 600; border-radius: var(--r-sm); padding: .6rem 1.4rem;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  color: var(--trec-canvas);
+  font-weight: 700;
+  border-radius: var(--r-sm);
+  padding: .6rem 1.4rem;
 }
-.btn.trec-btn-ghost:hover { background: color-mix(in srgb, var(--trec-canvas) 12%, transparent); color: var(--trec-canvas); }
+
+.btn.trec-btn-ghost:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--trec-canvas);
+}
 
 /* ===== Success buttons → brand green =====
    .btn-success compiles its own --bs-btn-* vars from Bootstrap's $success,
