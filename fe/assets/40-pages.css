@@ -13,11 +13,6 @@
 .home-hero p.lead { color: #cfe3da; max-width: 46ch; font-size: 1.05rem; }
 .home-hero-inner { position: relative; z-index: 1; }
 
-/* ===== Decorative floating orbs ===== */
-.home-hero-decor {
-  display: none;
-}
-
 /* ===== Home stat strip ===== */
 .home-stats {
   background: var(--trec-paper-2);
