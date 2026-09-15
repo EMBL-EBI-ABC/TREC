@@ -581,14 +581,14 @@ def load_map_and_filters(_, colour_by, env_type, organism, analysis_type,
         map=dict(style="carto-positron",
                  center=dict(lat=43, lon=10), zoom=3.5),
         margin=dict(l=0, r=0, t=0, b=0),
-        paper_bgcolor="#E5E2D8",
-        plot_bgcolor="#E5E2D8",
+        paper_bgcolor="#ffffff",
+        plot_bgcolor="#ffffff",
         showlegend=colour_by != "none" or bool(selected_station),
         # Overlay the legend inside the map (bottom-centre) so there's no
         # empty reserved band below the map when the legend is hidden.
         legend=dict(
-            bgcolor="rgba(247,244,236,0.9)",
-            bordercolor="#e6e0d3",
+            bgcolor="rgba(255,255,255,0.95)",
+            bordercolor="#d0d0ce",
             borderwidth=1,
             orientation="h",
             yanchor="bottom",
