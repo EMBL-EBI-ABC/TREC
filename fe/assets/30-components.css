@@ -264,4 +264,6 @@
   --bs-pagination-active-color: #fff;
   --bs-pagination-active-bg: var(--trec-green); --bs-pagination-active-border-color: var(--trec-green);
   --bs-pagination-hover-bg: rgba(14,77,60,.08); --bs-pagination-border-color: var(--trec-border);
+  --bs-pagination-border-radius: 0;
+  --bs-pagination-focus-box-shadow: 0 0 0 3px var(--trec-focus);
 }
