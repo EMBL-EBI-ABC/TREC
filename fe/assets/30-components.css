@@ -13,10 +13,10 @@
 /* Predictive-search dropdown */
 .trec-predictive-search .Select-control {
     background: var(--trec-paper);
-    border: 1px solid var(--trec-green);
-    border-radius: .375rem;
+    border: 2px solid var(--trec-border);
+    border-radius: var(--r-sm);
     box-shadow: none;
-    min-height: 38px;
+    min-height: 44px;
 }
 .trec-predictive-search .Select-control:hover {
     border-color: var(--trec-green-dark);
@@ -31,9 +31,9 @@
     font-size: .9rem;
 }
 .trec-predictive-search .Select-menu-outer {
-    border: 1px solid var(--trec-border);
-    box-shadow: 0 6px 14px rgba(0,0,0,0.08);
-    border-radius: .375rem;
+    border: 2px solid var(--trec-border);
+    box-shadow: none;
+    border-radius: var(--r-sm);
     margin-top: 2px;
     z-index: 1050;
 }
