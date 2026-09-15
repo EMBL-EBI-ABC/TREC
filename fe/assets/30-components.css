@@ -1,7 +1,9 @@
 /* ===== Chips ===== */
 .trec-chip {
-  background: transparent; color: var(--trec-green);
-  border: 1px solid var(--trec-green); border-radius: var(--r-pill);
+  background: transparent;
+  color: var(--trec-green);
+  border: 1px solid var(--trec-green);
+  border-radius: var(--r-sm);
   transition: background-color .15s, color .15s, border-color .15s;
 }
 .trec-chip:hover, .trec-chip:focus-visible { background: rgba(14,77,60,.08); color: var(--trec-green); border-color: var(--trec-green); }
