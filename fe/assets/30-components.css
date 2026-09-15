@@ -23,8 +23,8 @@
 }
 .trec-predictive-search.is-focused:not(.is-open)
     > .Select-control {
-    border-color: var(--trec-green);
-    box-shadow: 0 0 0 .15rem rgba(14,77,60,.2);
+    border-color: var(--trec-ink);
+    box-shadow: 0 0 0 3px var(--trec-focus);
 }
 .trec-predictive-search .Select-placeholder {
     color: var(--trec-muted);
