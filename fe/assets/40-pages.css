@@ -102,7 +102,15 @@
   color: var(--trec-faint); font-weight: 600;
 }
 .portal-sidebar .form-check-label { text-transform: none; letter-spacing: 0; color: var(--trec-ink); font-weight: 400; font-size: .85rem; }
-.portal-sidebar .form-check-input:checked { background-color: var(--trec-green); border-color: var(--trec-green); }
+.portal-sidebar .form-check-input:checked {
+  background-color: var(--trec-interactive);
+  border-color: var(--trec-interactive);
+}
+
+.portal-sidebar .form-check-input:focus {
+  border-color: var(--trec-interactive);
+  box-shadow: 0 0 0 3px var(--trec-focus);
+}
 
 /* ===== Station summary panel ===== */
 .station-panel-card {

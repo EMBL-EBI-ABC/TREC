@@ -297,3 +297,9 @@
   --bs-pagination-border-radius: 0;
   --bs-pagination-focus-box-shadow: 0 0 0 3px var(--trec-focus);
 }
+
+
+.form-control:focus {
+  border-color: var(--trec-interactive);
+  box-shadow: 0 0 0 3px var(--trec-focus);
+}
