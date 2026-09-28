@@ -18,8 +18,13 @@ h2, h3 {
   font-weight: 700;
 }
 
-a { color: var(--trec-green); }
-a:hover { color: var(--trec-green-dark); }
+a {
+  color: var(--trec-interactive);
+}
+
+a:hover {
+  color: var(--trec-interactive-hover);
+}
 
 /* Numeric/scientific emphasis */
 .trec-num { font-family: var(--font-mono); font-feature-settings: "tnum" 1; }
