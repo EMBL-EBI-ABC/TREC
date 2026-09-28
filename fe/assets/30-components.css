@@ -1,16 +1,24 @@
 /* ===== Chips ===== */
 .trec-chip {
   background: transparent;
-  color: var(--trec-green);
-  border: 1px solid var(--trec-green);
+  color: var(--trec-interactive);
+  border: 1px solid var(--trec-interactive);
   border-radius: var(--r-sm);
   transition: background-color .15s, color .15s, border-color .15s;
 }
-.trec-chip:hover, .trec-chip:focus-visible { background: rgba(14,77,60,.08); color: var(--trec-green); border-color: var(--trec-green); }
+
+.trec-chip:hover,
+.trec-chip:focus-visible {
+  background: var(--trec-interactive-bg);
+  color: var(--trec-interactive-hover);
+  border-color: var(--trec-interactive-hover);
+}
+
 .trec-chip.active,
-.btn-check:checked + .trec-chip
-{
-  background: var(--trec-green); color: #fff; border-color: var(--trec-green);
+.btn-check:checked + .trec-chip {
+  background: var(--trec-interactive);
+  color: #fff;
+  border-color: var(--trec-interactive);
 }
 /* Predictive-search dropdown */
 .trec-predictive-search .Select-control {
@@ -21,7 +29,7 @@
     min-height: 44px;
 }
 .trec-predictive-search .Select-control:hover {
-    border-color: var(--trec-green-dark);
+    border-color: var(--trec-interactive);
 }
 .trec-predictive-search.is-focused:not(.is-open)
     > .Select-control {
@@ -40,10 +48,10 @@
     z-index: 1050;
 }
 .trec-predictive-search .Select-option.is-focused {
-    background-color: rgba(14,77,60,.08);
+    background-color: var(--trec-interactive-bg);
 }
 .trec-predictive-search .Select-option.is-selected {
-    background-color: rgba(14,77,60,.16);
+    background-color: var(--trec-interactive-bg);
     color: var(--trec-ink);
 }
 .trec-suggest-option {
