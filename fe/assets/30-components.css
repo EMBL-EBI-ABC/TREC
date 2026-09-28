@@ -224,17 +224,18 @@
 
 /* ===== Buttons ===== */
 .btn.trec-btn-primary {
-  background: var(--trec-green);
-  border-color: var(--trec-green);
+  background: var(--trec-interactive);
+  border-color: var(--trec-interactive);
   color: #fff;
   font-weight: 700;
   border-radius: var(--r-sm);
   padding: .6rem 1.4rem;
 }
 
-.btn.trec-btn-primary:hover {
-  background: var(--trec-green-dark);
-  border-color: var(--trec-green-dark);
+.btn.trec-btn-primary:hover,
+.btn.trec-btn-primary:focus {
+  background: var(--trec-interactive-hover);
+  border-color: var(--trec-interactive-hover);
   color: #fff;
 }
 
@@ -256,10 +257,21 @@
    .btn-success compiles its own --bs-btn-* vars from Bootstrap's $success,
    so re-pointing --bs-success alone doesn't reach it. Override here. */
 .btn-success {
-  --bs-btn-bg: var(--trec-green); --bs-btn-border-color: var(--trec-green);
-  --bs-btn-hover-bg: var(--trec-green-dark); --bs-btn-hover-border-color: var(--trec-green-dark);
-  --bs-btn-active-bg: var(--trec-green-dark); --bs-btn-active-border-color: var(--trec-green-dark);
-  --bs-btn-disabled-bg: var(--trec-green); --bs-btn-disabled-border-color: var(--trec-green);
+  --bs-btn-color: #fff;
+  --bs-btn-bg: var(--trec-interactive);
+  --bs-btn-border-color: var(--trec-interactive);
+
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: var(--trec-interactive-hover);
+  --bs-btn-hover-border-color: var(--trec-interactive-hover);
+
+  --bs-btn-active-color: #fff;
+  --bs-btn-active-bg: var(--trec-interactive-hover);
+  --bs-btn-active-border-color: var(--trec-interactive-hover);
+
+  --bs-btn-disabled-color: #fff;
+  --bs-btn-disabled-bg: var(--trec-interactive);
+  --bs-btn-disabled-border-color: var(--trec-interactive);
 }
 
 /* ===== Cards ===== */
