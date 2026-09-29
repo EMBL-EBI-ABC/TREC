@@ -100,25 +100,44 @@
       match the samples-table visual rhythm. ===== */
 .trec-table { margin-bottom: 0; font-size: 13px; }
 .trec-table thead th {
-  font-weight: 600; font-size: 12px; text-transform: uppercase;
-  letter-spacing: .04em; color: var(--trec-green);
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: var(--trec-ink);
   background: var(--trec-paper-2);
   border-bottom: 1px solid var(--trec-border);
-  border-top: none; padding: 10px 14px 10px 18px; vertical-align: middle;
+  border-top: none;
+  padding: 10px 14px 10px 18px;
+  vertical-align: middle;
 }
 .trec-table tbody td {
   padding: 10px 14px; border-top: none;
   border-bottom: 1px solid var(--trec-border-2);
   vertical-align: middle; font-size: 13px;
 }
+
 .trec-table.table-striped > tbody > tr:nth-of-type(odd) > * {
-  background: rgba(14,77,60,.025); --bs-table-bg-type: rgba(14,77,60,.025); color: inherit;
+  background: var(--trec-paper-2);
+  --bs-table-bg-type: var(--trec-paper-2);
+  color: inherit;
 }
+
 .trec-table.table-hover > tbody > tr:hover > * {
-  background: rgba(14,77,60,.06) !important; --bs-table-hover-bg: rgba(14,77,60,.06); color: inherit;
+  background: var(--trec-interactive-bg) !important;
+  --bs-table-hover-bg: var(--trec-interactive-bg);
+  color: inherit;
 }
-.trec-table tbody td a { text-decoration: none; color: var(--trec-green); border-bottom: 1px solid transparent; }
-.trec-table tbody td a:hover { color: var(--trec-green-dark); border-bottom-color: var(--trec-green); }
+.trec-table tbody td a {
+  text-decoration: none;
+  color: var(--trec-interactive);
+  border-bottom: 1px solid transparent;
+}
+
+.trec-table tbody td a:hover {
+  color: var(--trec-interactive-hover);
+  border-bottom-color: var(--trec-interactive-hover);
+}
 .trec-table td.trec-num, .trec-table .trec-num { font-family: var(--font-mono); }
 /* Sort indicators for dbc.Table headers — visually
    mirrors Dash DataTable's bundled fa-sort icons used on
@@ -141,7 +160,7 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    color: var(--trec-green);
+    color: var(--trec-interactive);
     font-weight: normal;
     text-transform: none;
     letter-spacing: 0;
@@ -160,7 +179,7 @@
 }
 .trec-table .trec-sort-caret.active {
     opacity: 1;
-    color: var(--trec-green);
+    color: var(--trec-interactive);
 }
 /* Samples table (Dash DataTable) sort indicator.
    DataTable bundles a Font Awesome fa-sort SVG (both
@@ -175,7 +194,7 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    color: var(--trec-green);
+    color: var(--trec-interactive);
     line-height: 1;
     margin-right: .55rem;
     margin-left: 0;
@@ -212,7 +231,7 @@
 .dash-header .column-header--sort:has(
     svg[data-icon="sort-down"])::after {
     opacity: 1;
-    color: var(--trec-green);
+    color: var(--trec-interactive);
 }
 /* ENA column on the samples table is non-sortable: the
    backend has no `has_ena` ES field (it's `has_ena_data`),

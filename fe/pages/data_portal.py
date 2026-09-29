@@ -908,20 +908,23 @@ def load_samples_page(page, station_name, protocol, env_type, organism,
                 "fontSize": "12px",
                 "textTransform": "uppercase",
                 "letterSpacing": "0.04em",
-                "color": "#0E4D3C",
+                "color": "#1a1c1a",
                 "backgroundColor": "#f3f3f3",
-                "borderBottom": "1px solid #d0d0ce",
+                "borderBottom": "1px solid #e4e4e4",
                 "padding": "10px 14px 10px 18px",
             },
             style_data_conditional=[
                 {"if": {"row_index": "odd"},
-                 "backgroundColor": "rgba(14, 77, 60, 0.025)"},
+                 "backgroundColor": "#f3f3f3"},
+
                 {"if": {"state": "active"},
-                 "backgroundColor": "rgba(14, 77, 60, 0.10)",
-                 "border": "1px solid rgba(14, 77, 60, 0.20)"},
+                 "backgroundColor": "#d1e3f6",
+                 "border": "1px solid #3b6fb6"},
+
                 {"if": {"state": "selected"},
-                 "backgroundColor": "rgba(14, 77, 60, 0.10)",
-                 "border": "1px solid rgba(14, 77, 60, 0.20)"},
+                 "backgroundColor": "#d1e3f6",
+                 "border": "1px solid #3b6fb6"},
+
                 {"if": {"column_id": ["has_images", "has_ena"]},
                  "textAlign": "center"},
             ],
@@ -935,21 +938,27 @@ def load_samples_page(page, station_name, protocol, env_type, organism,
                 {"selector": ".dash-cell p", "rule": "margin: 0;"},
                 {"selector": ".dash-header p", "rule": "margin: 0;"},
                 {"selector": ".dash-cell a",
-                 "rule": "color: #0E4D3C; font-weight: 600; "
+                 "rule": "color: #3b6fb6; font-weight: 600; "
                          "text-decoration: underline; "
-                         "text-decoration-color: rgba(14,77,60,0.45); "
+                         "text-decoration-color: rgba(59,111,182,0.45); "
                          "text-underline-offset: 2px; "
                          "transition: color .15s, "
                          "text-decoration-color .15s;"},
+
                 {"selector": ".dash-cell a:hover",
-                 "rule": "color: #0a3a2d; "
-                         "text-decoration-color: #0E4D3C;"},
+                 "rule": "color: #193f90; "
+                         "text-decoration-color: #193f90;"},
+
                 {"selector": ".dash-spreadsheet-inner tr:hover td.dash-cell",
-                 "rule": "background-color: rgba(14, 77, 60, 0.08) "
-                         "!important;"},
+                 "rule": "background-color: #d1e3f6 !important;"},
                 {"selector": ".dash-header .column-header-name",
                  "rule": "vertical-align: middle; "
                          "display: inline-block;"},
+                {"selector": ".dash-header .column-header--sort",
+                 "rule": "color: #3b6fb6 !important;"},
+                {"selector": ".dash-header .column-header--sort::before, "
+                             ".dash-header .column-header--sort::after",
+                 "rule": "color: #3b6fb6 !important;"},
             ],
         ),
     ])
