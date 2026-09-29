@@ -23,18 +23,25 @@
 
 .trec-nav { gap: 1.25rem; }
 .trec-nav-link {
-  color: var(--trec-muted); font-weight: 500; font-size: .9rem;
-  text-decoration: none; white-space: nowrap;
-  padding: .35rem .2rem; border-bottom: 2px solid transparent;
+  color: var(--trec-interactive);
+  font-weight: 500;
+  font-size: .9rem;
+  text-decoration: none;
+  white-space: nowrap;
+  padding: .35rem .2rem;
+  border-bottom: 2px solid transparent;
   transition: color .15s, border-color .15s;
 }
-.trec-nav-link:hover { color: var(--trec-green); }
-.trec-nav-link--active {
-  color: var(--trec-green);
-  font-weight: 600;
-  border-bottom-color: var(--trec-green);
+
+.trec-nav-link:hover {
+  color: var(--trec-interactive-hover);
 }
 
+.trec-nav-link--active {
+  color: var(--trec-interactive-hover);
+  font-weight: 600;
+  border-bottom-color: var(--trec-interactive);
+}
 /* ===== Footer ===== */
 .trec-footer {
   background: var(--trec-canvas);
