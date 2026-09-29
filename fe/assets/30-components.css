@@ -308,13 +308,29 @@
 }
 
 /* ===== Pagination (fix clashing Bootstrap pink active) ===== */
-.pagination { --bs-pagination-color: var(--trec-green); --bs-pagination-hover-color: var(--trec-green-dark);
-  --bs-pagination-focus-color: var(--trec-green-dark);
+.pagination {
+  --bs-pagination-color: var(--trec-interactive);
+  --bs-pagination-hover-color: var(--trec-interactive-hover);
+  --bs-pagination-focus-color: var(--trec-interactive-hover);
+
+  --bs-pagination-bg: var(--trec-paper);
+  --bs-pagination-border-color: var(--trec-border);
+
+  --bs-pagination-hover-bg: var(--trec-interactive-bg);
+  --bs-pagination-hover-border-color: var(--trec-interactive);
+
   --bs-pagination-active-color: #fff;
-  --bs-pagination-active-bg: var(--trec-green); --bs-pagination-active-border-color: var(--trec-green);
-  --bs-pagination-hover-bg: rgba(14,77,60,.08); --bs-pagination-border-color: var(--trec-border);
+  --bs-pagination-active-bg: var(--trec-interactive);
+  --bs-pagination-active-border-color: var(--trec-interactive);
+
+  --bs-pagination-disabled-color: var(--trec-muted);
+  --bs-pagination-disabled-bg: var(--trec-paper);
+  --bs-pagination-disabled-border-color: var(--trec-border);
+
   --bs-pagination-border-radius: 0;
-  --bs-pagination-focus-box-shadow: 0 0 0 3px var(--trec-focus);
+
+  --bs-pagination-focus-box-shadow:
+    0 0 0 3px var(--trec-focus);
 }
 
 
