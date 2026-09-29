@@ -132,7 +132,7 @@ def build_detail_page(sample_id):
         html.Small([
             "Derived from ",
             html.A(parent_id, href=f"/data-portal/{parent_id}",
-                   className="text-decoration-none text-success"),
+                   className="text-decoration-none"),
         ], className="text-muted") if parent_id else None,
     ], className="mb-3")
 
@@ -205,7 +205,7 @@ def build_detail_page(sample_id):
                     html.Td(html.A(
                         d["biosampleId"],
                         href=f"/data-portal/{d['biosampleId']}",
-                        className="text-decoration-none text-success",
+                        className="text-decoration-none",
                     ), className="small"),
                     html.Td(d.get("analysis_type") or "", className="small"),
                     html.Td(d.get("organism") or "", className="small"),
@@ -350,7 +350,7 @@ def build_detail_page(sample_id):
             qc_content.append(html.Div([
                 html.Small("Control: ", className="text-muted"),
                 html.A(control_id, href=f"/data-portal/{control_id}",
-                       className="text-decoration-none text-success small"),
+                       className="text-decoration-none small"),
             ]))
         if controlled_ids:
             qc_content.append(html.Div([

@@ -56,5 +56,13 @@
 @media (min-width: 768px) {
   .trec-footer-row { flex-direction: row; justify-content: space-between; text-align: left; }
 }
-.trec-footer-link { color: var(--trec-muted); text-decoration: none; }
-.trec-footer-link:hover { color: var(--trec-green); text-decoration: underline; }
+.trec-footer-link {
+  color: var(--trec-muted);
+  text-decoration: none;
+}
+
+.trec-footer-link:hover,
+.trec-footer-link:focus {
+  color: var(--trec-interactive-hover);
+  text-decoration: underline;
+}
