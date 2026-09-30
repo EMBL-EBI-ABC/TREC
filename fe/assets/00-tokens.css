@@ -23,7 +23,7 @@
   --trec-border-2: #e4e4e4;
 
   /* Type — leave unchanged for now */
-  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --font-sans: "IBM Plex Sans", Arial, Helvetica, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, monospace;
 
   /* Spacing */
