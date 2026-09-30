@@ -36,3 +36,7 @@ a:hover {
   outline: 3px solid var(--trec-focus);
   outline-offset: 2px;
 }
+
+.text-muted {
+  color: var(--trec-muted) !important;
+}
