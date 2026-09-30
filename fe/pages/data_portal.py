@@ -36,7 +36,7 @@ def _badge_count(n):
 # Distinct colour per analysis type (harmonised with the map legend palette).
 ANALYSIS_COLORS = {
     "Genomics": "#2f7fa6",      # blue
-    "Metagenomics": "#0E4D3C",  # brand green
+    "Metagenomics": "#18974c",  # brand green
     "Metabolomics": "#D9714E",  # coral
     "Imaging": "#c08a3e",       # amber
     "Ions": "#3a8f7d",          # teal
@@ -466,17 +466,17 @@ def load_map_and_filters(_, colour_by, env_type, organism, analysis_type,
     COLOUR_MAPS = {
         "environment_type": {"marine": "#2f7fa6", "soil": "#c08a3e",
                               "aerosol": "#7a6f9b"},
-        "analysis_type": {"Metagenomics": "#0E4D3C", "Metabolomics": "#D9714E",
+        "analysis_type": {"Metagenomics": "#18974c", "Metabolomics": "#D9714E",
                           "Imaging": "#c08a3e", "Ions": "#3a8f7d"},
     }
     LABELS = {
-        "none": {"#0E4D3C": "Stations", "#cfc6b4": "No matching samples"},
+        "none": { "#18974c": "Stations", "#cfc6b4": "No matching samples"},
         "has_images": {"#D9714E": "Has images", "#9aa89f": "No images",
                        "#cfc6b4": "No matching samples"},
         "environment_type": {"#2f7fa6": "Marine", "#c08a3e": "Soil",
                              "#7a6f9b": "Aerosol", "#9aa89f": "Unknown",
                              "#cfc6b4": "No matching samples"},
-        "analysis_type": {"#0E4D3C": "Metagenomics", "#D9714E": "Metabolomics",
+        "analysis_type": { "#18974c": "Metagenomics", "#D9714E": "Metabolomics",
                           "#c08a3e": "Imaging", "#3a8f7d": "Ions",
                           "#9aa89f": "Unknown", "#cfc6b4": "No matching samples"},
     }
@@ -487,7 +487,7 @@ def load_map_and_filters(_, colour_by, env_type, organism, analysis_type,
             if station["station_name"] not in active_station_names:
                 return "#cfc6b4"
         if colour_by == "none":
-            return "#0E4D3C"
+            return "#18974c"
         if colour_by == "has_images":
             return "#D9714E" if station.get("has_images") else "#9aa89f"
         if colour_by in COLOUR_MAPS:
