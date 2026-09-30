@@ -117,7 +117,7 @@ def build_detail_page(sample_id):
     badges = []
     if sample.get("analysis_type"):
         badges.append(html.Span(sample["analysis_type"],
-                                className="trec-badge trec-badge-available me-1"))
+                                className="trec-badge trec-badge-category me-1"))
     protocol = get_field(cf, "protocol label")
     if protocol:
         badges.append(dbc.Badge(f"{protocol} protocol", color="info",
@@ -251,7 +251,7 @@ def build_detail_page(sample_id):
             html.Small("Original record at EBI", className="text-muted"),
         ]),
         dbc.Col(
-            dbc.Button("View →", color="success", size="sm",
+            dbc.Button("View →", size="sm", className="trec-btn-primary",
                        href=f"https://www.ebi.ac.uk/biosamples/samples/"
                             f"{sample['biosampleId']}",
                        external_link=True, target="_blank"),
@@ -270,7 +270,7 @@ def build_detail_page(sample_id):
         bia_page = (f"{BIA_IMAGE_PAGE}/{first_image['uuid']}"
                     if first_image.get("uuid") else None)
         viewer_buttons = [
-            dbc.Button("Open viewer →", color="success", size="sm",
+            dbc.Button("Open viewer →", size="sm", className="trec-btn-primary",
                        href=viewer_url, external_link=True, target="_blank"),
         ]
         if bia_page:
@@ -321,7 +321,7 @@ def build_detail_page(sample_id):
                 html.Small("Sequence data", className="text-muted"),
             ]),
             dbc.Col(
-                dbc.Button("View →", color="success", size="sm",
+                dbc.Button("View →", size="sm", className="trec-btn-primary",
                            href=f"https://www.ebi.ac.uk/ena/browser/view/"
                                 f"{ena_accession}",
                            external_link=True, target="_blank"),
@@ -356,8 +356,7 @@ def build_detail_page(sample_id):
             qc_content.append(html.Div([
                 html.Small("Is control of: ", className="text-muted"),
                 *[html.A(cid, href=f"/data-portal/{cid}",
-                         className="text-decoration-none text-success "
-                                   "small me-1")
+                         className="text-decoration-none small me-1")
                   for cid in controlled_ids],
             ]))
         linked_cards.append(dbc.Card(dbc.CardBody([

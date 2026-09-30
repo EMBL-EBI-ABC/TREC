@@ -95,6 +95,12 @@
   min-width: 1.75rem;
 }
 
+.trec-badge-category {
+  background: var(--trec-paper-2);
+  color: var(--trec-ink);
+  border: 1px solid var(--trec-border);
+}
+
 .trec-filter-badge {
   background-color: var(--trec-interactive) !important;
   color: #fff !important;
@@ -293,27 +299,6 @@
 .btn.trec-btn-ghost:hover {
   background: rgba(255, 255, 255, 0.12);
   color: var(--trec-canvas);
-}
-
-/* ===== Success buttons → brand green =====
-   .btn-success compiles its own --bs-btn-* vars from Bootstrap's $success,
-   so re-pointing --bs-success alone doesn't reach it. Override here. */
-.btn-success {
-  --bs-btn-color: #fff;
-  --bs-btn-bg: var(--trec-interactive);
-  --bs-btn-border-color: var(--trec-interactive);
-
-  --bs-btn-hover-color: #fff;
-  --bs-btn-hover-bg: var(--trec-interactive-hover);
-  --bs-btn-hover-border-color: var(--trec-interactive-hover);
-
-  --bs-btn-active-color: #fff;
-  --bs-btn-active-bg: var(--trec-interactive-hover);
-  --bs-btn-active-border-color: var(--trec-interactive-hover);
-
-  --bs-btn-disabled-color: #fff;
-  --bs-btn-disabled-bg: var(--trec-interactive);
-  --bs-btn-disabled-border-color: var(--trec-interactive);
 }
 
 /* ===== Cards ===== */
