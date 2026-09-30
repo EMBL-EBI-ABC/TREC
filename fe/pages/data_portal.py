@@ -1041,7 +1041,7 @@ def build_active_filters_bar(env_type, organism, analysis_type, country,
                 id={"type": "filter-badge", "filter": "selected-station",
                     "value": selected_station},
                 color="success",
-                className="me-1 mb-1 small",
+                className="trec-filter-badge me-1 mb-1 small",
                 style={"cursor": "pointer"},
             )
         )
@@ -1064,7 +1064,7 @@ def build_active_filters_bar(env_type, organism, analysis_type, country,
                         id={"type": "filter-badge", "filter": filter_id,
                             "value": val},
                         color="success",
-                        className="me-1 mb-1 small",
+                        className="trec-filter-badge me-1 mb-1 small",
                         style={"cursor": "pointer"},
                     )
                 )
@@ -1076,7 +1076,7 @@ def build_active_filters_bar(env_type, organism, analysis_type, country,
                 id={"type": "filter-badge", "filter": "source-filter",
                     "value": "source"},
                 color="secondary",
-                className="me-1 mb-1 small",
+                className="trec-filter-badge me-1 mb-1 small",
                 style={"cursor": "pointer"},
             )
         )

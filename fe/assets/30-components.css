@@ -83,13 +83,28 @@
   font-size: .75rem; font-weight: 600; line-height: 1.4; white-space: nowrap;
 }
 .trec-badge-available {
-  background: rgba(14,77,60,.10); color: var(--trec-green);
-  border: 1px solid rgba(14,77,60,.20);
+  background: #d0debb;
+  color: var(--trec-green-dark);
+  border: 1px solid var(--trec-green);
 }
 .trec-badge-available .trec-badge-glyph { font-weight: 700; line-height: 1; }
 .trec-badge-count {
-  background: rgba(14,77,60,.06); color: var(--trec-green);
-  border: 1px solid rgba(14,77,60,.16); min-width: 1.75rem;
+  background: var(--trec-paper-2);
+  color: var(--trec-muted);
+  border: 1px solid var(--trec-border);
+  min-width: 1.75rem;
+}
+
+.trec-filter-badge {
+  background-color: var(--trec-interactive) !important;
+  color: #fff !important;
+  border: 1px solid var(--trec-interactive);
+  transition: background-color .15s, border-color .15s;
+}
+
+.trec-filter-badge:hover {
+  background-color: var(--trec-interactive-hover) !important;
+  border-color: var(--trec-interactive-hover);
 }
 .trec-muted-dash { color: var(--trec-muted); font-weight: 500; }
 /* ===== Tables: shared polish for HTML tables (dbc.Table).
