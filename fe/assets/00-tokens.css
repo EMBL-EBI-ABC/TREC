@@ -43,12 +43,4 @@
 
   --shadow-1: none;
   --shadow-2: none;
-
-  /*
-   * Temporary compatibility mapping.
-   * We'll remove/reconsider this once the Bootstrap
-   * success usages have been classified.
-   */
-  --bs-success: #18974c;
-  --bs-success-rgb: 24, 151, 76;
 }
