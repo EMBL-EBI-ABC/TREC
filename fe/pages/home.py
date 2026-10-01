@@ -48,8 +48,11 @@ def _hero():
                              html.Span(" →", **{"aria-hidden": "true"})],
                             href="/data-portal",
                             className="btn trec-btn-primary me-2"),
-                        dcc.Link("About TREC", href="/about",
-                                 className="btn trec-btn-ghost"),
+                        dcc.Link(
+                            "About TREC",
+                            href="/about",
+                            className="btn trec-btn-secondary",
+                        ),
                     ],
                     className="mt-4",
                 ),

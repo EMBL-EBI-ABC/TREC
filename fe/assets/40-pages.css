@@ -5,13 +5,36 @@
   color: var(--trec-canvas);
   padding: var(--sp-8) var(--sp-5);
 }
-.home-hero .eyebrow {
-  font-size: .75rem; letter-spacing: .28em; text-transform: uppercase;
-  color: #9fd3c0; margin-bottom: var(--sp-4);
+.home-hero-inner {
+  position: relative;
+  z-index: 1;
+  background: var(--trec-paper);
+  color: var(--trec-ink);
+  max-width: 44rem;
+  padding: var(--sp-6);
 }
-.home-hero h1 { color: var(--trec-canvas); font-size: clamp(2.2rem, 5vw, 3.4rem); line-height: 1.04; max-width: 18ch; margin-bottom: var(--sp-4); }
-.home-hero p.lead { color: #cfe3da; max-width: 46ch; font-size: 1.05rem; }
-.home-hero-inner { position: relative; z-index: 1; }
+
+.home-hero .eyebrow {
+  font-size: .75rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--trec-green-dark);
+  margin-bottom: var(--sp-4);
+}
+
+.home-hero h1 {
+  color: var(--trec-ink);
+  font-size: clamp(2.2rem, 5vw, 3.4rem);
+  line-height: 1.04;
+  max-width: 18ch;
+  margin-bottom: var(--sp-4);
+}
+
+.home-hero p.lead {
+  color: var(--trec-muted);
+  max-width: 46ch;
+  font-size: 1.05rem;
+}
 
 /* ===== Home stat strip ===== */
 .home-stats {

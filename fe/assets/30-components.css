@@ -280,6 +280,22 @@
   padding: .6rem 1.4rem;
 }
 
+.btn.trec-btn-secondary {
+  background: transparent;
+  border: 1px solid var(--trec-interactive);
+  color: var(--trec-interactive);
+  font-weight: 700;
+  border-radius: var(--r-sm);
+  padding: .6rem 1.4rem;
+}
+
+.btn.trec-btn-secondary:hover,
+.btn.trec-btn-secondary:focus {
+  background: var(--trec-interactive-bg);
+  border-color: var(--trec-interactive-hover);
+  color: var(--trec-interactive-hover);
+}
+
 .btn.trec-btn-primary:hover,
 .btn.trec-btn-primary:focus {
   background: var(--trec-interactive-hover);
