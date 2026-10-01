@@ -120,11 +120,15 @@ def build_detail_page(sample_id):
                                 className="trec-badge trec-badge-category me-1"))
     protocol = get_field(cf, "protocol label")
     if protocol:
-        badges.append(dbc.Badge(f"{protocol} protocol", color="info",
-                                className="me-1"))
+        badges.append(html.Span(
+            f"{protocol} protocol",
+            className="trec-badge trec-badge-category me-1"
+        ))
     if is_source:
-        badges.append(dbc.Badge("Source sample", color="secondary",
-                                className="me-1"))
+        badges.append(html.Span(
+            "Source sample",
+            className="trec-badge trec-badge-category me-1"
+        ))
 
     identity = html.Div([
         html.H4(sample["biosampleId"], className="mb-1"),
