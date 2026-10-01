@@ -47,9 +47,11 @@ def make_breadcrumb(sample, station_name, parent_id):
             className="breadcrumb-item"))
     items.append(html.Li(
         sample["biosampleId"], className="breadcrumb-item active",
-        **{"aria-current": "page"}))
-    return html.Nav(html.Ol(items, className="breadcrumb"),
-                    **{"aria-label": "Sample navigation"})
+        **{"aria-current": "location"}))
+    return html.Nav(
+        html.Ol(items, className="breadcrumb trec-breadcrumb"),
+        **{"aria-label": "Breadcrumb"}
+    )
 
 
 def make_metadata_table(label, rows):
