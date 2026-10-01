@@ -1,17 +1,32 @@
 /* ===== Home hero ===== */
 .home-hero {
-  position: relative; overflow: hidden;
-  background: var(--trec-green-dark);
-  color: var(--trec-canvas);
+  position: relative;
+  overflow: hidden;
+
+  background-color: var(--trec-green-dark);
+  background-image: url("/assets/TREC-Hero-Banner-3000x1000-v1d.jpg");
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+
   padding: var(--sp-8) var(--sp-5);
+
+  min-height: 420px;
+  display: flex;
+  align-items: center;
 }
+
 .home-hero-inner {
   position: relative;
   z-index: 1;
+
+  max-width: 38rem;
+  padding: var(--sp-6);
+
   background: var(--trec-paper);
   color: var(--trec-ink);
-  max-width: 44rem;
-  padding: var(--sp-6);
+
+  border: 1px solid var(--trec-border);
 }
 
 .home-hero .eyebrow {
@@ -34,6 +49,19 @@
   color: var(--trec-muted);
   max-width: 46ch;
   font-size: 1.05rem;
+}
+
+@media (max-width: 767px) {
+  .home-hero {
+    min-height: 520px;
+    background-position: 35% center;
+    padding: var(--sp-5) var(--sp-4);
+  }
+
+  .home-hero-inner {
+    max-width: 100%;
+    padding: var(--sp-5);
+  }
 }
 
 /* ===== Home stat strip ===== */
