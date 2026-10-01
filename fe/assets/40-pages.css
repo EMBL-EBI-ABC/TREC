@@ -109,6 +109,16 @@
   box-shadow: var(--shadow-2);
 }
 
+.home-navcard-link:focus-visible {
+  outline: none;
+}
+
+.home-navcard-link:focus-visible .home-navcard {
+  box-shadow: var(--shadow-2);
+  outline: 2px solid var(--trec-focus);
+  outline-offset: 2px;
+}
+
 .home-navcard .ico {
   color: var(--trec-green);
   font-size: 1.6rem;

@@ -110,7 +110,7 @@ def _nav_card(icon, title, description, href):
                 className="home-navcard",
             ),
             href=href,
-            className="text-decoration-none text-reset",
+            className="text-decoration-none text-reset home-navcard-link",
         ),
         xs=12, sm=6, lg=3,
     )
