@@ -222,8 +222,12 @@ def build_detail_page(sample_id):
                         html.Th("Organism", className="small"),
                     ])),
                     html.Tbody(derived_rows),
-                ], striped=True, hover=True, bordered=True, size="sm",
-                    className="mb-0"),
+                ],
+                    striped=True,
+                    hover=True,
+                    responsive=True,
+                    className="trec-table mb-0",
+                ),
             ], className="trec-card p-3 mb-3")
 
     # --- Left column ---
