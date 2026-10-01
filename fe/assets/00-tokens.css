@@ -41,6 +41,6 @@
   --r-md: 0;
   --r-pill: 999px;
 
-  --shadow-1: none;
-  --shadow-2: none;
+  --shadow-1: 0 1px 3px rgba(0, 0, 0, 0.12);
+  --shadow-2: 0 3px 8px rgba(0, 0, 0, 0.16);
 }
