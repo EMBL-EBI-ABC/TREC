@@ -47,7 +47,7 @@
 .home-navcard {
   background: var(--trec-paper);
   border: 1px solid var(--trec-border);
-  border-top: 4px solid var(--trec-green);
+  border-bottom: 4px solid var(--trec-green);
   border-radius: var(--r-md);
   box-shadow: var(--shadow-1);
   height: 100%;
