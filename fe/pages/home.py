@@ -31,34 +31,66 @@ def _fmt(val):
 def _hero():
     return html.Div(
         [
-        html.Div(
-            [
-                html.Div("Traversing European Coastlines", className="eyebrow"),
-                html.H1("The molecular pulse of Europe's coastlines."),
-                html.P(
-                    "Explore biodiversity and molecular adaptation across "
-                    "European coastal ecosystems — from molecules to whole "
-                    "communities.",
-                    className="lead",
-                ),
-                html.Div(
-                    [
-                        dcc.Link(
-                            [html.Span("Explore the data"),
-                             html.Span(" →", **{"aria-hidden": "true"})],
-                            href="/data-portal",
-                            className="btn trec-btn-primary me-2"),
-                        dcc.Link(
-                            "About TREC",
-                            href="/about",
-                            className="btn trec-btn-secondary",
-                        ),
-                    ],
-                    className="mt-4",
-                ),
-            ],
-            className="home-hero-inner",
-        ),
+            html.Picture(
+                [
+                    html.Source(
+                        srcSet="/assets/trec-hero-mobile.webp",
+                        media="(max-width: 767px)",
+                    ),
+                    html.Source(
+                        srcSet="/assets/trec-hero-2048.webp",
+                        media="(min-width: 1600px)",
+                    ),
+                    html.Img(
+                        src="/assets/trec-hero-1920.webp",
+                        alt="",
+                        width="1920",
+                        height="640",
+                        className="home-hero-image",
+                    ),
+                ],
+                className="home-hero-picture",
+            ),
+
+            html.Div(
+                [
+                    html.Div(
+                        "Traversing European Coastlines",
+                        className="eyebrow",
+                    ),
+                    html.H1(
+                        "The molecular pulse of Europe's coastlines."
+                    ),
+                    html.P(
+                        "Explore biodiversity and molecular adaptation across "
+                        "European coastal ecosystems — from molecules to whole "
+                        "communities.",
+                        className="lead",
+                    ),
+                    html.Div(
+                        [
+                            dcc.Link(
+                                [
+                                    html.Span("Explore the data"),
+                                    html.Span(
+                                        " →",
+                                        **{"aria-hidden": "true"},
+                                    ),
+                                ],
+                                href="/data-portal",
+                                className="btn trec-btn-primary me-2",
+                            ),
+                            dcc.Link(
+                                "About TREC",
+                                href="/about",
+                                className="btn trec-btn-secondary",
+                            ),
+                        ],
+                        className="mt-4",
+                    ),
+                ],
+                className="home-hero-inner",
+            ),
         ],
         className="home-hero",
     )

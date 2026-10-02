@@ -4,16 +4,32 @@
   overflow: hidden;
 
   background-color: var(--trec-green-dark);
-  background-image: url("/assets/TREC-Hero-Banner-3000x1000-v1d.jpg");
-  background-size: cover;
-  background-position: center center;
-  background-repeat: no-repeat;
+  /*background-image: url("/assets/TREC-Hero-Banner-3000x1000-v1d.jpg");*/
+  /*background-size: cover;*/
+  /*background-position: center center;*/
+  /*background-repeat: no-repeat;*/
 
   padding: var(--sp-8) var(--sp-5);
 
   min-height: 420px;
   display: flex;
   align-items: center;
+}
+
+.home-hero-picture {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.home-hero-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center center;
 }
 
 .home-hero-inner {
@@ -54,8 +70,11 @@
 @media (max-width: 767px) {
   .home-hero {
     min-height: 520px;
-    background-position: 35% center;
     padding: var(--sp-5) var(--sp-4);
+  }
+
+  .home-hero-image {
+    object-position: 35% center;
   }
 
   .home-hero-inner {
