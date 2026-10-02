@@ -136,6 +136,14 @@ def make_filters_sidebar():
 
 
 layout = dbc.Container([
+    html.H1(
+            "Data Portal",
+            className="mt-3 mb-1",
+        ),
+        html.P(
+            "Explore TREC sampling stations and samples across Europe.",
+            className="text-muted mb-3",
+        ),
     # Stats banner
     make_stats_banner(),
     # Main layout: filters sidebar | map + station content
