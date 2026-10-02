@@ -902,7 +902,7 @@ def load_samples_page(page, station_name, protocol, env_type, organism,
                 "padding": "10px 14px",
                 "fontFamily": "inherit",
                 "border": "none",
-                "borderBottom": "1px solid #d8d8d6",
+                "borderBottom": "1px solid var(--trec-border-2)",
                 "overflow": "visible",
                 "textOverflow": "clip",
             },
@@ -916,22 +916,22 @@ def load_samples_page(page, station_name, protocol, env_type, organism,
                 "fontSize": "12px",
                 "textTransform": "uppercase",
                 "letterSpacing": "0.04em",
-                "color": "#1a1c1a",
-                "backgroundColor": "#f3f3f3",
-                "borderBottom": "1px solid #e4e4e4",
+                "color": "var(--trec-ink)",
+                "backgroundColor": "var(--trec-paper-2)",
+                "borderBottom": "1px solid var(--trec-border-2)",
                 "padding": "10px 14px 10px 18px",
             },
             style_data_conditional=[
                 {"if": {"row_index": "odd"},
-                 "backgroundColor": "#f3f3f3"},
+                 "backgroundColor": "var(--trec-paper-2)"},
 
                 {"if": {"state": "active"},
-                 "backgroundColor": "#d1e3f6",
-                 "border": "1px solid #3b6fb6"},
+                 "backgroundColor": "var(--trec-interactive-bg)",
+                 "border": "1px solid var(--trec-interactive)"},
 
                 {"if": {"state": "selected"},
-                 "backgroundColor": "#d1e3f6",
-                 "border": "1px solid #3b6fb6"},
+                 "backgroundColor": "var(--trec-interactive-bg)",
+                 "border": "1px solid var(--trec-interactive)"},
 
                 {"if": {"column_id": ["has_images", "has_ena"]},
                  "textAlign": "center"},
@@ -946,7 +946,7 @@ def load_samples_page(page, station_name, protocol, env_type, organism,
                 {"selector": ".dash-cell p", "rule": "margin: 0;"},
                 {"selector": ".dash-header p", "rule": "margin: 0;"},
                 {"selector": ".dash-cell a",
-                 "rule": "color: #3b6fb6; font-weight: 600; "
+                 "rule": "color: var(--trec-interactive); font-weight: 600; "
                          "text-decoration: underline; "
                          "text-decoration-color: rgba(59,111,182,0.45); "
                          "text-underline-offset: 2px; "
@@ -954,19 +954,19 @@ def load_samples_page(page, station_name, protocol, env_type, organism,
                          "text-decoration-color .15s;"},
 
                 {"selector": ".dash-cell a:hover",
-                 "rule": "color: #193f90; "
-                         "text-decoration-color: #193f90;"},
+                 "rule": "color: var(--trec-interactive-hover); "
+                         "text-decoration-color: var(--trec-interactive-hover);"},
 
                 {"selector": ".dash-spreadsheet-inner tr:hover td.dash-cell",
-                 "rule": "background-color: #d1e3f6 !important;"},
+                 "rule": "background-color: var(--trec-interactive-bg) !important;"},
                 {"selector": ".dash-header .column-header-name",
                  "rule": "vertical-align: middle; "
                          "display: inline-block;"},
                 {"selector": ".dash-header .column-header--sort",
-                 "rule": "color: #3b6fb6 !important;"},
+                 "rule": "color: var(--trec-muted) !important;"},
                 {"selector": ".dash-header .column-header--sort::before, "
                              ".dash-header .column-header--sort::after",
-                 "rule": "color: #3b6fb6 !important;"},
+                 "rule": "color: var(--trec-muted) !important;"},
             ],
         ),
     ])
