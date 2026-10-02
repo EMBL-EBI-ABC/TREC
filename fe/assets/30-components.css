@@ -463,3 +463,9 @@
 .trec-page-header > * + * {
   margin-top: var(--sp-2);
 }
+
+.trec-section-heading {
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.25;
+}

@@ -228,8 +228,10 @@ def build_detail_page(sample_id):
                 for d in derived_results
             ]
             derived_section = html.Div([
-                html.H5(f"Derived Samples ({len(derived_results)})",
-                        className="fs-6 fw-semibold text-muted mb-2"),
+                html.H2(
+                    f"Derived Samples ({len(derived_results)})",
+                    className="trec-section-heading text-muted mb-2",
+                ),
                 dbc.Table([
                     html.Thead(html.Tr([
                         html.Th("BioSample ID", className="small"),
@@ -383,7 +385,10 @@ def build_detail_page(sample_id):
 
     right_col = dbc.Col([
         html.Div([
-            html.H5("Linked Data", className="text-muted mb-2 fs-6"),
+            html.H2(
+                "Linked Data",
+                className="trec-section-heading text-muted mb-2",
+            ),
             map_section,
             *linked_cards,
         ]),
