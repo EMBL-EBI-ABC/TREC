@@ -54,17 +54,15 @@ def _hero():
 
             html.Div(
                 [
-                    html.Div(
-                        "Traversing European Coastlines",
-                        className="eyebrow",
-                    ),
                     html.H1(
-                        "The molecular pulse of Europe's coastlines."
+                        "TREC Data Portal"
+                    ),
+                    html.H2(
+                        "Transversing European Coastlines"
                     ),
                     html.P(
                         "Explore biodiversity and molecular adaptation across "
-                        "European coastal ecosystems — from molecules to whole "
-                        "communities.",
+                        "European coastal ecosystems — from molecules to communities.",
                         className="lead",
                     ),
                     html.Div(
@@ -150,7 +148,7 @@ def _nav_section():
                 [
                     _nav_card(
                         "bi-map",
-                        "Data Portal",
+                        "Sample Metadata",
                         "Explore TREC sampling stations on an interactive map; "
                         "search and filter samples by environment, organism, "
                         "and analysis type.",
