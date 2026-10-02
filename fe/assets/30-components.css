@@ -304,9 +304,18 @@
 }
 
 /* ===== Buttons ===== */
+
+.btn.trec-btn-primary,
+.btn.trec-btn-secondary {
+  position: relative;
+  transform: translate(0, 0);
+  transition: all linear 125ms;
+}
+
 .btn.trec-btn-primary {
   background: var(--trec-interactive);
-  border: 1px solid var(--trec-interactive);
+  border: 4px solid var(--trec-interactive);
+  box-shadow: 8px 8px 0 var(--trec-interactive-hover);
   color: #fff;
   font-weight: 700;
   border-radius: var(--r-sm);
@@ -315,14 +324,26 @@
 
 .btn.trec-btn-primary:hover,
 .btn.trec-btn-primary:focus {
-  background: var(--trec-interactive-hover);
-  border-color: var(--trec-interactive-hover);
+  background: var(--trec-interactive);
+  border-color: var(--trec-interactive);
+  box-shadow:
+    4px 4px 0 var(--trec-interactive-hover),
+    2px 2px 4px rgba(0, 0, 0, .25);
   color: #fff;
+  transform: translate(4px, 4px);
+}
+
+.btn.trec-btn-primary:active {
+  box-shadow:
+    0 0 0 var(--trec-interactive-hover),
+    2px 2px 2px rgba(0, 0, 0, .125);
+  transform: translate(8px, 8px);
 }
 
 .btn.trec-btn-secondary {
   background: var(--trec-paper);
-  border: 1px solid var(--trec-interactive);
+  border: 4px solid var(--trec-interactive);
+  box-shadow: 8px 8px 0 var(--trec-interactive-hover);
   color: var(--trec-interactive);
   font-weight: 700;
   border-radius: var(--r-sm);
@@ -331,9 +352,20 @@
 
 .btn.trec-btn-secondary:hover,
 .btn.trec-btn-secondary:focus {
-  background: var(--trec-interactive-bg);
-  border-color: var(--trec-interactive-hover);
-  color: var(--trec-interactive-hover);
+  background: var(--trec-paper);
+  border-color: var(--trec-interactive);
+  box-shadow:
+    4px 4px 0 var(--trec-interactive-hover),
+    2px 2px 4px rgba(0, 0, 0, .25);
+  color: var(--trec-interactive);
+  transform: translate(4px, 4px);
+}
+
+.btn.trec-btn-secondary:active {
+  box-shadow:
+    0 0 0 var(--trec-interactive-hover),
+    2px 2px 2px rgba(0, 0, 0, .125);
+  transform: translate(8px, 8px);
 }
 
 .btn.trec-btn-tertiary {

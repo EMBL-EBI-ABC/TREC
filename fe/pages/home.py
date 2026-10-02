@@ -70,15 +70,9 @@ def _hero():
                     html.Div(
                         [
                             dcc.Link(
-                                [
-                                    html.Span("Explore the data"),
-                                    html.Span(
-                                        " →",
-                                        **{"aria-hidden": "true"},
-                                    ),
-                                ],
+                                "Explore the data",
                                 href="/data-portal",
-                                className="btn trec-btn-primary me-2",
+                                className="btn trec-btn-primary",
                             ),
                             dcc.Link(
                                 "About TREC",
@@ -86,7 +80,7 @@ def _hero():
                                 className="btn trec-btn-secondary",
                             ),
                         ],
-                        className="mt-4",
+                        className="mt-4 d-flex flex-wrap gap-3",
                     ),
                 ],
                 className="home-hero-inner",
