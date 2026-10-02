@@ -356,6 +356,17 @@
   border-radius: var(--r-md); box-shadow: var(--shadow-1);
 }
 
+/* ===== Metadata tables ===== */
+.trec-metadata-label {
+  width: 10rem;
+}
+
+@media (max-width: 767px) {
+  .trec-metadata-label {
+    width: 8rem;
+  }
+}
+
 /* ===== Alerts / status messages ===== */
 .trec-alert {
   border-radius: 0;

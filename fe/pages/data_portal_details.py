@@ -64,8 +64,7 @@ def make_metadata_table(label, rows):
                     html.Th(
                         k,
                         scope="row",
-                        className="text-muted small fw-normal",
-                        style={"width": "160px"},
+                        className="trec-metadata-label text-muted small fw-normal",
                     ),
                     html.Td(v, className="small"),
                 ])
