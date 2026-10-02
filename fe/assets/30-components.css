@@ -214,7 +214,7 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    color: var(--trec-interactive);
+    color: var(--trec-muted);
     font-weight: normal;
     text-transform: none;
     letter-spacing: 0;
@@ -248,7 +248,7 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    color: var(--trec-interactive);
+    color: var(--trec-muted);
     line-height: 1;
     margin-right: .55rem;
     margin-left: 0;

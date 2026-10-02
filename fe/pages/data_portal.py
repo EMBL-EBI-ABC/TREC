@@ -964,9 +964,6 @@ def load_samples_page(page, station_name, protocol, env_type, organism,
                          "display: inline-block;"},
                 {"selector": ".dash-header .column-header--sort",
                  "rule": "color: var(--trec-muted) !important;"},
-                {"selector": ".dash-header .column-header--sort::before, "
-                             ".dash-header .column-header--sort::after",
-                 "rule": "color: var(--trec-muted) !important;"},
             ],
         ),
     ])
