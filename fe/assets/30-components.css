@@ -361,6 +361,10 @@
   width: 10rem;
 }
 
+.trec-metadata-table {
+  --bs-table-bg: transparent;
+}
+
 @media (max-width: 767px) {
   .trec-metadata-label {
     width: 8rem;

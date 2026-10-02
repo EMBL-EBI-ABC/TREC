@@ -70,7 +70,7 @@ def make_metadata_table(label, rows):
                 ])
                 for k, v in rows if v
             ])
-        ], borderless=True, size="sm", className="mb-0",
+        ], borderless=True, size="sm", className="trec-metadata-table mb-0",
             style={"--bs-table-bg": "transparent"}),
     ], className="trec-card p-3 mb-3")
 
