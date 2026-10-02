@@ -443,3 +443,16 @@
   font-size: 1.75rem;
   line-height: 1.2;
 }
+
+/* ===== Page headers ===== */
+.trec-page-header {
+  margin-block: var(--sp-1) var(--sp-1);
+}
+
+.trec-page-header > * {
+  margin-block: 0;
+}
+
+.trec-page-header > * + * {
+  margin-top: var(--sp-2);
+}
