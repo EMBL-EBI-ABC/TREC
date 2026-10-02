@@ -39,7 +39,7 @@ def make_breadcrumb(sample, station_name, parent_id):
                     station_name],
                    href="/data-portal",
                    className="text-decoration-none"),
-            className="breadcrumb-item"))
+            className="breadcrumb-item trec-breadcrumb-ancestor"))
     if parent_id:
         items.append(html.Li(
             html.A(parent_id, href=f"/data-portal/{parent_id}",

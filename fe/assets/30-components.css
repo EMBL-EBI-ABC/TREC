@@ -103,6 +103,11 @@
   font-weight: 600;
 }
 
+@media (max-width: 767px) {
+  .trec-breadcrumb .trec-breadcrumb-ancestor {
+    display: none;
+  }
+}
 
 /* ===== Tables: shared badge primitives ===== */
 .trec-badge {
