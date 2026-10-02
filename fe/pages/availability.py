@@ -121,13 +121,17 @@ def build_matrix(search_value, page, sort_state):
     try:
         resp = requests.get(f"{API_BASE_URL}/stations").json()
     except Exception as e:
-        return dbc.Alert(f"Error loading stations: {e}",
-                         color="danger", className="mt-2"), 1, 1
+        return dbc.Alert(
+            f"Error loading stations: {e}",
+            className="trec-alert trec-alert-error mt-2",
+        ), 1, 1
 
     stations = resp.get("stations", [])
     if not stations:
-        return dbc.Alert("No stations found",
-                         color="secondary", className="mt-2"), 1, 1
+        return dbc.Alert(
+            "No stations found",
+            className="trec-alert trec-alert-info mt-2",
+        ), 1, 1
 
     # Filter by search
     if search_value:
@@ -137,8 +141,10 @@ def build_matrix(search_value, page, sort_state):
                     or q in (s.get("country") or "").lower()]
 
     if not stations:
-        return dbc.Alert("No stations match your search",
-                         color="secondary", className="mt-2"), 1, 1
+        return dbc.Alert(
+            "No stations match your search",
+            className="trec-alert trec-alert-info mt-2",
+        ), 1, 1
 
     # Sort: user-driven if set, else default (country, then station)
     if sort_state and sort_state.get("column"):

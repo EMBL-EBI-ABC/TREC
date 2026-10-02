@@ -356,6 +356,31 @@
   border-radius: var(--r-md); box-shadow: var(--shadow-1);
 }
 
+/* ===== Alerts / status messages ===== */
+.trec-alert {
+  border-radius: 0;
+  border: 1px solid var(--trec-border);
+  padding: var(--sp-3) var(--sp-4);
+}
+
+.trec-alert-info {
+  background: var(--trec-interactive-bg);
+  border-color: var(--trec-interactive);
+  color: var(--trec-ink);
+}
+
+.trec-alert-warning {
+  background: #fff3cd;
+  border-color: #c08a3e;
+  color: var(--trec-ink);
+}
+
+.trec-alert-error {
+  background: #f8d7da;
+  border-color: #b02a37;
+  color: var(--trec-ink);
+}
+
 /* ===== Pagination (fix clashing Bootstrap pink active) ===== */
 .pagination {
   --bs-pagination-color: var(--trec-interactive);

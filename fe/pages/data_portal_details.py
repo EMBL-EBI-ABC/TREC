@@ -90,16 +90,16 @@ def get_field(custom_fields, name):
 )
 def build_detail_page(sample_id):
     if not sample_id:
-        return dbc.Alert("No sample ID provided", color="danger")
+        return dbc.Alert("No sample ID provided", className="trec-alert trec-alert-error")
 
     try:
         resp = requests.get(
             f"{API_BASE_URL}/data_portal/{sample_id}").json()
     except Exception as e:
-        return dbc.Alert(f"Error: {e}", color="danger")
+        return dbc.Alert(f"Error: {e}", className="trec-alert trec-alert-error")
 
     if not resp.get("results"):
-        return dbc.Alert("Sample not found", color="danger")
+        return dbc.Alert("Sample not found", className="trec-alert trec-alert-error")
 
     sample = resp["results"][0]
     cf = sample.get("customFields") or []

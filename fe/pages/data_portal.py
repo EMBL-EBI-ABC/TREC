@@ -665,8 +665,10 @@ def initialize_from_url(search):
     try:
         detail = requests.get(f"{API_BASE_URL}/stations/{station_name}").json()
     except Exception as e:
-        return (dbc.Alert(f"Error loading station: {e}", color="danger",
-                          className="mt-3"),
+        return (dbc.Alert(
+                    f"Error loading station: {e}",
+                    className="trec-alert trec-alert-error mt-3"
+                ),
                 None, 1, 1, hide_pagination)
     summary = dbc.Card(
         dbc.CardBody([
@@ -714,8 +716,10 @@ def show_station_panel(click_data):
     if not station_name:
         station_name = click_data["points"][0].get("text", "")
     if not station_name:
-        return (dbc.Alert("Could not identify station",
-                          color="warning", className="mt-3"),
+        return (dbc.Alert(
+                    "Could not identify station",
+                    className="trec-alert trec-alert-warning mt-3"
+                ),
                 None, 1, 1, hide_pagination)
 
     try:
@@ -723,7 +727,7 @@ def show_station_panel(click_data):
             f"{API_BASE_URL}/stations/{station_name}").json()
     except Exception as e:
         return (dbc.Alert(f"Error loading station: {e}",
-                          color="danger", className="mt-3"),
+                          className="trec-alert trec-alert-error mt-3"),
                 None, 1, 1, hide_pagination)
 
     # --- Summary ---
@@ -842,16 +846,20 @@ def load_samples_page(page, station_name, protocol, env_type, organism,
         resp = requests.get(
             f"{API_BASE_URL}/data_portal", params=params).json()
     except Exception as e:
-        return dbc.Alert(f"Error: {e}", color="danger", className="mt-2"), 1, 1, hide_pagination
+        return dbc.Alert(
+            f"Error: {e}",
+             className="trec-alert trec-alert-error mt-2"
+            ), 1, 1, hide_pagination
 
     results = resp.get("results", [])
     total = resp.get("total", 0)
     max_pages = max(1, (total + 9) // 10)
 
     if not results:
-        return (dbc.Alert("No samples found for the selected filters.",
-                          color="secondary", className="mt-2"),
-                1, 1, hide_pagination)
+        return (dbc.Alert(
+                "No samples found for the selected filters.",
+                className="trec-alert trec-alert-info mt-2"
+            ),1, 1, hide_pagination)
 
     rows = []
     for s in results:
