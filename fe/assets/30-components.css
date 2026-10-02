@@ -304,7 +304,7 @@
 }
 
 /* ===== Buttons ===== */
-.btn.trec-btn-primary {
+.btn.trec-btn-primary, .btn.trec-btn-primary:visited {
   background: var(--trec-interactive);
   border-color: var(--trec-interactive);
   color: #fff;
@@ -313,7 +313,7 @@
   padding: .6rem 1.4rem;
 }
 
-.btn.trec-btn-secondary {
+.btn.trec-btn-secondary, .btn.trec-btn-secondary:visited {
   background: transparent;
   border: 1px solid var(--trec-interactive);
   color: var(--trec-interactive);
