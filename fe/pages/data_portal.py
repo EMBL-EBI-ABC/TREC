@@ -948,7 +948,7 @@ def load_samples_page(page, station_name, protocol, env_type, organism,
                 {"selector": ".dash-cell a",
                  "rule": "color: var(--trec-interactive); font-weight: 600; "
                          "text-decoration: underline; "
-                         "text-decoration-color: rgba(59,111,182,0.45); "
+                         "text-decoration-color: var(--trec-interactive-soft); "
                          "text-underline-offset: 2px; "
                          "transition: color .15s, "
                          "text-decoration-color .15s;"},
