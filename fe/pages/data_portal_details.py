@@ -313,7 +313,10 @@ def build_detail_page(sample_id):
             ]),
             html.Div(
                 [
-                    html.Div("Imaging", className="text-uppercase small fw-bold text-muted mb-2"),
+                    html.H4(
+                        "Imaging",
+                        className="trec-subsection-heading text-muted mb-2",
+                    ),
                     html.Iframe(
                         src=viewer_url,
                         title="Sample imaging viewer",

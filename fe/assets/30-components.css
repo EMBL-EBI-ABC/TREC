@@ -469,3 +469,11 @@
   font-weight: 600;
   line-height: 1.25;
 }
+
+.trec-subsection-heading {
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
