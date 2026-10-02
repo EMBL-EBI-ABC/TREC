@@ -183,4 +183,8 @@
 .station-icon {
   color: var(--trec-green);
 }
-.station-panel-card .count { font-family: var(--font-mono); color: var(--trec-green); font-weight: 600; }
+.station-panel-card .count {
+  font-family: var(--font-mono);
+  color: var(--trec-ink);
+  font-weight: 600;
+}
