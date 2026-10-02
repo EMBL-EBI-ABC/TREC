@@ -26,10 +26,12 @@ layout = dbc.Container(
                        "changing environments on organisms and communities, at the "
                        "cellular and molecular levels."),
                 html.P([
-                    "You can read more about it ",
-                    html.A("here",
-                           href="https://www.embl.org/about/info/trec/",
-                           className="text-decoration-none"),
+                    "Learn more on the ",
+                    html.A(
+                        "EMBL TREC project website",
+                        href="https://www.embl.org/about/info/trec/",
+                    ),
+                    ".",
                 ])
             ], md=8),
             dbc.Col(
