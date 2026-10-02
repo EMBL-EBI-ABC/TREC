@@ -311,7 +311,7 @@ def build_detail_page(sample_id):
                     href=bia_page,
                     external_link=True,
                     target="_blank",
-                    className="trec-btn-tertiary trec-btn-sm ms-1",
+                    className="trec-btn-link trec-btn-sm ms-1",
                 ))
         linked_cards.append(dbc.Card(dbc.CardBody([
             dbc.Row([

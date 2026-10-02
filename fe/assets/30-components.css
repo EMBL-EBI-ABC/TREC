@@ -356,6 +356,23 @@
   font-size: .875rem;
 }
 
+.btn.trec-btn-link {
+  background: transparent;
+  border: 0;
+  color: var(--trec-interactive);
+  font-weight: 600;
+  border-radius: var(--r-sm);
+  padding: .35rem .25rem;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.btn.trec-btn-link:hover,
+.btn.trec-btn-link:focus {
+  background: transparent;
+  color: var(--trec-interactive-hover);
+}
+
 /* ===== Cards ===== */
 .trec-card {
   background: var(--trec-paper); border: 1px solid var(--trec-border);
