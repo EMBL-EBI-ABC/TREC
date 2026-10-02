@@ -192,6 +192,11 @@
   box-shadow: 0 0 0 3px var(--trec-focus);
 }
 
+.trec-filter-scroll {
+  max-height: 12em;
+  overflow-y: auto;
+}
+
 /* ===== Station summary panel ===== */
 .station-panel-card {
   background: var(--trec-paper);

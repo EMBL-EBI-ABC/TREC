@@ -71,16 +71,18 @@ def make_filters_sidebar():
 
         html.Label("Organism", className="fw-bold small"),
         dbc.Checklist(
-            id="organism-filter", className="small mb-3",
-            style={"maxHeight": "12em", "overflowY": "auto"}),
+            id="organism-filter",
+            className="trec-filter-scroll small mb-3",
+        ),
 
         html.Label("Analysis Type", className="fw-bold small"),
         dbc.Checklist(id="analysis-type-filter", className="small mb-3"),
 
         html.Label("Country", className="fw-bold small"),
         dbc.Checklist(
-            id="country-filter", className="small mb-3",
-            style={"maxHeight": "12em", "overflowY": "auto"}),
+            id="country-filter",
+            className="trec-filter-scroll small mb-3",
+        ),
 
         dcc.Store(id="protocol-all-options"),
         html.Label("Protocol", className="fw-bold small"),
@@ -94,8 +96,9 @@ def make_filters_sidebar():
             className="mb-2",
         ),
         dbc.Checklist(
-            id="protocol-filter", className="small mb-3",
-            style={"maxHeight": "12em", "overflowY": "auto"}),
+            id="protocol-filter",
+            className="trec-filter-scroll small mb-3",
+        ),
 
         html.Label("Linked Data", className="fw-bold small"),
         dbc.Checklist(
