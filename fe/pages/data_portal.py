@@ -64,7 +64,10 @@ def make_stats_banner():
 def make_filters_sidebar():
     """Filters sidebar — collapsible on mobile, always visible on desktop."""
     filter_content = [
-        html.H6("Filters", className="fw-bold mb-3"),
+        html.H2(
+            "Filters",
+            className="trec-sidebar-heading mb-3",
+        ),
 
         html.Label("Environment", className="fw-bold small"),
         dbc.Checklist(id="env-type-filter", className="small mb-3"),

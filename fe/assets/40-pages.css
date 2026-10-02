@@ -173,9 +173,11 @@
   padding: var(--sp-5);
 }
 
-.portal-sidebar h6 {
+.trec-sidebar-heading {
   font-family: var(--font-sans);
+  font-size: 1rem;
   font-weight: 700;
+  line-height: 1.25;
 }
 .portal-sidebar .form-label, .portal-sidebar label.fw-bold {
   font-size: .72rem !important; letter-spacing: .12em; text-transform: uppercase;
