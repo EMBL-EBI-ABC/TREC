@@ -26,7 +26,10 @@ layout = dbc.Container(
     [
         html.Div(
             [
-                html.H2("API"),
+                html.H1(
+                    "API",
+                    className="mb-1",
+                ),
                 html.P("Programmatic access to TREC data via our REST API.",
                        className="text-muted mb-3"),
             ],
