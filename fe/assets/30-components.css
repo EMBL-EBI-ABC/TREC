@@ -304,17 +304,24 @@
 }
 
 /* ===== Buttons ===== */
-.btn.trec-btn-primary, .btn.trec-btn-primary:visited {
+.btn.trec-btn-primary {
   background: var(--trec-interactive);
-  border-color: var(--trec-interactive);
+  border: 1px solid var(--trec-interactive);
   color: #fff;
   font-weight: 700;
   border-radius: var(--r-sm);
   padding: .6rem 1.4rem;
 }
 
-.btn.trec-btn-secondary, .btn.trec-btn-secondary:visited {
-  background: transparent;
+.btn.trec-btn-primary:hover,
+.btn.trec-btn-primary:focus {
+  background: var(--trec-interactive-hover);
+  border-color: var(--trec-interactive-hover);
+  color: #fff;
+}
+
+.btn.trec-btn-secondary {
+  background: var(--trec-paper);
   border: 1px solid var(--trec-interactive);
   color: var(--trec-interactive);
   font-weight: 700;
@@ -329,25 +336,24 @@
   color: var(--trec-interactive-hover);
 }
 
-.btn.trec-btn-primary:hover,
-.btn.trec-btn-primary:focus {
-  background: var(--trec-interactive-hover);
-  border-color: var(--trec-interactive-hover);
-  color: #fff;
-}
-
-.btn.trec-btn-ghost {
+.btn.trec-btn-tertiary {
   background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  color: var(--trec-canvas);
+  border: 1px solid transparent;
+  color: var(--trec-interactive);
   font-weight: 700;
   border-radius: var(--r-sm);
-  padding: .6rem 1.4rem;
+  padding: .6rem 1rem;
 }
 
-.btn.trec-btn-ghost:hover {
-  background: rgba(255, 255, 255, 0.12);
-  color: var(--trec-canvas);
+.btn.trec-btn-tertiary:hover,
+.btn.trec-btn-tertiary:focus {
+  background: var(--trec-interactive-bg);
+  color: var(--trec-interactive-hover);
+}
+
+.btn.trec-btn-sm {
+  padding: .35rem .75rem;
+  font-size: .875rem;
 }
 
 /* ===== Cards ===== */
