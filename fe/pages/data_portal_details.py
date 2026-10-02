@@ -268,7 +268,7 @@ def build_detail_page(sample_id):
     # BioSamples link
     linked_cards.append(dbc.Card(dbc.CardBody(dbc.Row([
         dbc.Col([
-            html.H5("BioSamples", className="mb-0 fs-6"),
+            html.H3("BioSamples", className="mb-0 fs-6"),
             html.Small("Original record at EBI", className="text-muted"),
         ]),
         dbc.Col(
@@ -302,7 +302,7 @@ def build_detail_page(sample_id):
         linked_cards.append(dbc.Card(dbc.CardBody([
             dbc.Row([
                 dbc.Col([
-                    html.H5("BioImage Archive", className="mb-0 fs-6"),
+                    html.H3("BioImage Archive", className="mb-0 fs-6"),
                     html.Small(f"{len(sample['images'])} microscopy image(s) available",
                                className="text-muted"),
                 ]),
@@ -326,7 +326,7 @@ def build_detail_page(sample_id):
     elif sample.get("has_images") == "Yes":
         linked_cards.append(dbc.Card(dbc.CardBody(dbc.Row([
             dbc.Col([
-                html.H5("BioImage Archive", className="mb-0 fs-6"),
+                html.H3("BioImage Archive", className="mb-0 fs-6"),
                 html.Small("Images available", className="text-muted"),
             ]),
         ])), className="trec-card mb-2"))
@@ -336,7 +336,7 @@ def build_detail_page(sample_id):
     if sample.get("has_ena_data") and ena_accession:
         linked_cards.append(dbc.Card(dbc.CardBody(dbc.Row([
             dbc.Col([
-                html.H5("ENA", className="mb-0 fs-6"),
+                html.H3("ENA", className="mb-0 fs-6"),
                 html.Small("Sequence data", className="text-muted"),
             ]),
             dbc.Col(
@@ -350,7 +350,7 @@ def build_detail_page(sample_id):
     else:
         linked_cards.append(dbc.Card(dbc.CardBody(dbc.Row([
             dbc.Col([
-                html.H5("ENA", className="mb-0 fs-6"),
+                html.H3("ENA", className="mb-0 fs-6"),
                 html.Small("Sequence data (coming soon)",
                            className="text-muted"),
             ]),
@@ -379,7 +379,7 @@ def build_detail_page(sample_id):
                   for cid in controlled_ids],
             ]))
         linked_cards.append(dbc.Card(dbc.CardBody([
-            html.H5("Quality Control", className="mb-1 fs-6"),
+            html.H3("Quality Control", className="mb-1 fs-6"),
             *qc_content,
         ]), className="trec-card mb-2"))
 
