@@ -22,9 +22,15 @@ a {
   color: var(--trec-interactive);
 }
 
+
+a:visited {
+  color: var(--trec-interactive-visited);
+}
+
 a:hover {
   color: var(--trec-interactive-hover);
 }
+
 
 /* Numeric/scientific emphasis */
 .trec-num { font-family: var(--font-mono); font-feature-settings: "tnum" 1; }
@@ -40,3 +46,5 @@ a:hover {
 .text-muted {
   color: var(--trec-muted) !important;
 }
+
+

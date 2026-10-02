@@ -8,6 +8,7 @@
   --trec-interactive-hover: #193f90;
   --trec-interactive-bg: #d1e3f6;
   --trec-interactive-soft: rgba(59, 111, 182, 0.45);
+  --trec-interactive-visited: #563d82;
 
   /* Focus — leave existing treatment unchanged for now */
   --trec-focus: #3b6fb6;
