@@ -64,12 +64,16 @@ def _sortable_th(label, col_id, sort_state, extra_class=""):
 
 
 layout = dbc.Container([
-    html.H1(
-        "Data Availability Across Stations",
-        className="mt-3 mb-1",
+    html.Div(
+        [
+            html.H1("Data Availability Across Stations"),
+            html.P(
+                "Which data types are available at each sampling station",
+                className="text-muted",
+            ),
+        ],
+        className="trec-page-header",
     ),
-    html.P("Which data types are available at each sampling station",
-           className="text-muted mb-3"),
     dcc.Store(id="availability-sort", data={}),
     html.Label("Search stations", htmlFor="availability-search",
                className="visually-hidden"),
