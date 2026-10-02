@@ -134,7 +134,7 @@ def _nav_card(icon, title, description, href):
                 dbc.CardBody(
                     [
                         html.I(className=f"bi {icon} ico d-block"),
-                        html.H4(title, className="card-title"),
+                        html.H3(title, className="card-title"),
                         html.P(description, className="card-text text-muted"),
                     ],
                     className="p-4",
