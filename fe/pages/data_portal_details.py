@@ -136,7 +136,10 @@ def build_detail_page(sample_id):
         ))
 
     identity = html.Div([
-        html.H4(sample["biosampleId"], className="mb-1"),
+        html.H1(
+            sample["biosampleId"],
+            className="trec-sample-title mb-1",
+        ),
         html.Div(badges, className="mb-2"),
         html.Small([
             "Derived from ",

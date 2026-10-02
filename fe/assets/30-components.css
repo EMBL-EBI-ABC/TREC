@@ -437,3 +437,9 @@
   border-radius: var(--r-sm);
   background: #1a1a2e;
 }
+
+/* ===== Sample detail heading ===== */
+.trec-sample-title {
+  font-size: 1.75rem;
+  line-height: 1.2;
+}
