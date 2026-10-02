@@ -19,7 +19,14 @@
   padding: .25rem .4rem;
   border-radius: var(--r-sm);
 }
-.trec-logo:hover { color: var(--trec-green-dark); background: transparent; }
+.trec-logo:visited {
+  color: var(--trec-green);
+}
+
+.trec-logo:hover {
+  color: var(--trec-green-dark);
+  background: transparent;
+}
 
 .trec-nav { gap: 1.25rem; }
 .trec-nav-link {
@@ -38,6 +45,21 @@
 }
 
 .trec-nav-link--active {
+  color: var(--trec-interactive-hover);
+  font-weight: 600;
+  border-bottom-color: var(--trec-interactive);
+}
+
+.trec-nav-link:visited {
+  color: var(--trec-interactive);
+}
+
+.trec-nav-link:hover {
+  color: var(--trec-interactive-hover);
+}
+
+.trec-nav-link--active,
+.trec-nav-link--active:visited {
   color: var(--trec-interactive-hover);
   font-weight: 600;
   border-bottom-color: var(--trec-interactive);
@@ -65,4 +87,8 @@
 .trec-footer-link:focus {
   color: var(--trec-interactive-hover);
   text-decoration: underline;
+}
+
+.trec-footer-link:visited {
+  color: var(--trec-muted);
 }
