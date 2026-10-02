@@ -42,7 +42,6 @@ layout = dbc.Container(
                 md=4,
             ),
         ],
-        className="mt-4 mb-3",
     ),
     className="trec-page",
 )
