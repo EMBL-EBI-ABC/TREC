@@ -272,11 +272,16 @@ def build_detail_page(sample_id):
             html.Small("Original record at EBI", className="text-muted"),
         ]),
         dbc.Col(
-            dbc.Button("View →", size="sm", className="trec-btn-primary",
-                       href=f"https://www.ebi.ac.uk/biosamples/samples/"
-                            f"{sample['biosampleId']}",
-                       external_link=True, target="_blank"),
-            width="auto", className="d-flex align-items-center",
+            dbc.Button(
+                "View in BioSamples",
+                href=f"https://www.ebi.ac.uk/biosamples/samples/"
+                     f"{sample['biosampleId']}",
+                external_link=True,
+                target="_blank",
+                className="trec-btn-secondary trec-btn-sm",
+            ),
+            width="auto",
+            className="d-flex align-items-center",
         ),
     ])), className="trec-card mb-2"))
 
@@ -291,14 +296,23 @@ def build_detail_page(sample_id):
         bia_page = (f"{BIA_IMAGE_PAGE}/{first_image['uuid']}"
                     if first_image.get("uuid") else None)
         viewer_buttons = [
-            dbc.Button("Open viewer →", size="sm", className="trec-btn-primary",
-                       href=viewer_url, external_link=True, target="_blank"),
+            dbc.Button(
+                "Open viewer",
+                href=viewer_url,
+                external_link=True,
+                target="_blank",
+                className="trec-btn-secondary trec-btn-sm",
+            ),
         ]
         if bia_page:
             viewer_buttons.append(
-                dbc.Button("View on BioImage Archive →", color="link", size="sm",
-                           href=bia_page, external_link=True, target="_blank",
-                           className="ms-1"))
+                dbc.Button(
+                    "View on BioImage Archive",
+                    href=bia_page,
+                    external_link=True,
+                    target="_blank",
+                    className="trec-btn-tertiary trec-btn-sm ms-1",
+                ))
         linked_cards.append(dbc.Card(dbc.CardBody([
             dbc.Row([
                 dbc.Col([
@@ -343,10 +357,14 @@ def build_detail_page(sample_id):
                 html.Small("Sequence data", className="text-muted"),
             ]),
             dbc.Col(
-                dbc.Button("View →", size="sm", className="trec-btn-primary",
-                           href=f"https://www.ebi.ac.uk/ena/browser/view/"
-                                f"{ena_accession}",
-                           external_link=True, target="_blank"),
+                dbc.Button(
+                    "View in ENA",
+                    href=f"https://www.ebi.ac.uk/ena/browser/view/"
+                         f"{ena_accession}",
+                    external_link=True,
+                    target="_blank",
+                    className="trec-btn-secondary trec-btn-sm",
+                ),
                 width="auto", className="d-flex align-items-center",
             ),
         ])), className="trec-card mb-2"))
