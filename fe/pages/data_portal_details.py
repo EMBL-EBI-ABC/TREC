@@ -27,7 +27,7 @@ def layout(sample_id=None, **kwargs):
     return dbc.Container([
         dcc.Store(id="sample-id-store", data=sample_id),
         dbc.Spinner(html.Div(id="detail-content")),
-    ], className="mt-3")
+    ], className="trec-page")
 
 
 def make_breadcrumb(sample, station_name, parent_id):
