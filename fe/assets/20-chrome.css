@@ -1,11 +1,11 @@
 /* ===== Header ===== */
 .trec-header {
-  height: 64px;
+  height: 56px;
   background: var(--trec-canvas);
   border-bottom: 1px solid var(--trec-border);
   box-shadow: none;
 }
-@media (min-width: 768px) { .trec-header { height: 72px; } }
+@media (min-width: 768px) { .trec-header { height: 64px; } }
 
 .trec-logo {
   display: inline-flex;
