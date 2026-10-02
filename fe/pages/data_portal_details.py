@@ -310,14 +310,7 @@ def build_detail_page(sample_id):
                     html.Iframe(
                         src=viewer_url,
                         title="Sample imaging viewer",
-                        className="mt-2",
-                        style={
-                            "width": "100%",
-                            "height": "250px",
-                            "border": "none",
-                            "borderRadius": "0",
-                            "background": "#1a1a2e",
-                        },
+                        className="trec-image-viewer mt-2",
                     ),
                 ],
                 className="trec-card p-3 mb-3 mt-2",
