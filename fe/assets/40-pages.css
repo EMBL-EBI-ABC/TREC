@@ -242,3 +242,8 @@
 .home-planetary-link {
   text-decoration: none;
 }
+
+/* ===== Home navigation section ===== */
+.home-nav-section {
+  background: var(--trec-paper-2);
+}

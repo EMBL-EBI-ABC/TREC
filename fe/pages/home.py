@@ -141,7 +141,7 @@ def _nav_card(icon, title, description, href):
 
 
 def _nav_section():
-    return dbc.Container(
+    return html.Div(dbc.Container(
         [
             html.H2("Explore the portal", className="mb-4"),
             dbc.Row(
@@ -179,6 +179,8 @@ def _nav_section():
             ),
         ],
         className="trec-page",
+    ),
+    className="home-nav-section"
     )
 
 
