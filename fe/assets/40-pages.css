@@ -134,7 +134,7 @@
 
 .home-navcard-link:focus-visible .home-navcard {
   box-shadow: var(--shadow-2);
-  outline: 2px solid var(--trec-focus);
+  outline: 3px solid var(--trec-focus);
   outline-offset: 2px;
 }
 
