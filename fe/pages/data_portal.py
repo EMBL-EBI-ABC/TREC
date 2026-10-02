@@ -129,9 +129,7 @@ def make_filters_sidebar():
         dbc.Button(
             "Filters",
             id="filters-toggle",
-            color="outline-secondary",
-            size="sm",
-            className="d-md-none mb-2 w-100",
+            className="trec-btn-secondary trec-btn-sm d-md-none mb-2 w-100",
             n_clicks=0,
         ),
         dbc.Collapse(filter_content, id="filters-collapse", is_open=True),
