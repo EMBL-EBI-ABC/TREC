@@ -36,8 +36,8 @@
   position: relative;
   z-index: 1;
 
-  max-width: 38rem;
-  padding: var(--sp-6);
+  max-width: 36rem;
+  padding: var(--sp-5);
 
   background: var(--trec-paper);
   color: var(--trec-ink);
