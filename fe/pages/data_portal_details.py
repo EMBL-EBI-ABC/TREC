@@ -311,7 +311,7 @@ def build_detail_page(sample_id):
                     href=bia_page,
                     external_link=True,
                     target="_blank",
-                    className="trec-btn-link trec-btn-sm ms-1",
+                    className="trec-btn-link trec-btn-sm",
                 ))
         linked_cards.append(dbc.Card(dbc.CardBody([
             dbc.Row([
@@ -322,7 +322,8 @@ def build_detail_page(sample_id):
                 ]),
                 dbc.Col(
                     viewer_buttons,
-                    width="auto", className="d-flex align-items-center",
+                    width="auto",
+                    className="d-flex align-items-center flex-wrap gap-3",
                 ),
             ]),
             html.Div(
