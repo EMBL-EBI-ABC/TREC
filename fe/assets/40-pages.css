@@ -149,6 +149,11 @@
   margin-bottom: var(--sp-2);
 }
 
+.home-navcard-link,
+.home-navcard-link:visited {
+  color: inherit;
+}
+
 /* ===== Data portal stat banner ===== */
 .stat-card {
   background: var(--trec-paper);
