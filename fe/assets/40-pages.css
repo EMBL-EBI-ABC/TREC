@@ -225,3 +225,20 @@
   font-weight: 700;
   line-height: 1.25;
 }
+
+/* ===== Home about section ===== */
+.home-about-section {
+  padding-top: var(--sp-3);
+}
+
+.home-about-logo {
+  display: block;
+  width: 100%;
+  max-width: 20rem;
+  height: auto;
+  margin-inline: auto;
+}
+
+.home-planetary-link {
+  text-decoration: none;
+}

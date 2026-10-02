@@ -175,10 +175,72 @@ def _nav_section():
                         "/about",
                     ),
                 ],
-                className="g-4 mb-5",
+                className="g-4",
             ),
         ],
         className="trec-page",
+    )
+
+
+def _about_section():
+    return dbc.Container(
+        dbc.Row(
+            [
+                dbc.Col(
+                    [
+                        html.H2("A scientific voyage to address environmental challenges"),
+                        html.P(
+                            "With TREC, we embark on a journey through European "
+                            "coastlines to explore biodiversity and molecular "
+                            "adaptability of microbial communities as well as "
+                            "key selected organisms. We fouc on coastal habitats "
+                            "as they are the richest in species biodiversity and "
+                            "they also often present the highest levels of pollution.",
+                        ),
+                        html.P(
+                            "By combining the expertise and infrastructure of EMBL "
+                            "and multiple European partners, TREC aims to initiate "
+                            "a new era of coastal ecosystems exploration. The goal "
+                            "is timely and ambitious - to observe, model, and "
+                            "understand the effects of changing environments on "
+                            "on organisms and communities, at the cellular and "
+                            "molecular levels.",
+                        ),
+                        html.P(
+                            [
+                                "TREC is a flagship project of ",
+                                html.A(
+                                    html.Strong("Planetary Biology"),
+                                    href="https://www.embl.org/about/info/planetary-biology/",
+                                    className="home-planetary-link",
+                                ),
+                                ", one of the transversal themes launched by EMBL's programme \"",
+                                html.A(
+                                    "Molecules to Ecosystems",
+                                    href="https://www.embl.org/about/programme/",
+                                ),
+                                "\" 2022–2026.",
+                            ]
+                        ),
+                    ],
+                    md=8,
+                ),
+                dbc.Col(
+                    html.Img(
+                        src=(
+                            "https://www.embl.org/about/info/trec/"
+                            "wp-content/uploads/2023/02/"
+                            "20230126_TREC_Tag_RGB-s.jpg"
+                        ),
+                        className="img-fluid home-about-logo",
+                        alt="TREC expedition logo",
+                    ),
+                    md=4,
+                ),
+            ],
+            className="align-items-center",
+        ),
+        className="trec-page home-about-section",
     )
 
 
@@ -187,4 +249,5 @@ def layout():
         _hero(),
         _stats_section(),
         _nav_section(),
+        _about_section(),
     ])
