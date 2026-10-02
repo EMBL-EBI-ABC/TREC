@@ -61,8 +61,12 @@ def make_metadata_table(label, rows):
         dbc.Table([
             html.Tbody([
                 html.Tr([
-                    html.Td(k, className="text-muted small",
-                            style={"width": "160px"}),
+                    html.Th(
+                        k,
+                        scope="row",
+                        className="text-muted small fw-normal",
+                        style={"width": "160px"},
+                    ),
                     html.Td(v, className="small"),
                 ])
                 for k, v in rows if v
