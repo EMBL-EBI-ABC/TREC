@@ -57,7 +57,10 @@ def make_breadcrumb(sample, station_name, parent_id):
 def make_metadata_table(label, rows):
     """Build a labeled metadata table inside a card."""
     return html.Div([
-        html.H6(label, className="text-muted mb-2"),
+        html.H2(
+            label,
+            className="trec-metadata-heading text-muted mb-2",
+        ),
         dbc.Table([
             html.Tbody([
                 html.Tr([
