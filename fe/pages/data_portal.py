@@ -688,10 +688,13 @@ def initialize_from_url(search):
                 None, 1, 1, hide_pagination)
     summary = dbc.Card(
         dbc.CardBody([
-            html.H5([
-                html.I(className="bi bi-geo-alt-fill me-2 station-icon"),
-                detail["station_name"],
-            ], className="mb-0"),
+            html.H2(
+                [
+                    html.I(className="bi bi-geo-alt-fill me-2 station-icon"),
+                    detail["station_name"],
+                ],
+                className="trec-station-heading mb-0",
+            ),
             html.Small(detail.get("country") or "", className="text-muted"),
             html.Div([
                 html.Span(str(detail["source_sample_count"]),
@@ -749,10 +752,13 @@ def show_station_panel(click_data):
     # --- Summary ---
     summary = dbc.Card(
         dbc.CardBody([
-            html.H5([
-                html.I(className="bi bi-geo-alt-fill me-2 station-icon"),
-                detail["station_name"],
-            ], className="mb-0"),
+            html.H2(
+                [
+                    html.I(className="bi bi-geo-alt-fill me-2 station-icon"),
+                    detail["station_name"],
+                ],
+                className="trec-station-heading mb-0",
+            ),
             html.Small(
                 detail.get("country") or "",
                 className="text-muted",

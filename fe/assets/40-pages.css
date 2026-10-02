@@ -214,3 +214,9 @@
   color: var(--trec-ink);
   font-weight: 600;
 }
+
+.trec-station-heading {
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
