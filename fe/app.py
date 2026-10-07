@@ -27,7 +27,7 @@ app.index_string = """<!DOCTYPE html>
         {%favicon%}
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
         {%css%}
     </head>
     <body>
@@ -74,23 +74,134 @@ def _site_header():
 
 
 def _site_footer():
+    footer_columns = [
+        (
+            "Services",
+            [
+                ("Data resources and tools", "https://www.ebi.ac.uk/services/data-resources-and-tools/"),
+                ("Data submission", "https://www.ebi.ac.uk/submission"),
+                ("Support and feedback", "https://www.ebi.ac.uk/about/contact/support/"),
+                ("Licensing", "https://www.ebi.ac.uk/licencing/"),
+                ("Long-term data preservation", "https://www.ebi.ac.uk/long-term-data-preservation/"),
+            ],
+        ),
+        (
+            "Research",
+            [
+                ("Publications", "https://www.ebi.ac.uk/research/publications/"),
+                ("Research groups", "https://www.ebi.ac.uk/research/groups/"),
+                ("Postdocs and PhDs", "https://www.ebi.ac.uk/research/postdocs/"),
+            ],
+        ),
+        (
+            "Training",
+            [
+                ("Live training", "https://www.ebi.ac.uk/training/live-events"),
+                ("On-demand training", "https://www.ebi.ac.uk/training/on-demand"),
+                ("Support for trainers", "https://www.ebi.ac.uk/training/trainer-support"),
+                ("Contact organisers", "https://www.ebi.ac.uk/about/contact/support/training"),
+            ],
+        ),
+        (
+            "Industry",
+            [
+                ("Members Area", None),
+                ("Contact Industry team", "https://www.ebi.ac.uk/industry/"),
+            ],
+        ),
+        (
+            "About",
+            [
+                ("FAQ", "https://www.ebi.ac.uk/about/faq/"),
+                ("Contact us", "https://www.ebi.ac.uk/about/contact/"),
+                ("Events", "https://www.ebi.ac.uk/about/events/"),
+                ("Jobs", "https://www.ebi.ac.uk/careers/"),
+                ("News", "https://www.ebi.ac.uk/about/news/"),
+                ("People and groups", "https://www.ebi.ac.uk/people/"),
+                ("Intranet for staff", "https://intranet.ebi.ac.uk/"),
+            ],
+        ),
+    ]
+
     return html.Footer(
         html.Div(
             [
-                html.Span(
+                html.Div(
                     [
-                        "Traversing European Coastlines · ",
-                        html.A(
-                            "An EMBL initiative",
-                            href="https://www.embl.org/about/info/trec/",
-                            target="_blank",
-                            rel="noopener noreferrer",
-                            className="trec-footer-link",
+                        html.P(
+                            "EMBL-EBI is the home for big data in biology.",
+                            className="trec-footer-intro",
+                        ),
+                        html.P(
+                            "We help scientists exploit complex information "
+                            "to make discoveries that benefit humankind.",
+                            className="trec-footer-intro",
                         ),
                     ],
+                    className="trec-footer-intro-block",
+                ),
+
+                html.Div(
+                    [
+                        html.Div(
+                            [
+                                html.H2(
+                                    heading,
+                                    className="trec-footer-heading",
+                                ),
+                                html.Ul(
+                                    [
+                                        html.Li(
+                                            html.A(
+                                                label,
+                                                href=href,
+                                                className="trec-footer-link",
+                                            )
+                                            if href
+                                            else html.Span(
+                                                label,
+                                                className="trec-footer-placeholder",
+                                            )
+                                        )
+                                        for label, href in links
+                                    ],
+                                    className="trec-footer-list",
+                                ),
+                            ],
+                            className="trec-footer-column",
+                        )
+                        for heading, links in footer_columns
+                    ],
+                    className="trec-footer-grid",
+                ),
+
+                html.Div(className="trec-footer-divider"),
+
+                html.Div(
+                    [
+                        html.Span(
+                            "EMBL-EBI, Wellcome Genome Campus, "
+                            "Hinxton, Cambridgeshire, CB10 1SD, UK."
+                        ),
+                        html.Span("Tel: +44 (0)1223 49 44 44"),
+                        html.Span("Full contact details"),
+                    ],
+                    className="trec-footer-contact",
+                ),
+
+                html.Div(
+                    [
+                        html.Span("Copyright © EMBL 2026"),
+                        html.Span(
+                            "EMBL-EBI is part of the European Molecular "
+                            "Biology Laboratory"
+                        ),
+                        html.Span("Terms of use"),
+                    ],
+                    className="trec-footer-legal",
                 ),
             ],
-            className="trec-footer-row",
+            className="trec-footer-inner",
         ),
         className="trec-footer",
     )

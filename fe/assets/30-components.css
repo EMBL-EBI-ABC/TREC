@@ -1,47 +1,57 @@
 /* ===== Chips ===== */
 .trec-chip {
-  background: transparent; color: var(--trec-green);
-  border: 1px solid var(--trec-green); border-radius: var(--r-pill);
+  background: transparent;
+  color: var(--trec-interactive);
+  border: 1px solid var(--trec-interactive);
+  border-radius: var(--r-sm);
   transition: background-color .15s, color .15s, border-color .15s;
 }
-.trec-chip:hover, .trec-chip:focus-visible { background: rgba(14,77,60,.08); color: var(--trec-green); border-color: var(--trec-green); }
+
+.trec-chip:hover,
+.trec-chip:focus-visible {
+  background: var(--trec-interactive-bg);
+  color: var(--trec-interactive-hover);
+  border-color: var(--trec-interactive-hover);
+}
+
 .trec-chip.active,
-.btn-check:checked + .trec-chip
-{
-  background: var(--trec-green); color: #fff; border-color: var(--trec-green);
+.btn-check:checked + .trec-chip {
+  background: var(--trec-interactive);
+  color: #fff;
+  border-color: var(--trec-interactive);
 }
 /* Predictive-search dropdown */
 .trec-predictive-search .Select-control {
     background: var(--trec-paper);
-    border: 1px solid var(--trec-green);
-    border-radius: .375rem;
+    border: 2px solid var(--trec-border);
+    border-radius: var(--r-sm);
     box-shadow: none;
-    min-height: 38px;
+    min-height: 44px;
 }
 .trec-predictive-search .Select-control:hover {
-    border-color: var(--trec-green-dark);
+    border-color: var(--trec-interactive);
 }
 .trec-predictive-search.is-focused:not(.is-open)
     > .Select-control {
-    border-color: var(--trec-green);
-    box-shadow: 0 0 0 .15rem rgba(14,77,60,.2);
+    border-color: var(--trec-ink);
+    box-shadow: 0 0 0 3px var(--trec-focus);
 }
 .trec-predictive-search .Select-placeholder {
     color: var(--trec-muted);
     font-size: .9rem;
 }
 .trec-predictive-search .Select-menu-outer {
-    border: 1px solid var(--trec-border);
-    box-shadow: 0 6px 14px rgba(0,0,0,0.08);
-    border-radius: .375rem;
+    border: 2px solid var(--trec-border);
+    box-shadow: none;
+    border-radius: var(--r-sm);
     margin-top: 2px;
     z-index: 1050;
 }
 .trec-predictive-search .Select-option.is-focused {
-    background-color: rgba(14,77,60,.08);
+    background-color: var(--trec-interactive-bg);
 }
 .trec-predictive-search .Select-option.is-selected {
-    background-color: rgba(14,77,60,.16);
+    background-color: var(--trec-interactive-bg);
     color: var(--trec-ink);
 }
 .trec-suggest-option {
@@ -66,6 +76,39 @@
     white-space: nowrap;
     flex-shrink: 0;
 }
+
+/* ===== Breadcrumbs ===== */
+.trec-breadcrumb {
+  --bs-breadcrumb-divider: ">";
+  margin-bottom: var(--sp-4);
+  font-size: .875rem;
+}
+
+.trec-breadcrumb .breadcrumb-item + .breadcrumb-item::before {
+  color: var(--trec-muted);
+}
+
+.trec-breadcrumb .breadcrumb-item a {
+  color: var(--trec-interactive);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.trec-breadcrumb .breadcrumb-item a:hover {
+  color: var(--trec-interactive-hover);
+}
+
+.trec-breadcrumb .breadcrumb-item[aria-current="location"] {
+  color: var(--trec-ink);
+  font-weight: 600;
+}
+
+@media (max-width: 767px) {
+  .trec-breadcrumb .trec-breadcrumb-ancestor {
+    display: none;
+  }
+}
+
 /* ===== Tables: shared badge primitives ===== */
 .trec-badge {
   display: inline-flex; align-items: center; justify-content: center;
@@ -73,13 +116,34 @@
   font-size: .75rem; font-weight: 600; line-height: 1.4; white-space: nowrap;
 }
 .trec-badge-available {
-  background: rgba(14,77,60,.10); color: var(--trec-green);
-  border: 1px solid rgba(14,77,60,.20);
+  background: #d0debb;
+  color: var(--trec-green-dark);
+  border: 1px solid var(--trec-green);
 }
 .trec-badge-available .trec-badge-glyph { font-weight: 700; line-height: 1; }
 .trec-badge-count {
-  background: rgba(14,77,60,.06); color: var(--trec-green);
-  border: 1px solid rgba(14,77,60,.16); min-width: 1.75rem;
+  background: var(--trec-paper-2);
+  color: var(--trec-muted);
+  border: 1px solid var(--trec-border);
+  min-width: 1.75rem;
+}
+
+.trec-badge-category {
+  background: var(--trec-paper-2);
+  color: var(--trec-ink);
+  border: 1px solid var(--trec-border);
+}
+
+.trec-filter-badge {
+  background-color: var(--trec-interactive) !important;
+  color: #fff !important;
+  border: 1px solid var(--trec-interactive);
+  transition: background-color .15s, border-color .15s;
+}
+
+.trec-filter-badge:hover {
+  background-color: var(--trec-interactive-hover) !important;
+  border-color: var(--trec-interactive-hover);
 }
 .trec-muted-dash { color: var(--trec-muted); font-weight: 500; }
 /* ===== Tables: shared polish for HTML tables (dbc.Table).
@@ -90,25 +154,44 @@
       match the samples-table visual rhythm. ===== */
 .trec-table { margin-bottom: 0; font-size: 13px; }
 .trec-table thead th {
-  font-weight: 600; font-size: 12px; text-transform: uppercase;
-  letter-spacing: .04em; color: var(--trec-green);
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: var(--trec-ink);
   background: var(--trec-paper-2);
   border-bottom: 1px solid var(--trec-border);
-  border-top: none; padding: 10px 14px 10px 18px; vertical-align: middle;
+  border-top: none;
+  padding: 10px 14px 10px 18px;
+  vertical-align: middle;
 }
 .trec-table tbody td {
   padding: 10px 14px; border-top: none;
   border-bottom: 1px solid var(--trec-border-2);
   vertical-align: middle; font-size: 13px;
 }
+
 .trec-table.table-striped > tbody > tr:nth-of-type(odd) > * {
-  background: rgba(14,77,60,.025); --bs-table-bg-type: rgba(14,77,60,.025); color: inherit;
+  background: var(--trec-paper-2);
+  --bs-table-bg-type: var(--trec-paper-2);
+  color: inherit;
 }
+
 .trec-table.table-hover > tbody > tr:hover > * {
-  background: rgba(14,77,60,.06) !important; --bs-table-hover-bg: rgba(14,77,60,.06); color: inherit;
+  background: var(--trec-interactive-bg) !important;
+  --bs-table-hover-bg: var(--trec-interactive-bg);
+  color: inherit;
 }
-.trec-table tbody td a { text-decoration: none; color: var(--trec-green); border-bottom: 1px solid transparent; }
-.trec-table tbody td a:hover { color: var(--trec-green-dark); border-bottom-color: var(--trec-coral); }
+.trec-table tbody td a {
+  text-decoration: none;
+  color: var(--trec-interactive);
+  border-bottom: 1px solid transparent;
+}
+
+.trec-table tbody td a:hover {
+  color: var(--trec-interactive-hover);
+  border-bottom-color: var(--trec-interactive-hover);
+}
 .trec-table td.trec-num, .trec-table .trec-num { font-family: var(--font-mono); }
 /* Sort indicators for dbc.Table headers — visually
    mirrors Dash DataTable's bundled fa-sort icons used on
@@ -131,7 +214,7 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    color: var(--trec-green);
+    color: var(--trec-muted);
     font-weight: normal;
     text-transform: none;
     letter-spacing: 0;
@@ -150,7 +233,7 @@
 }
 .trec-table .trec-sort-caret.active {
     opacity: 1;
-    color: var(--trec-coral);
+    color: var(--trec-interactive);
 }
 /* Samples table (Dash DataTable) sort indicator.
    DataTable bundles a Font Awesome fa-sort SVG (both
@@ -165,7 +248,7 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    color: var(--trec-green);
+    color: var(--trec-muted);
     line-height: 1;
     margin-right: .55rem;
     margin-left: 0;
@@ -202,7 +285,7 @@
 .dash-header .column-header--sort:has(
     svg[data-icon="sort-down"])::after {
     opacity: 1;
-    color: var(--trec-coral);
+    color: var(--trec-interactive);
 }
 /* ENA column on the samples table is non-sortable: the
    backend has no `has_ena` ES field (it's `has_ena_data`),
@@ -221,26 +304,120 @@
 }
 
 /* ===== Buttons ===== */
-.btn.trec-btn-primary {
-  background: var(--trec-coral); border-color: var(--trec-coral);
-  color: #fff; font-weight: 600; border-radius: var(--r-sm); padding: .6rem 1.4rem;
-}
-.btn.trec-btn-primary:hover { background: var(--trec-coral-dark); border-color: var(--trec-coral-dark); color:#fff; }
-.btn.trec-btn-ghost {
-  background: transparent;
-  border: 1px solid color-mix(in srgb, var(--trec-canvas) 50%, transparent);
-  color: var(--trec-canvas); font-weight: 600; border-radius: var(--r-sm); padding: .6rem 1.4rem;
-}
-.btn.trec-btn-ghost:hover { background: color-mix(in srgb, var(--trec-canvas) 12%, transparent); color: var(--trec-canvas); }
 
-/* ===== Success buttons → brand green =====
-   .btn-success compiles its own --bs-btn-* vars from Bootstrap's $success,
-   so re-pointing --bs-success alone doesn't reach it. Override here. */
-.btn-success {
-  --bs-btn-bg: var(--trec-green); --bs-btn-border-color: var(--trec-green);
-  --bs-btn-hover-bg: var(--trec-green-dark); --bs-btn-hover-border-color: var(--trec-green-dark);
-  --bs-btn-active-bg: var(--trec-green-dark); --bs-btn-active-border-color: var(--trec-green-dark);
-  --bs-btn-disabled-bg: var(--trec-green); --bs-btn-disabled-border-color: var(--trec-green);
+.btn.trec-btn-primary,
+.btn.trec-btn-secondary {
+  position: relative;
+  transform: translate(0, 0);
+  transition: all linear 125ms;
+}
+
+.btn.trec-btn-primary {
+  background: var(--trec-interactive);
+  border: 4px solid var(--trec-interactive);
+  box-shadow: 8px 8px 0 var(--trec-interactive-hover);
+  color: #fff;
+  font-weight: 700;
+  border-radius: var(--r-sm);
+  padding: .6rem 1.4rem;
+}
+
+.btn.trec-btn-primary:hover,
+.btn.trec-btn-primary:focus {
+  background: var(--trec-interactive);
+  border-color: var(--trec-interactive);
+  box-shadow:
+    4px 4px 0 var(--trec-interactive-hover),
+    2px 2px 4px rgba(0, 0, 0, .25);
+  color: #fff;
+  transform: translate(4px, 4px);
+}
+
+.btn.trec-btn-primary:active {
+  box-shadow:
+    0 0 0 var(--trec-interactive-hover),
+    2px 2px 2px rgba(0, 0, 0, .125);
+  transform: translate(8px, 8px);
+}
+
+.btn.trec-btn-secondary {
+  background: var(--trec-paper);
+  border: 4px solid var(--trec-interactive);
+  box-shadow: 8px 8px 0 var(--trec-interactive-hover);
+  color: var(--trec-interactive);
+  font-weight: 700;
+  border-radius: var(--r-sm);
+  padding: .6rem 1.4rem;
+}
+
+.btn.trec-btn-secondary:hover,
+.btn.trec-btn-secondary:focus {
+  background: var(--trec-paper);
+  border-color: var(--trec-interactive);
+  box-shadow:
+    4px 4px 0 var(--trec-interactive-hover),
+    2px 2px 4px rgba(0, 0, 0, .25);
+  color: var(--trec-interactive);
+  transform: translate(4px, 4px);
+}
+
+.btn.trec-btn-secondary:active {
+  box-shadow:
+    0 0 0 var(--trec-interactive-hover),
+    2px 2px 2px rgba(0, 0, 0, .125);
+  transform: translate(8px, 8px);
+}
+
+.btn.trec-btn-tertiary {
+  background: var(--trec-muted);
+  border: 4px solid var(--trec-muted);
+  box-shadow: 8px 8px 0 var(--trec-ink);
+  color: #fff;
+  font-weight: 700;
+  border-radius: var(--r-sm);
+  padding: .6rem 1.4rem;
+  transform: translate(0, 0);
+  transition: all linear 125ms;
+}
+
+.btn.trec-btn-tertiary:hover,
+.btn.trec-btn-tertiary:focus {
+  background: var(--trec-muted);
+  border-color: var(--trec-muted);
+  box-shadow:
+    4px 4px 0 var(--trec-ink),
+    2px 2px 4px rgba(0, 0, 0, .25);
+  color: #fff;
+  transform: translate(4px, 4px);
+}
+
+.btn.trec-btn-tertiary:active {
+  box-shadow:
+    0 0 0 var(--trec-ink),
+    2px 2px 2px rgba(0, 0, 0, .125);
+  transform: translate(8px, 8px);
+}
+
+.btn.trec-btn-sm {
+  padding: .35rem .75rem;
+  font-size: .875rem;
+}
+
+.btn.trec-btn-link {
+  background: transparent;
+  border: 0;
+  color: var(--trec-interactive);
+  font-weight: 600;
+  border-radius: var(--r-sm);
+  padding: .35rem .25rem;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.btn.trec-btn-link:hover,
+.btn.trec-btn-link:focus {
+  background: transparent;
+  color: var(--trec-interactive-hover);
 }
 
 /* ===== Cards ===== */
@@ -249,10 +426,124 @@
   border-radius: var(--r-md); box-shadow: var(--shadow-1);
 }
 
+/* ===== Metadata tables ===== */
+.trec-metadata-label {
+  width: 10rem;
+}
+
+.trec-metadata-table {
+  --bs-table-bg: transparent;
+}
+
+.trec-metadata-heading {
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: 0.04em;
+}
+
+@media (max-width: 767px) {
+  .trec-metadata-label {
+    width: 8rem;
+  }
+}
+
+/* ===== Alerts / status messages ===== */
+.trec-alert {
+  border-radius: 0;
+  border: 1px solid var(--trec-border);
+  padding: var(--sp-3) var(--sp-4);
+}
+
+.trec-alert-info {
+  background: var(--trec-interactive-bg);
+  border-color: var(--trec-interactive);
+  color: var(--trec-ink);
+}
+
+.trec-alert-warning {
+  background: #fff3cd;
+  border-color: #c08a3e;
+  color: var(--trec-ink);
+}
+
+.trec-alert-error {
+  background: #f8d7da;
+  border-color: #b02a37;
+  color: var(--trec-ink);
+}
+
 /* ===== Pagination (fix clashing Bootstrap pink active) ===== */
-.pagination { --bs-pagination-color: var(--trec-green); --bs-pagination-hover-color: var(--trec-green-dark);
-  --bs-pagination-focus-color: var(--trec-green-dark);
+.pagination {
+  --bs-pagination-color: var(--trec-interactive);
+  --bs-pagination-hover-color: var(--trec-interactive-hover);
+  --bs-pagination-focus-color: var(--trec-interactive-hover);
+
+  --bs-pagination-bg: var(--trec-paper);
+  --bs-pagination-border-color: var(--trec-border);
+
+  --bs-pagination-hover-bg: var(--trec-interactive-bg);
+  --bs-pagination-hover-border-color: var(--trec-interactive);
+
   --bs-pagination-active-color: #fff;
-  --bs-pagination-active-bg: var(--trec-green); --bs-pagination-active-border-color: var(--trec-green);
-  --bs-pagination-hover-bg: rgba(14,77,60,.08); --bs-pagination-border-color: var(--trec-border);
+  --bs-pagination-active-bg: var(--trec-interactive);
+  --bs-pagination-active-border-color: var(--trec-interactive);
+
+  --bs-pagination-disabled-color: var(--trec-muted);
+  --bs-pagination-disabled-bg: var(--trec-paper);
+  --bs-pagination-disabled-border-color: var(--trec-border);
+
+  --bs-pagination-border-radius: 0;
+
+  --bs-pagination-focus-box-shadow:
+    0 0 0 3px var(--trec-focus);
+}
+
+
+.form-control:focus {
+  border-color: var(--trec-interactive);
+  box-shadow: 0 0 0 3px var(--trec-focus);
+}
+
+/* ===== Embedded data viewers ===== */
+.trec-image-viewer {
+  display: block;
+  width: 100%;
+  height: 250px;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: #1a1a2e;
+}
+
+/* ===== Sample detail heading ===== */
+.trec-sample-title {
+  font-size: 1.75rem;
+  line-height: 1.2;
+}
+
+/* ===== Page headers ===== */
+.trec-page-header {
+  margin-block: var(--sp-1) var(--sp-1);
+}
+
+.trec-page-header > * {
+  margin-block: 0;
+}
+
+.trec-page-header > * + * {
+  margin-top: var(--sp-2);
+}
+
+.trec-section-heading {
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.trec-subsection-heading {
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }

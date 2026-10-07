@@ -26,11 +26,13 @@ layout = dbc.Container(
     [
         html.Div(
             [
-                html.H2("API"),
-                html.P("Programmatic access to TREC data via our REST API.",
-                       className="text-muted mb-3"),
+                html.H1("API"),
+                html.P(
+                    "Programmatic access to TREC data via our REST API.",
+                    className="text-muted",
+                ),
             ],
-            className="trec-page pb-0",
+            className="trec-page trec-page-header pb-0",
         ),
         iframe_layout(),
     ],

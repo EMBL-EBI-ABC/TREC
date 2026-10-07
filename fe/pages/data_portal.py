@@ -36,7 +36,7 @@ def _badge_count(n):
 # Distinct colour per analysis type (harmonised with the map legend palette).
 ANALYSIS_COLORS = {
     "Genomics": "#2f7fa6",      # blue
-    "Metagenomics": "#0E4D3C",  # brand green
+    "Metagenomics": "#18974c",  # brand green
     "Metabolomics": "#D9714E",  # coral
     "Imaging": "#c08a3e",       # amber
     "Ions": "#3a8f7d",          # teal
@@ -64,23 +64,28 @@ def make_stats_banner():
 def make_filters_sidebar():
     """Filters sidebar — collapsible on mobile, always visible on desktop."""
     filter_content = [
-        html.H6("Filters", className="fw-bold mb-3"),
+        html.H2(
+            "Filters",
+            className="trec-sidebar-heading mb-3",
+        ),
 
         html.Label("Environment", className="fw-bold small"),
         dbc.Checklist(id="env-type-filter", className="small mb-3"),
 
         html.Label("Organism", className="fw-bold small"),
         dbc.Checklist(
-            id="organism-filter", className="small mb-3",
-            style={"maxHeight": "12em", "overflowY": "auto"}),
+            id="organism-filter",
+            className="trec-filter-scroll small mb-3",
+        ),
 
         html.Label("Analysis Type", className="fw-bold small"),
         dbc.Checklist(id="analysis-type-filter", className="small mb-3"),
 
         html.Label("Country", className="fw-bold small"),
         dbc.Checklist(
-            id="country-filter", className="small mb-3",
-            style={"maxHeight": "12em", "overflowY": "auto"}),
+            id="country-filter",
+            className="trec-filter-scroll small mb-3",
+        ),
 
         dcc.Store(id="protocol-all-options"),
         html.Label("Protocol", className="fw-bold small"),
@@ -94,8 +99,9 @@ def make_filters_sidebar():
             className="mb-2",
         ),
         dbc.Checklist(
-            id="protocol-filter", className="small mb-3",
-            style={"maxHeight": "12em", "overflowY": "auto"}),
+            id="protocol-filter",
+            className="trec-filter-scroll small mb-3",
+        ),
 
         html.Label("Linked Data", className="fw-bold small"),
         dbc.Checklist(
@@ -123,9 +129,7 @@ def make_filters_sidebar():
         dbc.Button(
             "Filters",
             id="filters-toggle",
-            color="outline-secondary",
-            size="sm",
-            className="d-md-none mb-2 w-100",
+            className="trec-btn-secondary trec-btn-sm d-md-none mb-2 w-100",
             n_clicks=0,
         ),
         dbc.Collapse(filter_content, id="filters-collapse", is_open=True),
@@ -133,6 +137,16 @@ def make_filters_sidebar():
 
 
 layout = dbc.Container([
+    html.Div(
+        [
+            html.H1("Data Portal"),
+            html.P(
+                "Explore TREC sampling stations and samples across Europe.",
+                className="text-muted",
+            ),
+        ],
+        className="trec-page-header",
+    ),
     # Stats banner
     make_stats_banner(),
     # Main layout: filters sidebar | map + station content
@@ -466,17 +480,17 @@ def load_map_and_filters(_, colour_by, env_type, organism, analysis_type,
     COLOUR_MAPS = {
         "environment_type": {"marine": "#2f7fa6", "soil": "#c08a3e",
                               "aerosol": "#7a6f9b"},
-        "analysis_type": {"Metagenomics": "#0E4D3C", "Metabolomics": "#D9714E",
+        "analysis_type": {"Metagenomics": "#18974c", "Metabolomics": "#D9714E",
                           "Imaging": "#c08a3e", "Ions": "#3a8f7d"},
     }
     LABELS = {
-        "none": {"#0E4D3C": "Stations", "#cfc6b4": "No matching samples"},
+        "none": { "#18974c": "Stations", "#cfc6b4": "No matching samples"},
         "has_images": {"#D9714E": "Has images", "#9aa89f": "No images",
                        "#cfc6b4": "No matching samples"},
         "environment_type": {"#2f7fa6": "Marine", "#c08a3e": "Soil",
                              "#7a6f9b": "Aerosol", "#9aa89f": "Unknown",
                              "#cfc6b4": "No matching samples"},
-        "analysis_type": {"#0E4D3C": "Metagenomics", "#D9714E": "Metabolomics",
+        "analysis_type": { "#18974c": "Metagenomics", "#D9714E": "Metabolomics",
                           "#c08a3e": "Imaging", "#3a8f7d": "Ions",
                           "#9aa89f": "Unknown", "#cfc6b4": "No matching samples"},
     }
@@ -487,7 +501,7 @@ def load_map_and_filters(_, colour_by, env_type, organism, analysis_type,
             if station["station_name"] not in active_station_names:
                 return "#cfc6b4"
         if colour_by == "none":
-            return "#0E4D3C"
+            return "#18974c"
         if colour_by == "has_images":
             return "#D9714E" if station.get("has_images") else "#9aa89f"
         if colour_by in COLOUR_MAPS:
@@ -581,14 +595,14 @@ def load_map_and_filters(_, colour_by, env_type, organism, analysis_type,
         map=dict(style="carto-positron",
                  center=dict(lat=43, lon=10), zoom=3.5),
         margin=dict(l=0, r=0, t=0, b=0),
-        paper_bgcolor="#E5E2D8",
-        plot_bgcolor="#E5E2D8",
+        paper_bgcolor="#ffffff",
+        plot_bgcolor="#ffffff",
         showlegend=colour_by != "none" or bool(selected_station),
         # Overlay the legend inside the map (bottom-centre) so there's no
         # empty reserved band below the map when the legend is hidden.
         legend=dict(
-            bgcolor="rgba(247,244,236,0.9)",
-            bordercolor="#e6e0d3",
+            bgcolor="rgba(255,255,255,0.95)",
+            bordercolor="#d0d0ce",
             borderwidth=1,
             orientation="h",
             yanchor="bottom",
@@ -665,16 +679,20 @@ def initialize_from_url(search):
     try:
         detail = requests.get(f"{API_BASE_URL}/stations/{station_name}").json()
     except Exception as e:
-        return (dbc.Alert(f"Error loading station: {e}", color="danger",
-                          className="mt-3"),
+        return (dbc.Alert(
+                    f"Error loading station: {e}",
+                    className="trec-alert trec-alert-error mt-3"
+                ),
                 None, 1, 1, hide_pagination)
     summary = dbc.Card(
         dbc.CardBody([
-            html.H5([
-                html.I(className="bi bi-geo-alt-fill me-2",
-                       style={"color": "#D9714E"}),
-                detail["station_name"],
-            ], className="mb-0"),
+            html.H2(
+                [
+                    html.I(className="bi bi-geo-alt-fill me-2 station-icon"),
+                    detail["station_name"],
+                ],
+                className="trec-station-heading mb-0",
+            ),
             html.Small(detail.get("country") or "", className="text-muted"),
             html.Div([
                 html.Span(str(detail["source_sample_count"]),
@@ -715,8 +733,10 @@ def show_station_panel(click_data):
     if not station_name:
         station_name = click_data["points"][0].get("text", "")
     if not station_name:
-        return (dbc.Alert("Could not identify station",
-                          color="warning", className="mt-3"),
+        return (dbc.Alert(
+                    "Could not identify station",
+                    className="trec-alert trec-alert-warning mt-3"
+                ),
                 None, 1, 1, hide_pagination)
 
     try:
@@ -724,17 +744,19 @@ def show_station_panel(click_data):
             f"{API_BASE_URL}/stations/{station_name}").json()
     except Exception as e:
         return (dbc.Alert(f"Error loading station: {e}",
-                          color="danger", className="mt-3"),
+                          className="trec-alert trec-alert-error mt-3"),
                 None, 1, 1, hide_pagination)
 
     # --- Summary ---
     summary = dbc.Card(
         dbc.CardBody([
-            html.H5([
-                html.I(className="bi bi-geo-alt-fill me-2",
-                       style={"color": "#D9714E"}),
-                detail["station_name"],
-            ], className="mb-0"),
+            html.H2(
+                [
+                    html.I(className="bi bi-geo-alt-fill me-2 station-icon"),
+                    detail["station_name"],
+                ],
+                className="trec-station-heading mb-0",
+            ),
             html.Small(
                 detail.get("country") or "",
                 className="text-muted",
@@ -844,16 +866,20 @@ def load_samples_page(page, station_name, protocol, env_type, organism,
         resp = requests.get(
             f"{API_BASE_URL}/data_portal", params=params).json()
     except Exception as e:
-        return dbc.Alert(f"Error: {e}", color="danger", className="mt-2"), 1, 1, hide_pagination
+        return dbc.Alert(
+            f"Error: {e}",
+             className="trec-alert trec-alert-error mt-2"
+            ), 1, 1, hide_pagination
 
     results = resp.get("results", [])
     total = resp.get("total", 0)
     max_pages = max(1, (total + 9) // 10)
 
     if not results:
-        return (dbc.Alert("No samples found for the selected filters.",
-                          color="secondary", className="mt-2"),
-                1, 1, hide_pagination)
+        return (dbc.Alert(
+                "No samples found for the selected filters.",
+                className="trec-alert trec-alert-info mt-2"
+            ),1, 1, hide_pagination)
 
     rows = []
     for s in results:
@@ -896,7 +922,7 @@ def load_samples_page(page, station_name, protocol, env_type, organism,
                 "padding": "10px 14px",
                 "fontFamily": "inherit",
                 "border": "none",
-                "borderBottom": "1px solid #f1ece1",
+                "borderBottom": "1px solid var(--trec-border-2)",
                 "overflow": "visible",
                 "textOverflow": "clip",
             },
@@ -910,20 +936,23 @@ def load_samples_page(page, station_name, protocol, env_type, organism,
                 "fontSize": "12px",
                 "textTransform": "uppercase",
                 "letterSpacing": "0.04em",
-                "color": "#0E4D3C",
-                "backgroundColor": "#FBF9F3",
-                "borderBottom": "1px solid #e6e0d3",
+                "color": "var(--trec-ink)",
+                "backgroundColor": "var(--trec-paper-2)",
+                "borderBottom": "1px solid var(--trec-border-2)",
                 "padding": "10px 14px 10px 18px",
             },
             style_data_conditional=[
                 {"if": {"row_index": "odd"},
-                 "backgroundColor": "rgba(14, 77, 60, 0.025)"},
+                 "backgroundColor": "var(--trec-paper-2)"},
+
                 {"if": {"state": "active"},
-                 "backgroundColor": "rgba(14, 77, 60, 0.10)",
-                 "border": "1px solid rgba(14, 77, 60, 0.20)"},
+                 "backgroundColor": "var(--trec-interactive-bg)",
+                 "border": "1px solid var(--trec-interactive)"},
+
                 {"if": {"state": "selected"},
-                 "backgroundColor": "rgba(14, 77, 60, 0.10)",
-                 "border": "1px solid rgba(14, 77, 60, 0.20)"},
+                 "backgroundColor": "var(--trec-interactive-bg)",
+                 "border": "1px solid var(--trec-interactive)"},
+
                 {"if": {"column_id": ["has_images", "has_ena"]},
                  "textAlign": "center"},
             ],
@@ -933,25 +962,28 @@ def load_samples_page(page, station_name, protocol, env_type, organism,
             ],
             css=[
                 {"selector": ".dash-spreadsheet-container",
-                 "rule": "border-radius: 6px;"},
+                 "rule": "border-radius: 0px;"},
                 {"selector": ".dash-cell p", "rule": "margin: 0;"},
                 {"selector": ".dash-header p", "rule": "margin: 0;"},
                 {"selector": ".dash-cell a",
-                 "rule": "color: #0E4D3C; font-weight: 600; "
+                 "rule": "color: var(--trec-interactive); font-weight: 600; "
                          "text-decoration: underline; "
-                         "text-decoration-color: rgba(14,77,60,0.45); "
+                         "text-decoration-color: var(--trec-interactive-soft); "
                          "text-underline-offset: 2px; "
                          "transition: color .15s, "
                          "text-decoration-color .15s;"},
+
                 {"selector": ".dash-cell a:hover",
-                 "rule": "color: #0a3a2d; "
-                         "text-decoration-color: #D9714E;"},
+                 "rule": "color: var(--trec-interactive-hover); "
+                         "text-decoration-color: var(--trec-interactive-hover);"},
+
                 {"selector": ".dash-spreadsheet-inner tr:hover td.dash-cell",
-                 "rule": "background-color: rgba(14, 77, 60, 0.08) "
-                         "!important;"},
+                 "rule": "background-color: var(--trec-interactive-bg) !important;"},
                 {"selector": ".dash-header .column-header-name",
                  "rule": "vertical-align: middle; "
                          "display: inline-block;"},
+                {"selector": ".dash-header .column-header--sort",
+                 "rule": "color: var(--trec-muted) !important;"},
             ],
         ),
     ])
@@ -1033,8 +1065,7 @@ def build_active_filters_bar(env_type, organism, analysis_type, country,
                  f"{selected_station} ✕"],
                 id={"type": "filter-badge", "filter": "selected-station",
                     "value": selected_station},
-                color="success",
-                className="me-1 mb-1 small",
+                className="trec-filter-badge me-1 mb-1 small",
                 style={"cursor": "pointer"},
             )
         )
@@ -1056,8 +1087,7 @@ def build_active_filters_bar(env_type, organism, analysis_type, country,
                         [f"{label}: {val} ✕"],
                         id={"type": "filter-badge", "filter": filter_id,
                             "value": val},
-                        color="success",
-                        className="me-1 mb-1 small",
+                        className="trec-filter-badge me-1 mb-1 small",
                         style={"cursor": "pointer"},
                     )
                 )
@@ -1068,8 +1098,7 @@ def build_active_filters_bar(env_type, organism, analysis_type, country,
                 ["Source only ✕"],
                 id={"type": "filter-badge", "filter": "source-filter",
                     "value": "source"},
-                color="secondary",
-                className="me-1 mb-1 small",
+                className="trec-filter-badge me-1 mb-1 small",
                 style={"cursor": "pointer"},
             )
         )

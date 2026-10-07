@@ -31,42 +31,58 @@ def _fmt(val):
 def _hero():
     return html.Div(
         [
-        html.Div(
-            [
-                html.Span(className="orb orb-1"),
-                html.Span(className="orb orb-2"),
-                html.Span(className="orb orb-3"),
-                html.Span(className="orb orb-4"),
-                html.Span(className="orb orb-5"),
-            ],
-            className="home-hero-decor",
-            **{"aria-hidden": "true"},
-        ),
-        html.Div(
-            [
-                html.Div("Traversing European Coastlines", className="eyebrow"),
-                html.H1("The molecular pulse of Europe's coastlines."),
-                html.P(
-                    "Explore biodiversity and molecular adaptation across "
-                    "European coastal ecosystems — from molecules to whole "
-                    "communities.",
-                    className="lead",
-                ),
-                html.Div(
-                    [
-                        dcc.Link(
-                            [html.Span("Explore the data"),
-                             html.Span(" →", **{"aria-hidden": "true"})],
-                            href="/data-portal",
-                            className="btn trec-btn-primary me-2"),
-                        dcc.Link("About TREC", href="/about",
-                                 className="btn trec-btn-ghost"),
-                    ],
-                    className="mt-4",
-                ),
-            ],
-            className="home-hero-inner",
-        ),
+            html.Picture(
+                [
+                    html.Source(
+                        srcSet="/assets/trec-hero-mobile.webp",
+                        media="(max-width: 767px)",
+                    ),
+                    html.Source(
+                        srcSet="/assets/trec-hero-2048.webp",
+                        media="(min-width: 1600px)",
+                    ),
+                    html.Img(
+                        src="/assets/trec-hero-1920.webp",
+                        alt="",
+                        width="1920",
+                        height="640",
+                        className="home-hero-image",
+                    ),
+                ],
+                className="home-hero-picture",
+            ),
+
+            html.Div(
+                [
+                    html.H1(
+                        "TREC Data Portal"
+                    ),
+                    html.H2(
+                        "Transversing European Coastlines"
+                    ),
+                    html.P(
+                        "Explore biodiversity and molecular adaptation across "
+                        "European coastal ecosystems — from molecules to communities.",
+                        className="lead",
+                    ),
+                    html.Div(
+                        [
+                            dcc.Link(
+                                "Explore the data",
+                                href="/data-portal",
+                                className="btn trec-btn-primary",
+                            ),
+                            dcc.Link(
+                                "About TREC",
+                                href="/about",
+                                className="btn trec-btn-secondary",
+                            ),
+                        ],
+                        className="mt-4 d-flex flex-wrap gap-3",
+                    ),
+                ],
+                className="home-hero-inner",
+            ),
         ],
         className="home-hero",
     )
@@ -110,7 +126,7 @@ def _nav_card(icon, title, description, href):
                 dbc.CardBody(
                     [
                         html.I(className=f"bi {icon} ico d-block"),
-                        html.H4(title, className="card-title"),
+                        html.H3(title, className="card-title"),
                         html.P(description, className="card-text text-muted"),
                     ],
                     className="p-4",
@@ -118,21 +134,21 @@ def _nav_card(icon, title, description, href):
                 className="home-navcard",
             ),
             href=href,
-            className="text-decoration-none text-reset",
+            className="text-decoration-none text-reset home-navcard-link",
         ),
         xs=12, sm=6, lg=3,
     )
 
 
 def _nav_section():
-    return dbc.Container(
+    return html.Div(dbc.Container(
         [
             html.H2("Explore the portal", className="mb-4"),
             dbc.Row(
                 [
                     _nav_card(
                         "bi-map",
-                        "Data Portal",
+                        "Sample Metadata",
                         "Explore TREC sampling stations on an interactive map; "
                         "search and filter samples by environment, organism, "
                         "and analysis type.",
@@ -159,10 +175,74 @@ def _nav_section():
                         "/about",
                     ),
                 ],
-                className="g-4 mb-5",
+                className="g-4",
             ),
         ],
         className="trec-page",
+    ),
+    className="home-nav-section"
+    )
+
+
+def _about_section():
+    return dbc.Container(
+        dbc.Row(
+            [
+                dbc.Col(
+                    [
+                        html.H2("A scientific voyage to address environmental challenges"),
+                        html.P(
+                            "With TREC, we embark on a journey through European "
+                            "coastlines to explore biodiversity and molecular "
+                            "adaptability of microbial communities as well as "
+                            "key selected organisms. We fouc on coastal habitats "
+                            "as they are the richest in species biodiversity and "
+                            "they also often present the highest levels of pollution.",
+                        ),
+                        html.P(
+                            "By combining the expertise and infrastructure of EMBL "
+                            "and multiple European partners, TREC aims to initiate "
+                            "a new era of coastal ecosystems exploration. The goal "
+                            "is timely and ambitious - to observe, model, and "
+                            "understand the effects of changing environments on "
+                            "on organisms and communities, at the cellular and "
+                            "molecular levels.",
+                        ),
+                        html.P(
+                            [
+                                "TREC is a flagship project of ",
+                                html.A(
+                                    html.Strong("Planetary Biology"),
+                                    href="https://www.embl.org/about/info/planetary-biology/",
+                                    className="home-planetary-link",
+                                ),
+                                ", one of the transversal themes launched by EMBL's programme \"",
+                                html.A(
+                                    "Molecules to Ecosystems",
+                                    href="https://www.embl.org/about/programme/",
+                                ),
+                                "\" 2022–2026.",
+                            ]
+                        ),
+                    ],
+                    md=8,
+                ),
+                dbc.Col(
+                    html.Img(
+                        src=(
+                            "https://www.embl.org/about/info/trec/"
+                            "wp-content/uploads/2023/02/"
+                            "20230126_TREC_Tag_RGB-s.jpg"
+                        ),
+                        className="img-fluid home-about-logo",
+                        alt="TREC expedition logo",
+                    ),
+                    md=4,
+                ),
+            ],
+            className="align-items-center",
+        ),
+        className="trec-page home-about-section",
     )
 
 
@@ -171,4 +251,5 @@ def layout():
         _hero(),
         _stats_section(),
         _nav_section(),
+        _about_section(),
     ])
