@@ -55,7 +55,7 @@ def _hero():
             html.Div(
                 [
                     html.H1(
-                        "TREC Data Portal"
+                        "TREC"
                     ),
                     html.H2(
                         "Transversing European Coastlines"

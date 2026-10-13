@@ -46,7 +46,7 @@ def _site_header():
         html.Div(
             [
                 dcc.Link(
-                    "TREC",
+                    "TREC Data Portal",
                     href="/",
                     className="trec-logo",
                 ),
