@@ -146,15 +146,34 @@
   border-bottom: 1px solid var(--trec-border);
 }
 
-.home-navcard .ico {
-  color: var(--trec-green);
-  font-size: 1.6rem;
-  margin-bottom: var(--sp-3);
+.home-navcard-title {
+  align-items: center;
+  color: var(--trec-interactive);
+  display: inline-flex;
+  font-size: 1.25rem;
+  font-weight: 700;
+  gap: var(--sp-2);
+  line-height: 1.2;
+  margin-bottom: var(--sp-2);
 }
 
-.home-navcard h3 {
+.home-navcard-arrow {
+  align-items: center;
+  background: var(--trec-interactive);
+  border-radius: 50%;
+  color: #fff;
+  display: inline-grid;
+  flex: 0 0 auto;
+  height: 1.65rem;
+  justify-content: center;
+  width: 1.65rem;
+}
+
+.home-navcard-arrow .bi {
+  display: block;
   font-size: 1.15rem;
-  margin-bottom: var(--sp-2);
+  font-weight: 700;
+  line-height: 1;
 }
 
 .home-navcard-link,
