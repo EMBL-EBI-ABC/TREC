@@ -136,7 +136,7 @@ def _nav_card(icon, title, description, href):
             href=href,
             className="text-decoration-none text-reset home-navcard-link",
         ),
-        xs=12, sm=6, lg=3,
+        xs=12, md=4,
     )
 
 
@@ -166,13 +166,6 @@ def _nav_section():
                         "API Documentation",
                         "Access TREC data programmatically through our REST API.",
                         "/api",
-                    ),
-                    _nav_card(
-                        "bi-info-circle",
-                        "About",
-                        "Learn about the TREC expedition and its mission to "
-                        "explore coastal ecosystems across Europe.",
-                        "/about",
                     ),
                 ],
                 className="g-4",
