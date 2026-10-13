@@ -72,11 +72,6 @@ def _hero():
                                 href="/data-portal",
                                 className="btn trec-btn-primary",
                             ),
-                            dcc.Link(
-                                "About TREC",
-                                href="/about",
-                                className="btn trec-btn-secondary",
-                            ),
                         ],
                         className="mt-4 d-flex flex-wrap gap-3",
                     ),
