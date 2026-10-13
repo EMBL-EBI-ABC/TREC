@@ -55,7 +55,7 @@ def _hero():
             html.Div(
                 [
                     html.H1(
-                        "TREC Data Portal"
+                        "TREC"
                     ),
                     html.H2(
                         "Transversing European Coastlines"
@@ -71,11 +71,6 @@ def _hero():
                                 "Explore the data",
                                 href="/data-portal",
                                 className="btn trec-btn-primary",
-                            ),
-                            dcc.Link(
-                                "About TREC",
-                                href="/about",
-                                className="btn trec-btn-secondary",
                             ),
                         ],
                         className="mt-4 d-flex flex-wrap gap-3",
@@ -119,24 +114,40 @@ def _stats_section():
     )
 
 
-def _nav_card(icon, title, description, href):
+def _nav_card(title, description, href, image_src):
     return dbc.Col(
         html.A(
             dbc.Card(
-                dbc.CardBody(
-                    [
-                        html.I(className=f"bi {icon} ico d-block"),
-                        html.H3(title, className="card-title"),
-                        html.P(description, className="card-text text-muted"),
-                    ],
-                    className="p-4",
-                ),
+                [
+                    html.Img(
+                        src=image_src,
+                        alt="",
+                        className="home-navcard-image",
+                    ),
+                    dbc.CardBody(
+                        [
+                            html.H3(
+                                [
+                                    html.Span(title),
+                                    html.Span(
+                                        html.I(className="bi bi-arrow-right"),
+                                        className="home-navcard-arrow",
+                                        **{"aria-hidden": "true"},
+                                    ),
+                                ],
+                                className="card-title home-navcard-title",
+                            ),
+                            html.P(description, className="card-text text-muted"),
+                        ],
+                        className="p-4",
+                    ),
+                ],
                 className="home-navcard",
             ),
             href=href,
             className="text-decoration-none text-reset home-navcard-link",
         ),
-        xs=12, sm=6, lg=3,
+        xs=12, md=4,
     )
 
 
@@ -147,32 +158,25 @@ def _nav_section():
             dbc.Row(
                 [
                     _nav_card(
-                        "bi-map",
                         "Sample Metadata",
                         "Explore TREC sampling stations on an interactive map; "
                         "search and filter samples by environment, organism, "
                         "and analysis type.",
                         "/data-portal",
+                        "/assets/image_navcard_1.jpg"
                     ),
                     _nav_card(
-                        "bi-grid-3x3",
                         "Data Availability",
                         "See which data types are available at each station — "
                         "metagenomics, metabolomics, imaging, and more.",
                         "/availability",
+                        "/assets/image_navcard_2.jpg"
                     ),
                     _nav_card(
-                        "bi-code-slash",
                         "API Documentation",
                         "Access TREC data programmatically through our REST API.",
                         "/api",
-                    ),
-                    _nav_card(
-                        "bi-info-circle",
-                        "About",
-                        "Learn about the TREC expedition and its mission to "
-                        "explore coastal ecosystems across Europe.",
-                        "/about",
+                        "/assets/image_navcard_3.jpg"
                     ),
                 ],
                 className="g-4",
