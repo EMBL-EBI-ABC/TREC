@@ -138,6 +138,14 @@
   outline-offset: 2px;
 }
 
+.home-navcard-image {
+  display: block;
+  width: 100%;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+  border-bottom: 1px solid var(--trec-border);
+}
+
 .home-navcard .ico {
   color: var(--trec-green);
   font-size: 1.6rem;

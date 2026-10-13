@@ -114,18 +114,25 @@ def _stats_section():
     )
 
 
-def _nav_card(icon, title, description, href):
+def _nav_card(icon, title, description, href, image_src):
     return dbc.Col(
         html.A(
             dbc.Card(
-                dbc.CardBody(
-                    [
-                        html.I(className=f"bi {icon} ico d-block"),
-                        html.H3(title, className="card-title"),
-                        html.P(description, className="card-text text-muted"),
-                    ],
-                    className="p-4",
-                ),
+                [
+                    html.Img(
+                        src=image_src,
+                        alt="",
+                        className="home-navcard-image",
+                    ),
+                    dbc.CardBody(
+                        [
+                            html.I(className=f"bi {icon} ico d-block"),
+                            html.H3(title, className="card-title"),
+                            html.P(description, className="card-text text-muted"),
+                        ],
+                        className="p-4",
+                    ),
+                ],
                 className="home-navcard",
             ),
             href=href,
@@ -148,6 +155,7 @@ def _nav_section():
                         "search and filter samples by environment, organism, "
                         "and analysis type.",
                         "/data-portal",
+                        "/assets/image_navcard_1.jpg"
                     ),
                     _nav_card(
                         "bi-grid-3x3",
@@ -155,12 +163,14 @@ def _nav_section():
                         "See which data types are available at each station — "
                         "metagenomics, metabolomics, imaging, and more.",
                         "/availability",
+                        "/assets/image_navcard_2.jpg"
                     ),
                     _nav_card(
                         "bi-code-slash",
                         "API Documentation",
                         "Access TREC data programmatically through our REST API.",
                         "/api",
+                        "/assets/image_navcard_3.jpg"
                     ),
                 ],
                 className="g-4",
