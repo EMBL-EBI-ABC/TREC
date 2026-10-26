@@ -17,7 +17,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-ES_INDEX = os.getenv("ES_INDEX", "data_portal_development_5")
+# ES_INDEX = os.getenv("ES_INDEX", "data_portal_development_5")
+ES_INDEX = os.getenv("ES_INDEX", "data_portal_alias")
 
 from fastapi import FastAPI, HTTPException, Query, Path
 from elasticsearch import AsyncElasticsearch
