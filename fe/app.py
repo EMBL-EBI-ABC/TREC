@@ -32,11 +32,66 @@ app.index_string = """<!DOCTYPE html>
         {%css%}
     </head>
     <body>
+        <header id="masthead-black-bar"
+            class="clearfix masthead-black-bar ebi-header-footer vf-content vf-u-fullbleed">
+        <div>
+            <nav id="search-bar" class="search-bar global-masthead-interactive-banner">
+                <div class="row padding-bottom-medium">
+                    <div class="columns padding-top-medium">
+                        <button class="close-button" aria-label="Close search" type="button">
+                            <span aria-hidden="true">x</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="row">
+                    <form id="global-search" name="global-search"
+                          action="https://www.ebi.ac.uk/ebisearch/search.ebi"
+                          method="GET">
+                        <div class="input-group">
+                            <label class="vf-form__label vf-u-sr-only"
+                                   for="global-searchbox">Search all of EMBL-EBI</label>
+                            <input type="text" name="query" id="global-searchbox"
+                                   class="input-group-field"
+                                   placeholder="Search all of EMBL-EBI">
+                            <div class="input-group-button">
+                                <input type="submit" name="submit" value="Search" class="button">
+                                <input type="hidden" name="db" value="allebi">
+                                <input type="hidden" name="requestFrom" value="ebi_index">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </nav>
+        </div>
+        <div>
+            <nav class="row" aria-label="EMBL-EBI global navigation">
+                <ul id="global-nav" class="menu global-nav text-right"
+                    data-vf-google-analytics-region="Black bar">
+                    <li class="float-right show-for-medium embl-ebi">
+                        <a class="float-right custom-ebi-logo-bg custom-ebi-logo-bg-transparent-text"
+                           href="https://www.ebi.ac.uk/">EMBL-EBI</a>
+                    </li>
+                    <li class="float-right search">
+                        <a href="#" class="inline-block collpased float-left search-toggle"
+                           aria-label="Open EMBL-EBI search">
+                            <span class="show-for-small-only">Search</span>
+                        </a>
+                    </li>
+                    <li class="what about"><a href="https://www.ebi.ac.uk/about">About us</a></li>
+                    <li class="what training"><a href="https://www.ebi.ac.uk/training">Training</a></li>
+                    <li class="what research"><a href="https://www.ebi.ac.uk/research">Research</a></li>
+                    <li class="what services"><a href="https://www.ebi.ac.uk/services">Services</a></li>
+                    <li class="where ebi"><a href="https://www.ebi.ac.uk/">EMBL-EBI home</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
         {%app_entry%}
         <footer>
             {%config%}
             {%scripts%}
             {%renderer%}
+            <script src="https://assets.emblstatic.net/vf/v2.5.30/scripts/scripts.js"></script>
         </footer>
     </body>
 </html>"""
