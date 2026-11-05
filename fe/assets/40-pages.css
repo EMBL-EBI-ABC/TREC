@@ -167,11 +167,16 @@
   align-items: center;
   color: var(--trec-interactive);
   display: inline-flex;
-  font-size: 1.25rem;
-  font-weight: 700;
+  font-size: 1.5rem;
+  font-weight: 500;
   gap: var(--sp-2);
   line-height: 1.2;
   margin-bottom: var(--sp-2);
+}
+
+.home-navcard .card-text {
+  font-size: 1.5rem;
+  font-weight: 500;
 }
 
 .home-navcard-arrow {
@@ -275,6 +280,16 @@
   padding-top: var(--sp-3);
 }
 
+.home-about-section h2 {
+  font-size: 1.5rem; /* 24px */
+  font-weight: 500;
+}
+
+.home-about-section p {
+  font-size: 1.1875rem; /* 19px */
+  font-weight: 400;
+}
+
 .home-about-logo {
   display: block;
   width: 100%;
@@ -290,4 +305,9 @@
 /* ===== Home navigation section ===== */
 .home-nav-section {
   background: var(--trec-paper-2);
+}
+
+.home-nav-section h2 {
+  font-size: 1.5rem; /* 24px */
+  font-weight: 500;
 }
