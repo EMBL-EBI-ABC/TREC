@@ -28,14 +28,70 @@ app.index_string = """<!DOCTYPE html>
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="https://assets.emblstatic.net/vf/v2.5.30/css/styles.css">
         {%css%}
     </head>
     <body>
+        <header id="masthead-black-bar"
+            class="clearfix masthead-black-bar ebi-header-footer vf-content vf-u-fullbleed">
+        <div>
+            <nav id="search-bar" class="search-bar global-masthead-interactive-banner">
+                <div class="row padding-bottom-medium">
+                    <div class="columns padding-top-medium">
+                        <button class="close-button" aria-label="Close search" type="button">
+                            <span aria-hidden="true">x</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="row">
+                    <form id="global-search" name="global-search"
+                          action="https://www.ebi.ac.uk/ebisearch/search.ebi"
+                          method="GET">
+                        <div class="input-group">
+                            <label class="vf-form__label vf-u-sr-only"
+                                   for="global-searchbox">Search all of EMBL-EBI</label>
+                            <input type="text" name="query" id="global-searchbox"
+                                   class="input-group-field"
+                                   placeholder="Search all of EMBL-EBI">
+                            <div class="input-group-button">
+                                <input type="submit" name="submit" value="Search" class="button">
+                                <input type="hidden" name="db" value="allebi">
+                                <input type="hidden" name="requestFrom" value="ebi_index">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </nav>
+        </div>
+        <div>
+            <nav class="row" aria-label="EMBL-EBI global navigation">
+                <ul id="global-nav" class="menu global-nav text-right"
+                    data-vf-google-analytics-region="Black bar">
+                    <li class="float-right show-for-medium embl-ebi">
+                        <a class="float-right custom-ebi-logo-bg custom-ebi-logo-bg-transparent-text"
+                           href="https://www.ebi.ac.uk/">EMBL-EBI</a>
+                    </li>
+                    <li class="float-right search">
+                        <a href="#" class="inline-block collpased float-left search-toggle"
+                           aria-label="Open EMBL-EBI search">
+                            <span class="show-for-small-only">Search</span>
+                        </a>
+                    </li>
+                    <li class="what about"><a href="https://www.ebi.ac.uk/about">About us</a></li>
+                    <li class="what training"><a href="https://www.ebi.ac.uk/training">Training</a></li>
+                    <li class="what research"><a href="https://www.ebi.ac.uk/research">Research</a></li>
+                    <li class="what services"><a href="https://www.ebi.ac.uk/services">Services</a></li>
+                    <li class="where ebi"><a href="https://www.ebi.ac.uk/">EMBL-EBI home</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
         {%app_entry%}
         <footer>
             {%config%}
             {%scripts%}
             {%renderer%}
+            <script src="https://assets.emblstatic.net/vf/v2.5.30/scripts/scripts.js"></script>
         </footer>
     </body>
 </html>"""
@@ -43,7 +99,7 @@ app.index_string = """<!DOCTYPE html>
 
 def _site_header():
     return html.Header(
-        html.Div(
+        dbc.Container(
             [
                 dcc.Link(
                     "TREC Data Portal",
@@ -64,8 +120,8 @@ def _site_header():
                 ),
             ],
             className=(
-                "d-flex align-items-center justify-content-between "
-                "h-100 px-3 px-md-4"
+                "trec-header-container d-flex align-items-center "
+                "justify-content-between h-100"
             ),
         ),
         className="trec-header",
@@ -73,52 +129,79 @@ def _site_header():
     )
 
 
+def _grey_bar():
+    return html.Div(
+        dbc.Container(
+            html.Div(
+                html.Div(
+                    html.A(
+                        html.Img(
+                            src="/assets/EMBL_logo_black_DIGITAL.png",
+                            alt="EMBL",
+                            className="trec-affiliation-logo",
+                        ),
+                        href="https://www.embl.org",
+                    ),
+                    className="vf-flag__media",
+                ),
+                className="vf-flag vf-flag--middle vf-flag--400",
+            ),
+        ),
+        className="trec-affiliation-bar",
+    )
+
 def _site_footer():
     footer_columns = [
         (
             "Services",
+            "https://www.ebi.ac.uk/services",
             [
-                ("Data resources and tools", "https://www.ebi.ac.uk/services/data-resources-and-tools/"),
+                ("Data resources and tools", "https://www.ebi.ac.uk/services/data-resources-and-tools"),
                 ("Data submission", "https://www.ebi.ac.uk/submission"),
-                ("Support and feedback", "https://www.ebi.ac.uk/about/contact/support/"),
-                ("Licensing", "https://www.ebi.ac.uk/licencing/"),
-                ("Long-term data preservation", "https://www.ebi.ac.uk/long-term-data-preservation/"),
+                ("Support and feedback", "https://www.ebi.ac.uk/support"),
+                ("Licensing", "https://www.ebi.ac.uk/licencing"),
+                ("Long-term data preservation", "https://www.ebi.ac.uk/long-term-data-preservation"),
             ],
         ),
         (
             "Research",
+            "https://www.ebi.ac.uk/research",
             [
-                ("Publications", "https://www.ebi.ac.uk/research/publications/"),
-                ("Research groups", "https://www.ebi.ac.uk/research/groups/"),
-                ("Postdocs and PhDs", "https://www.ebi.ac.uk/research/postdocs/"),
+                ("Publications", "https://www.ebi.ac.uk/research/publications"),
+                ("Research groups", "https://www.ebi.ac.uk/research/groups"),
+                ("Postdocs", "https://www.ebi.ac.uk/research/postdocs"),
+                ("PhDs", "https://www.ebi.ac.uk/research/eipp"),
             ],
         ),
         (
             "Training",
+            "https://www.ebi.ac.uk/training",
             [
                 ("Live training", "https://www.ebi.ac.uk/training/live-events"),
                 ("On-demand training", "https://www.ebi.ac.uk/training/on-demand"),
                 ("Support for trainers", "https://www.ebi.ac.uk/training/trainer-support"),
-                ("Contact organisers", "https://www.ebi.ac.uk/about/contact/support/training"),
+                ("Contact organisers", "https://www.ebi.ac.uk/training/contact-us"),
             ],
         ),
         (
             "Industry",
+            "https://www.ebi.ac.uk/industry",
             [
-                ("Members Area", None),
-                ("Contact Industry team", "https://www.ebi.ac.uk/industry/"),
+                ("Members Area", "https://www.ebi.ac.uk/industry/private/members-area/"),
+                ("Contact Industry team", "https://www.ebi.ac.uk/industry/contact-us"),
             ],
         ),
         (
             "About",
+            "https://www.ebi.ac.uk/about",
             [
-                ("FAQ", "https://www.ebi.ac.uk/about/faq/"),
-                ("Contact us", "https://www.ebi.ac.uk/about/contact/"),
-                ("Events", "https://www.ebi.ac.uk/about/events/"),
-                ("Jobs", "https://www.ebi.ac.uk/careers/"),
-                ("News", "https://www.ebi.ac.uk/about/news/"),
-                ("People and groups", "https://www.ebi.ac.uk/people/"),
-                ("Intranet for staff", "https://intranet.ebi.ac.uk/"),
+                ("FAQ", "https://www.ebi.ac.uk/about/faq"),
+                ("Contact us", "https://www.ebi.ac.uk/about/contact"),
+                ("Events", "https://www.ebi.ac.uk/about/events"),
+                ("Jobs", "https://www.ebi.ac.uk/about/jobs"),
+                ("News", "https://www.ebi.ac.uk/about/news"),
+                ("People and groups", "https://www.ebi.ac.uk/about/people"),
+                ("Intranet for staff", "https://intranet.ebi.ac.uk"),
             ],
         ),
     ]
@@ -126,28 +209,30 @@ def _site_footer():
     return html.Footer(
         html.Div(
             [
-                html.Div(
-                    [
-                        html.P(
-                            "EMBL-EBI is the home for big data in biology.",
-                            className="trec-footer-intro",
-                        ),
-                        html.P(
-                            "We help scientists exploit complex information "
-                            "to make discoveries that benefit humankind.",
-                            className="trec-footer-intro",
-                        ),
-                    ],
-                    className="trec-footer-intro-block",
+                html.P(
+                    html.A(
+                        "EMBL-EBI is the home for big data in biology.",
+                        href="https://www.ebi.ac.uk/about/our-impact",
+                        className="vf-footer__link",
+                    ),
+                    className="vf-footer__notice",
                 ),
-
+                html.P(
+                    "We help scientists exploit complex information "
+                    "to make discoveries that benefit humankind.",
+                    className="vf-footer__notice",
+                ),
                 html.Div(
                     [
                         html.Div(
                             [
-                                html.H2(
-                                    heading,
-                                    className="trec-footer-heading",
+                                html.H4(
+                                    html.A(
+                                        heading,
+                                        href=heading_url,
+                                        className="vf-heading__link",
+                                    ),
+                                    className="vf-links__heading",
                                 ),
                                 html.Ul(
                                     [
@@ -155,55 +240,91 @@ def _site_footer():
                                             html.A(
                                                 label,
                                                 href=href,
-                                                className="trec-footer-link",
-                                            )
-                                            if href
-                                            else html.Span(
-                                                label,
-                                                className="trec-footer-placeholder",
-                                            )
+                                                className="vf-list__link",
+                                            ),
+                                            className="vf-list__item",
                                         )
                                         for label, href in links
                                     ],
-                                    className="trec-footer-list",
+                                    className="vf-links__list vf-list",
                                 ),
                             ],
-                            className="trec-footer-column",
+                            className="vf-links",
                         )
-                        for heading, links in footer_columns
+                        for heading, heading_url, links in footer_columns
                     ],
-                    className="trec-footer-grid",
+                    className="vf-footer__links-group vf-grid",
                 ),
-
-                html.Div(className="trec-footer-divider"),
-
-                html.Div(
+                html.P(
                     [
                         html.Span(
-                            "EMBL-EBI, Wellcome Genome Campus, "
-                            "Hinxton, Cambridgeshire, CB10 1SD, UK."
+                            html.A(
+                                "EMBL-EBI, Wellcome Genome Campus, "
+                                "Hinxton, Cambridgeshire, CB10 1SD, UK.",
+                                href=(
+                                    "https://www.google.co.uk/maps/place/"
+                                    "Hinxton,+Saffron+Walden+CB10+1SD/"
+                                    "@52.0815334,0.1891518,17z/"
+                                    "data=!3m1!4b1!4m5!3m4!"
+                                    "1s0x47d87ccbfbd2538b:0x7bbdb4cde2779ff3!"
+                                    "8m2!3d52.0800838!4d0.186415"
+                                ),
+                                className="vf-footer__link",
+                            ),
+                            className="vf-footer__legal-text",
                         ),
-                        html.Span("Tel: +44 (0)1223 49 44 44"),
-                        html.Span("Full contact details"),
-                    ],
-                    className="trec-footer-contact",
-                ),
-
-                html.Div(
-                    [
-                        html.Span("Copyright © EMBL 2026"),
                         html.Span(
-                            "EMBL-EBI is part of the European Molecular "
-                            "Biology Laboratory"
+                            html.A(
+                                "Tel: +44 (0)1223 49 44 44",
+                                href="tel:00441223494444",
+                                className="vf-footer__link",
+                            ),
+                            className="vf-footer__legal-text",
                         ),
-                        html.Span("Terms of use"),
+                        html.Span(
+                            html.A(
+                                "Full contact details",
+                                href="https://www.ebi.ac.uk/about/contact",
+                                className="vf-footer__link",
+                            ),
+                            className="vf-footer__legal-text",
+                        ),
                     ],
-                    className="trec-footer-legal",
+                    className="vf-footer__legal",
+                ),
+                html.P(
+                    [
+                        html.Span(
+                            "Copyright © EMBL 2026",
+                            className="vf-footer__legal-text",
+                        ),
+                        html.Span(
+                            [
+                                "EMBL-EBI is part of the ",
+                                html.A(
+                                    "European Molecular Biology Laboratory",
+                                    href="https://www.embl.org",
+                                    className="vf-footer__link",
+                                ),
+                            ],
+                            className="vf-footer__legal-text",
+                        ),
+                        html.Span(
+                            html.A(
+                                "Terms of use",
+                                href="https://www.ebi.ac.uk/about/terms-of-use",
+                                className="vf-footer__link",
+                            ),
+                            className="vf-footer__legal-text",
+                        ),
+                    ],
+                    className="vf-footer__legal",
                 ),
             ],
-            className="trec-footer-inner",
+            className="vf-footer__inner",
         ),
-        className="trec-footer",
+        className="vf-footer",
+        **{"data-vf-google-analytics-region": "ebi-footer"},
     )
 
 
@@ -212,6 +333,7 @@ app.layout = html.Div(
         dcc.Location(id="trec-nav-url", refresh=False),
         _site_header(),
         html.Div(dash.page_container, style={"flex": "1 0 auto"}),
+        _grey_bar(),
         _site_footer(),
     ],
     style={
