@@ -52,31 +52,34 @@ def _hero():
                 className="home-hero-picture",
             ),
 
-            html.Div(
-                [
-                    html.H1(
-                        "TREC"
-                    ),
-                    html.H2(
-                        "Transversing European Coastlines"
-                    ),
-                    html.P(
-                        "Explore biodiversity and molecular adaptation across "
-                        "European coastal ecosystems — from molecules to communities.",
-                        className="lead",
-                    ),
-                    html.Div(
-                        [
-                            dcc.Link(
-                                "Explore the data",
-                                href="/data-portal",
-                                className="btn trec-btn-primary",
-                            ),
-                        ],
-                        className="mt-4 d-flex flex-wrap gap-3",
-                    ),
-                ],
-                className="home-hero-inner",
+            dbc.Container(
+                html.Div(
+                    [
+                        html.H1(
+                            "TREC"
+                        ),
+                        html.H2(
+                            "Transversing European Coastlines"
+                        ),
+                        html.P(
+                            "Explore biodiversity and molecular adaptation across "
+                            "European coastal ecosystems — from molecules to communities.",
+                            className="lead",
+                        ),
+                        html.Div(
+                            [
+                                dcc.Link(
+                                    "Explore the data",
+                                    href="/data-portal",
+                                    className="btn trec-btn-primary",
+                                ),
+                            ],
+                            className="mt-4 d-flex flex-wrap gap-3",
+                        ),
+                    ],
+                    className="home-hero-inner",
+                ),
+                className="home-hero-container",
             ),
         ],
         className="home-hero",
@@ -137,7 +140,10 @@ def _nav_card(title, description, href, image_src):
                                 ],
                                 className="card-title home-navcard-title",
                             ),
-                            html.P(description, className="card-text text-muted"),
+                            html.P(
+                                description,
+                                className="card-text text-muted vf-text-body vf-text-body--2",
+                            ),
                         ],
                         className="p-4",
                     ),

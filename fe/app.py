@@ -28,6 +28,7 @@ app.index_string = """<!DOCTYPE html>
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="https://assets.emblstatic.net/vf/v2.5.30/css/styles.css">
         {%css%}
     </head>
     <body>
@@ -43,7 +44,7 @@ app.index_string = """<!DOCTYPE html>
 
 def _site_header():
     return html.Header(
-        html.Div(
+        dbc.Container(
             [
                 dcc.Link(
                     "TREC Data Portal",
@@ -64,8 +65,8 @@ def _site_header():
                 ),
             ],
             className=(
-                "d-flex align-items-center justify-content-between "
-                "h-100 px-3 px-md-4"
+                "trec-header-container d-flex align-items-center "
+                "justify-content-between h-100"
             ),
         ),
         className="trec-header",
