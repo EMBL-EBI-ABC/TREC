@@ -68,3 +68,15 @@
   font-weight: 600;
   border-bottom-color: var(--trec-interactive);
 }
+
+.trec-affiliation-bar {
+  background: var(--trec-paper-2);
+  padding: var(--sp-5) 0;
+}
+
+.trec-affiliation-logo {
+  display: block;
+  width: 120px;
+  max-width: 100%;
+  height: auto;
+}

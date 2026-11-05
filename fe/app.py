@@ -129,6 +129,27 @@ def _site_header():
     )
 
 
+def _grey_bar():
+    return html.Div(
+        dbc.Container(
+            html.Div(
+                html.Div(
+                    html.A(
+                        html.Img(
+                            src="/assets/EMBL_logo_black_DIGITAL.png",
+                            alt="EMBL",
+                            className="trec-affiliation-logo",
+                        ),
+                        href="https://www.embl.org",
+                    ),
+                    className="vf-flag__media",
+                ),
+                className="vf-flag vf-flag--middle vf-flag--400",
+            ),
+        ),
+        className="trec-affiliation-bar",
+    )
+
 def _site_footer():
     footer_columns = [
         (
@@ -312,6 +333,7 @@ app.layout = html.Div(
         dcc.Location(id="trec-nav-url", refresh=False),
         _site_header(),
         html.Div(dash.page_container, style={"flex": "1 0 auto"}),
+        _grey_bar(),
         _site_footer(),
     ],
     style={
