@@ -101,6 +101,29 @@
 }
 
 /* ===== Home stat strip ===== */
+.home-stats-container {
+  padding-inline: 0;
+}
+
+/* First statistic in each row */
+@media (max-width: 767px) {
+  .home-stats .g-0 > [class*="col"]:nth-child(2n + 1) .home-stat {
+    padding-left: 0;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  .home-stats .g-0 > [class*="col"]:nth-child(3n + 1) .home-stat {
+    padding-left: 0;
+  }
+}
+
+@media (min-width: 992px) {
+  .home-stats .g-0 > [class*="col"]:first-child .home-stat {
+    padding-left: 0;
+  }
+}
+
 .home-stats {
   background: var(--trec-paper-2);
   border-bottom: 1px solid var(--trec-border);
@@ -116,17 +139,17 @@
 }
 
 .home-stat .n {
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-size: 1.9rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--trec-ink);
   line-height: 1;
 }
 
 .home-stat .l {
-  font-size: .72rem;
-  letter-spacing: .12em;
-  text-transform: uppercase;
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  font-weight: 400;
   color: var(--trec-muted);
   margin-top: var(--sp-2);
 }

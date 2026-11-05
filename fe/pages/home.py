@@ -89,29 +89,32 @@ def _hero():
 def _stats_section():
     stats_data = _fetch_stats()
     items = [
-        ("Stations", stats_data.get("total_stations")),
         ("Countries", stats_data.get("total_countries")),
-        ("Source Samples", stats_data.get("total_source_samples")),
+        ("Stations", stats_data.get("total_stations")),
         ("Total Samples", stats_data.get("total_samples")),
+        ("Source Samples", stats_data.get("total_source_samples")),
         ("With Imaging", stats_data.get("total_with_images")),
         ("With ENA Data", stats_data.get("total_with_ena")),
     ]
     return html.Div(
-        dbc.Row(
-            [
-                dbc.Col(
-                    html.Div(
-                        [
-                            html.Div(_fmt(val), className="n"),
-                            html.Div(label, className="l"),
-                        ],
-                        className="home-stat",
-                    ),
-                    xs=6, md=4, lg=2,
-                )
-                for label, val in items
-            ],
-            className="g-0",
+        dbc.Container(
+            dbc.Row(
+                [
+                    dbc.Col(
+                        html.Div(
+                            [
+                                html.Div(_fmt(val), className="n"),
+                                html.Div(label, className="l"),
+                            ],
+                            className="home-stat",
+                        ),
+                        xs=6, md=4, lg=2,
+                    )
+                    for label, val in items
+                ],
+                className="g-0",
+            ),
+            className="home-stats-container",
         ),
         className="home-stats",
     )
@@ -259,7 +262,7 @@ def _about_section():
 def layout():
     return html.Div([
         _hero(),
-        _stats_section(),
         _nav_section(),
         _about_section(),
+        _stats_section(),
     ])
