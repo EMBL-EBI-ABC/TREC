@@ -44,16 +44,6 @@
   transition: color .15s, border-color .15s;
 }
 
-.trec-nav-link:hover {
-  color: var(--trec-interactive-hover);
-}
-
-.trec-nav-link--active {
-  color: var(--trec-interactive-hover);
-  font-weight: 600;
-  border-bottom-color: var(--trec-interactive);
-}
-
 .trec-nav-link:visited {
   color: var(--trec-interactive);
 }
