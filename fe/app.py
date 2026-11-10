@@ -133,17 +133,37 @@ def _grey_bar():
     return html.Div(
         dbc.Container(
             html.Div(
-                html.Div(
-                    html.A(
-                        html.Img(
-                            src="/assets/EMBL_logo_black_DIGITAL.png",
-                            alt="EMBL",
-                            className="trec-affiliation-logo",
+                [
+                    html.Div(
+                        html.A(
+                            html.Img(
+                                src="/assets/EMBL_logo_black_DIGITAL.png",
+                                alt="EMBL",
+                                className="trec-affiliation-logo",
+                            ),
+                            href="https://www.embl.org",
                         ),
-                        href="https://www.embl.org",
+                        className="vf-flag__media",
                     ),
-                    className="vf-flag__media",
-                ),
+                    html.Div(
+                        html.P(
+                            [
+                                "TREC is the flagship project of the ",
+                                html.A(
+                                    html.A("Planetary Biology"),
+                                    href="https://www.embl.org/about/info/planetary-biology/",
+                                ),
+                                " transversal themes in EMBL's programme \"",
+                                html.A(
+                                    "Molecules to Ecosystems",
+                                    href="https://www.embl.org/about/programme/",
+                                ),
+                                "\" (2022–2026).",
+                            ]
+                        ),
+                        className="vf-flag__body",
+                    ),
+                ],
                 className="vf-flag vf-flag--middle vf-flag--400",
             ),
         ),
