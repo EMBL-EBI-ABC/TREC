@@ -59,7 +59,7 @@ def _hero():
                             "TREC"
                         ),
                         html.H2(
-                            "Transversing European Coastlines"
+                            "Traversing European Coastlines"
                         ),
                         html.P(
                             "Open biomolecular data from Europe’s coasts to explore "
