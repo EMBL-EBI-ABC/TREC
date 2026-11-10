@@ -2,15 +2,8 @@
 .home-hero {
   position: relative;
   overflow: hidden;
-
   background-color: var(--trec-green-dark);
-  /*background-image: url("/assets/TREC-Hero-Banner-3000x1000-v1d.jpg");*/
-  /*background-size: cover;*/
-  /*background-position: center center;*/
-  /*background-repeat: no-repeat;*/
-
   padding: var(--sp-6) 0;
-
   min-height: 380px;
   display: flex;
   align-items: center;
@@ -47,14 +40,6 @@
   color: var(--trec-ink);
 
   border: 1px solid var(--trec-border);
-}
-
-.home-hero .eyebrow {
-  font-size: .75rem;
-  letter-spacing: .18em;
-  text-transform: uppercase;
-  color: var(--trec-green-dark);
-  margin-bottom: var(--sp-4);
 }
 
 .home-hero h1 {
