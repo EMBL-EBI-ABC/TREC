@@ -59,11 +59,11 @@ def _hero():
                             "TREC"
                         ),
                         html.H2(
-                            "Transversing European Coastlines"
+                            "Traversing European Coastlines"
                         ),
                         html.P(
-                            "Explore biodiversity and molecular adaptation across "
-                            "European coastal ecosystems — from molecules to communities.",
+                            "Open biomolecular data from Europe’s coasts to explore "
+                            "biodiversity and molecular adaptation.",
                             className="lead",
                         ),
                         html.Div(
@@ -89,12 +89,12 @@ def _hero():
 def _stats_section():
     stats_data = _fetch_stats()
     items = [
-        ("Countries", stats_data.get("total_countries")),
-        ("Stations", stats_data.get("total_stations")),
-        ("Total Samples", stats_data.get("total_samples")),
-        ("Source Samples", stats_data.get("total_source_samples")),
-        ("With Imaging", stats_data.get("total_with_images")),
-        ("With ENA Data", stats_data.get("total_with_ena")),
+        ("countries", stats_data.get("total_countries")),
+        ("stations", stats_data.get("total_stations")),
+        ("total samples", stats_data.get("total_samples")),
+        ("source samples", stats_data.get("total_source_samples")),
+        ("with imaging", stats_data.get("total_with_images")),
+        ("with ENA data", stats_data.get("total_with_ena")),
     ]
     return html.Div(
         dbc.Container(
@@ -167,7 +167,7 @@ def _nav_section():
             dbc.Row(
                 [
                     _nav_card(
-                        "Sample Metadata",
+                        "Sample metadata",
                         "Explore TREC sampling stations on an interactive map; "
                         "search and filter samples by environment, organism, "
                         "and analysis type.",
@@ -175,14 +175,14 @@ def _nav_section():
                         "/assets/image_navcard_1.jpg"
                     ),
                     _nav_card(
-                        "Data Availability",
+                        "Data availability",
                         "See which data types are available at each station — "
                         "metagenomics, metabolomics, imaging, and more.",
                         "/availability",
                         "/assets/image_navcard_2.jpg"
                     ),
                     _nav_card(
-                        "API Documentation",
+                        "API documentation",
                         "Access TREC data programmatically through our REST API.",
                         "/api",
                         "/assets/image_navcard_3.jpg"
@@ -205,12 +205,20 @@ def _about_section():
                     [
                         html.H2("A scientific voyage to address environmental challenges"),
                         html.P(
-                            "With TREC, we embark on a journey through European "
-                            "coastlines to explore biodiversity and molecular "
-                            "adaptability of microbial communities as well as "
-                            "key selected organisms. We fouc on coastal habitats "
-                            "as they are the richest in species biodiversity and "
-                            "they also often present the highest levels of pollution.",
+                            [
+                                "With ",
+                                html.A(
+                                    html.Strong("TREC"),
+                                    href="https://www.embl.org/about/info/trec/",
+                                    className="home-planetary-link",
+                                ),
+                                ", we embarked on a journey through European "
+                                "coastlines to explore biodiversity and molecular "
+                                "adaptability of microbial communities as well as "
+                                "key selected organisms. We fucus on coastal habitats "
+                                "as they are the richest in species biodiversity and "
+                                "they also often present the highest levels of pollution."
+                            ],
                         ),
                         html.P(
                             "By combining the expertise and infrastructure of EMBL "
@@ -220,22 +228,6 @@ def _about_section():
                             "understand the effects of changing environments on "
                             "on organisms and communities, at the cellular and "
                             "molecular levels.",
-                        ),
-                        html.P(
-                            [
-                                "TREC is a flagship project of ",
-                                html.A(
-                                    html.Strong("Planetary Biology"),
-                                    href="https://www.embl.org/about/info/planetary-biology/",
-                                    className="home-planetary-link",
-                                ),
-                                ", one of the transversal themes launched by EMBL's programme \"",
-                                html.A(
-                                    "Molecules to Ecosystems",
-                                    href="https://www.embl.org/about/programme/",
-                                ),
-                                "\" 2022–2026.",
-                            ]
                         ),
                     ],
                     md=8,
@@ -262,7 +254,7 @@ def _about_section():
 def layout():
     return html.Div([
         _hero(),
+        _stats_section(),
         _nav_section(),
         _about_section(),
-        _stats_section(),
     ])

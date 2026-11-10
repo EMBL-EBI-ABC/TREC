@@ -11,20 +11,32 @@ layout = dbc.Container(
     dbc.Row(
         [
             dbc.Col([
-                html.H1("A scientific voyage to address environmental challenges"),
-                html.P("With TREC, we embark on a journey through European coastlines "
-                       "to explore the biodiversity and molecular adaptability of "
-                       "microbial communities as well as key selected organisms. We "
-                       "focus on coastal habitats as they are the richest in species "
-                       "biodiversity and they also often present the highest levels of "
-                       "pollution. ",
-                       className="lead text-muted"),
-                html.P("By combining the expertise and infrastructure of EMBL and our "
-                       "multiple European partners, TREC aims to initiate a new era of "
-                       "coastal ecosystems exploration. The goal is timely and "
-                       "ambitious – to observe, model, and understand the effects of "
-                       "changing environments on organisms and communities, at the "
-                       "cellular and molecular levels."),
+                html.H2("A scientific voyage to address environmental challenges"),
+                html.P(
+                    [
+                        "With ",
+                        html.A(
+                            html.Strong("TREC"),
+                            href="https://www.embl.org/about/info/trec/",
+                            className="home-planetary-link",
+                        ),
+                        ", we embarked on a journey through European "
+                        "coastlines to explore biodiversity and molecular "
+                        "adaptability of microbial communities as well as "
+                        "key selected organisms. We fucus on coastal habitats "
+                        "as they are the richest in species biodiversity and "
+                        "they also often present the highest levels of pollution."
+                    ],
+                ),
+                html.P(
+                    "By combining the expertise and infrastructure of EMBL "
+                    "and multiple European partners, TREC aims to initiate "
+                    "a new era of coastal ecosystems exploration. The goal "
+                    "is timely and ambitious - to observe, model, and "
+                    "understand the effects of changing environments on "
+                    "on organisms and communities, at the cellular and "
+                    "molecular levels.",
+                ),
                 html.P([
                     "Learn more on the ",
                     html.A(
