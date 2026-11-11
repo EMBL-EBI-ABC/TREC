@@ -110,8 +110,20 @@ def build_detail_page(sample_id):
     sample = resp["results"][0]
     cf = sample.get("customFields") or []
 
-    # TODO: Fix trec_normalise.py data ingestion file: source -> derived from -> target relationship is introducing duplications.
-    #  Bug: derived samples appear duplicated in breadcrumbs, derived table not displayed.
+    # TODO: Remove this workaround after fixing relationship handling in the
+    # ingestion pipeline's trec_normalise.py and rebuilding the index.
+    #
+    # BioSamples may include the same relationship on both related records.
+    # For "source derived from target", source is the derived sample and target
+    # is its parent. The ingestion pipeline currently treats incoming targets as
+    # parents too, which can give a sample its own ID as parent and incorrectly
+    # mark it as non-source. This breaks the breadcrumb and hides the derived
+    # samples table.
+    #
+    # Temporarily remove self-references and treat a sample with only
+    # self-referencing parents as a source. If there are multiple distinct
+    # parents, the page currently displays only the first.
+    #
     # Commented code was the original.
     # parent_id = sample.get("parent_sample_id")
     # station_name = sample.get("station_name")
