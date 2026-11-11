@@ -110,13 +110,38 @@ def build_detail_page(sample_id):
     sample = resp["results"][0]
     cf = sample.get("customFields") or []
 
-    parent_id = sample.get("parent_sample_id")
+    # TODO: Fix trec_normalise.py data ingestion file: source -> derived from -> target relationship is introducing duplications.
+    #  Bug: derived samples appear duplicated in breadcrumbs, derived table not displayed.
+    # Commented code was the original.
+    # parent_id = sample.get("parent_sample_id")
+    # station_name = sample.get("station_name")
+    # is_source = sample.get("is_source_sample", False)
+    # # Don't treat self-referencing parent as a real parent
+    # if parent_id == sample.get("biosampleId"):
+    #     parent_id = None
+    #     is_source = True
+    # Workaround while original problem in data ingestion is fixed
+    # -------- Start
+    sample_id = sample.get("biosampleId")
+    raw_parent = sample.get("parent_sample_id")
+
+    # The API can return a string, a list, or no parent.
+    parent_ids = raw_parent if isinstance(raw_parent, list) else [raw_parent]
+    parent_ids = list(dict.fromkeys(p for p in parent_ids if p))
+
+    # The ingestion bug can put the sample's own ID in its parent list.
+    has_self_reference = sample_id in parent_ids
+    real_parents = [p for p in parent_ids if p != sample_id]
+
+    # The current page displays one parent.
+    parent_id = real_parents[0] if real_parents else None
+
     station_name = sample.get("station_name")
     is_source = sample.get("is_source_sample", False)
-    # Don't treat self-referencing parent as a real parent
-    if parent_id == sample.get("biosampleId"):
-        parent_id = None
+
+    if has_self_reference and not real_parents:
         is_source = True
+    # ----- End of workaround.
 
     # --- Breadcrumb ---
     breadcrumb = make_breadcrumb(sample, station_name, parent_id)
@@ -255,12 +280,34 @@ def build_detail_page(sample_id):
 
     # Mini map
     map_section = html.Div()
-    if sample.get("lat") and sample.get("lon"):
-        df = pd.DataFrame([{"lat": sample["lat"], "lon": sample["lon"]}])
-        fig = px.scatter_map(df, lat="lat", lon="lon", zoom=9)
+
+    lat = sample.get("lat")
+    lon = sample.get("lon")
+
+    if lat is not None and lon is not None:
+        df = pd.DataFrame([{
+            "lat": lat,
+            "lon": lon,
+            "sample_id": sample["biosampleId"],
+        }])
+
+        fig = px.scatter_map(
+            df,
+            lat="lat",
+            lon="lon",
+            hover_name="sample_id",
+            center={"lat": lat, "lon": lon},
+            zoom=9,
+            map_style="carto-positron",
+        )
+        fig.update_traces(marker={"size": 14, "color": "#18974c"})
         fig.update_layout(margin=dict(l=0, r=0, t=0, b=0), height=180)
-        map_section = dcc.Graph(figure=fig, config={"scrollZoom": False},
-                                className="mb-3")
+
+        map_section = dcc.Graph(
+            figure=fig,
+            config={"scrollZoom": False},
+            className="mb-3",
+        )
 
     # Linked data cards
     linked_cards = []
